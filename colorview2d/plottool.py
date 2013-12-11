@@ -51,7 +51,7 @@ class Modlist():
 class MainFrame(wx.Frame):
 
     title = 'colorplot utility: '
-    datafilename = '1stCD_field_bias_17Tpar.dat'
+    datafilename = 'demo.dat'
     Colormap = 'jet'
     Xlabel = 'x-axis'
     Ylabel = 'y-axis'
