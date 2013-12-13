@@ -233,6 +233,8 @@ class MainFrame(wx.Frame):
             self.datafile = read3d.gp_file(path,columns)
             self.orig_datafile = self.datafile.deep_copy()
 
+            self.datafilename = os.path.basename(path)
+            self.SetTitle(self.title+self.datafilename)
             
             self.PlotFrame.PlotPanel.draw_plot()
 
@@ -258,6 +260,8 @@ class PlotPanel(wx.Panel):
         self.draw_plot()
 
     def draw_plot(self):
+
+        self.parent.parent.modlist.applyModlist()
 
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
@@ -323,7 +327,11 @@ class MainPanel(wx.Panel):
         maxval = np.amax(self.parent.datafile.Zdata)
         minval = np.amin(self.parent.datafile.Zdata)
 
-        incr = np.absolute(maxval-minval)/1000
+        self.spin_divider = 10000
+        self.slide_divider = 1000
+
+        spin_incr = np.absolute(maxval-minval)/self.spin_divider
+        slide_incr = np.absolute(maxval-minval)/self.slide_divider
 
         self.colormapselect_label = wx.StaticText(self, wx.ID_ANY,'Colormap')
         
@@ -350,13 +358,13 @@ class MainPanel(wx.Panel):
             value=maxval-minval,
             min_val=0.,
             max_val=maxval-minval,
-            increment = incr,
+            increment = spin_incr,
             digits = 3
             )
 
         self.colorwidgetlist.append(self.widthspin)
 
-        self.widthslider = FloatSlider(self,wx.ID_ANY,maxval-minval,0,maxval-minval,incr,
+        self.widthslider = FloatSlider(self,wx.ID_ANY,maxval-minval,0,maxval-minval,slide_incr,
                                        size = (200,15),
                                        name = 'widthslider')
 
@@ -374,12 +382,12 @@ class MainPanel(wx.Panel):
             value=(maxval+minval)/2., 
             min_val=minval,
             max_val=maxval,
-            increment = incr,
+            increment = spin_incr,
             digits = 3)
 
         self.colorwidgetlist.append(self.centrespin)
 
-        self.centreslider = FloatSlider(self,wx.ID_ANY,(maxval+minval)/2,minval,maxval,incr,
+        self.centreslider = FloatSlider(self,wx.ID_ANY,(maxval+minval)/2,minval,maxval,slide_incr,
                                     size = (200,15),
                                     name = 'centreslider')
 
@@ -403,7 +411,7 @@ class MainPanel(wx.Panel):
             value=minval,
             min_val=minval,
             max_val=maxval,
-            increment = incr,
+            increment = spin_incr,
             digits = 3
             )
 
@@ -421,7 +429,7 @@ class MainPanel(wx.Panel):
             value=maxval, 
             min_val=minval,
             max_val=maxval,
-            increment = incr,
+            increment = spin_incr,
             digits = 3)
 
         self.colorwidgetlist.append(self.maxspin)
@@ -526,16 +534,17 @@ class MainPanel(wx.Panel):
     def init_colorspinctrls(self):
         maxval = np.amax(self.parent.datafile.Zdata)
         minval = np.amin(self.parent.datafile.Zdata)
-        increment = (maxval-minval)/1000.
+        spin_increment = (maxval-minval)/self.spin_divider
+        slide_increment = (maxval-minval)/self.slide_divider
 
         #print "max {} min {} increment {} centre {} width {}".format(maxval,minval,increment,(maxval+minval)/2, maxval-minval)
         
         self.centrespin.SetRange(minval,maxval)
-        self.widthspin.SetRange(0,maxval-minval+increment)
+        self.widthspin.SetRange(0,maxval-minval+spin_increment)
         self.minspin.SetRange(minval,maxval)
         self.maxspin.SetRange(minval,maxval)
 
-        self.widthslider.SetRange(0,maxval-minval)
+        self.widthslider.SetRange(0,maxval-minval+slide_increment)
         self.centreslider.SetRange(minval,maxval)
 
         self.centrespin.SetValue((maxval+minval)/2.)
@@ -546,13 +555,13 @@ class MainPanel(wx.Panel):
         self.widthslider.SetValue(maxval-minval)
         self.centreslider.SetValue((minval+maxval)/2)
         
-        self.centrespin.SetIncrement(increment)
-        self.widthspin.SetIncrement(increment)
-        self.minspin.SetIncrement(increment)
-        self.maxspin.SetIncrement(increment)
+        self.centrespin.SetIncrement(spin_increment)
+        self.widthspin.SetIncrement(spin_increment)
+        self.minspin.SetIncrement(spin_increment)
+        self.maxspin.SetIncrement(spin_increment)
 
-        self.widthslider.SetRes(increment)
-        self.centreslider.SetRes(increment)
+        self.widthslider.SetRes(slide_increment)
+        self.centreslider.SetRes(slide_increment)
 
         
     def on_colormapselect(self,event):
