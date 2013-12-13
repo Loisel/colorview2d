@@ -596,19 +596,7 @@ class MainPanel(wx.Panel):
 
         self.parent.modlist.applyModlist()
 
-        # Set values in width and center
-        maxval = np.amax(self.parent.datafile.Zdata)
-        minval = np.amin(self.parent.datafile.Zdata)
-        incr = np.absolute(maxval-minval)/100
-
-        
-        
-        self.widthspin.SetRange(0,np.absolute(maxval-minval))
-        self.widthspin.SetValue(np.absolute(maxval-minval))
-        self.widthspin.SetIncrement(incr)
-        self.centrespin.SetRange(minval,maxval)
-        self.centrespin.SetValue((maxval+minval)/2.)
-        self.centrespin.SetIncrement(incr)
+        self.init_colorspinctrls()
         
         self.update_plot()
 
@@ -619,6 +607,8 @@ class MainPanel(wx.Panel):
             self.parent.modlist.remMod("lowpass")
 
         self.parent.modlist.applyModlist()
+
+        self.init_colorspinctrls()
         self.update_plot()
 
     def on_num_lowpass(self,event):
