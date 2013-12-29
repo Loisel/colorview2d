@@ -36,17 +36,26 @@ class gp_file:
                 self.dX = self.Xrange[1] - self.Xrange[0]
                 self.dY = self.Yrange[1] - self.Yrange[0]
 
+
 		# Store the data
 
 		self.Zdata = sp.flipud(sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
+                self.Zmax = sp.amax(self.Zdata)
+                self.Zmin = sp.amin(self.Zdata)
                 #self.Zdata_Original = sp.copy(self.Zdata)
 
+        def update(self,Zdata):
+            self.Zdata = Zdata
 
+            self.Zmax = sp.amax(self.Zdata)
+            self.Zmin = sp.amin(self.Zdata)
+            
+                
 	def report(self):
 		
-		print "Report for file {}:\n".format(self.filename)
-		print "There are {} lines containing {} blocks with {} lines each.\n".format(self.Lnum,self.Bnum,self.Bsize)
-		print "X-axis range from {} to {}\n\
+            print "Report for file {}:\n".format(self.filename)
+            print "There are {} lines containing {} blocks with {} lines each.\n".format(self.Lnum,self.Bnum,self.Bsize)
+            print "X-axis range from {} to {}\n\
 Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0],self.Yrange[-1])
 
         def deep_copy(self):

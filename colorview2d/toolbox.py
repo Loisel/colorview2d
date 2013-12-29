@@ -14,6 +14,8 @@ class modification:
 
 
 class smooth(modification):
+    """ blurs the image by convolving with a 2D gaussian kernel of size sizex * sizey.
+    """
 
     title = "lowpass"
     
@@ -23,14 +25,9 @@ class smooth(modification):
         self.sizey = sizey
 
     
-    def apply_mod(self,datafile):
-     """ blurs the image by convolving with a gaussian kernel of typical
-         size n. The optional keyword argument ny allows for a different
-         size in the y direction.
-     """
-     
+    def apply_mod(self,datafile):     
 
-     datafile.Zdata = gaussian_filter(datafile.Zdata,(self.sizex,self.sizey))
+     datafile.update(gaussian_filter(datafile.Zdata,(self.sizex,self.sizey)))
 
 
 class deriv(modification):
@@ -47,5 +44,21 @@ class deriv(modification):
         datafile.Zdata[:-1] = dydata
         datafile.Zdata[-1] = datafile.Zdata[-2]
 
- 
-	
+        datafile.update(datafile.Zdata)
+
+class adaptive_threshold(modification):
+
+    title = "adaptive-threshold"
+
+    def __init__(self,blocksize,offset):
+
+        self.blocksize = blocksize
+        self.offset = offset
+
+    
+    def apply_mod(self,datafile):
+
+        from skimage.filter import threshold_adaptive
+        from skimage import img_as_float
+
+        datafile.update(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))

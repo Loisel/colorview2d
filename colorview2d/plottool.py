@@ -2,6 +2,7 @@ import wx
 import read3d
 import copy
 import os
+import sys
 import numpy as np
 import re
 import wx.lib.mixins.listctrl as listmix
@@ -23,6 +24,7 @@ from matplotlib.backends.backend_wxagg import \
 from matplotlib.ticker import FormatStrFormatter
 
 import toolbox as tb
+import parser
 
 class Modlist():
     modlist = []
@@ -84,6 +86,8 @@ class MainFrame(wx.Frame):
 
 
 #        self.PlotFrame.PlotPanel.draw_plot()
+        self.LineoutFrame = LineoutFrame(self)
+        self.BinaryFitFrame = BinaryFitFrame(self)
 
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
@@ -105,9 +109,9 @@ class MainFrame(wx.Frame):
         menu_tools = wx.Menu()
         menu_axes = wx.Menu()
 
-        m_load = menu_file.Append(wx.ID_ANY, "&Load plot\tCtrl-L", "Load plot from file")
+        m_load = menu_file.Append(wx.ID_ANY, "&Load Data\tCtrl-L", "Load data from file")
         self.Bind(wx.EVT_MENU, self.on_load_plot, m_load)
-        m_expt = menu_file.Append(wx.ID_ANY, "&Save plotdata\tCtrl-S", "Save data to file")
+        m_expt = menu_file.Append(wx.ID_ANY, "&Save Data\tCtrl-S", "Save data to file")
         self.Bind(wx.EVT_MENU, self.on_save_datafile, m_expt)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(wx.ID_ANY, "E&xit\tCtrl-X", "Exit")
@@ -126,6 +130,10 @@ class MainFrame(wx.Frame):
 
         m_lineout = menu_tools.Append(wx.ID_ANY,  "Linecut &Viewer\tCtrl-V", "Plot data along line")
         self.Bind(wx.EVT_MENU, self.on_lineout, m_lineout)
+
+        m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit", "Fit to prominent data features")
+        self.Bind(wx.EVT_MENU,self.on_binaryfit,m_binaryfit)
+
         
         menu_help = wx.Menu()
         m_about = menu_help.Append(wx.ID_ANY, "&About\tF1", "About the demo")
@@ -148,8 +156,11 @@ class MainFrame(wx.Frame):
         print "Switching axes."
 
     def on_lineout(self,event):
-        self.LineoutFrame = LineoutFrame(self)
         self.LineoutFrame.Show()
+
+    def on_binaryfit(self,event):
+        self.BinaryFitFrame.Show()
+        self.BinaryFitFrame.MakeModal(True)
 
     def on_linecut(self,event):
         self.LinecutFrame.Show()
@@ -324,8 +335,8 @@ class MainPanel(wx.Panel):
         self.colorwidgetlist = []
 
         
-        maxval = np.amax(self.parent.datafile.Zdata)
-        minval = np.amin(self.parent.datafile.Zdata)
+        maxval = self.parent.datafile.Zmax
+        minval = self.parent.datafile.Zmin
 
         self.spin_divider = 10000
         self.slide_divider = 1000
@@ -446,8 +457,13 @@ class MainPanel(wx.Panel):
         
         
         self.chk_lowpass =  wx.CheckBox(self, wx.ID_ANY, 'Lowpass')
-        self.num_lowpass_xwidth = NumCtrl(self)
-        self.num_lowpass_ywidth = NumCtrl(self)
+        self.num_lowpass_xwidth = NumCtrl(self,
+                                          fractionWidth = 1,
+                                          allowNegative = False)
+        self.num_lowpass_ywidth = NumCtrl(self,
+                                          fractionWidth = 1,
+                                          allowNegative = False)
+
         
         self.Bind(wx.EVT_CHECKBOX,self.on_chk_lowpass,self.chk_lowpass)
         self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_ywidth)
@@ -532,8 +548,8 @@ class MainPanel(wx.Panel):
         self.mainbox.Fit(self)
 
     def init_colorspinctrls(self):
-        maxval = np.amax(self.parent.datafile.Zdata)
-        minval = np.amin(self.parent.datafile.Zdata)
+        maxval = self.parent.datafile.Zmax
+        minval = self.parent.datafile.Zmin
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
 
@@ -1423,6 +1439,231 @@ class SlopeExPanel(wx.Panel):
         self.x2spin.SetValue(self.x2)
         self.y2spin.SetValue(self.y2)
 
+class BinaryFitFrame(wx.Frame):
+    def __init__(self,parent):
+        wx.Frame.__init__(self, parent, title="Segmentation and Fitting")
+        self.parent = parent
+        panel = BinaryFitPanel(self)
+        self.Layout()
+        
+
+class BinaryFitPanel(wx.Panel):
+    def __init__(self,parent):
+        wx.Panel.__init__(self,parent)
+        self.parent = parent
+
+        self.mainbox = wx.BoxSizer(wx.VERTICAL)
+        self.hbox1 = wx.BoxSizer(wx.HORIZONTAL) 
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL) 
+        
+        self.chk_threshold = wx.CheckBox(self, wx.ID_ANY, 'Apply adaptive threshold')
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_threshold,self.chk_threshold)
+
+        self.blocksize_label = wx.StaticText(self, wx.ID_ANY, 
+            "Blocksize: ")
+        self.offset_label = wx.StaticText(self, wx.ID_ANY, 
+            "Offset: ")
+
+        maxval = self.parent.parent.datafile.Zmax
+        minval = self.parent.parent.datafile.Zmin
+        maxsize = np.amin([self.parent.parent.datafile.Bsize,self.parent.parent.datafile.Bnum])/2
+        width = maxval-minval
+        spin_incr = width/1000
+       
+        self.blocksize_spin = wx.SpinCtrl(self, wx.ID_ANY,
+                                          value = '1',
+                                          min = 1,
+                                          max = maxsize.astype(int),
+                                          name = 'thr_blocksize')
+        self.Bind(wx.EVT_SPINCTRL,self.on_spin,self.blocksize_spin)
+        self.offset_spin =  FloatSpin(self, name='thr_offset', 
+            value=0, 
+            min_val=-width,
+            max_val=width,
+            increment = spin_incr,
+            digits = 3)
+
+        self.offset_spin.SetFormat("%e")
+        self.Bind(EVT_FLOATSPIN, self.on_spin)
+
+        flags = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
+        self.hbox1.Add(self.chk_threshold, 0, flag=flags, border=10)
+        self.hbox1.Add(self.blocksize_label, 0, flag=flags, border=10)
+        self.hbox1.Add(self.blocksize_spin, 0, flag=flags, border=10)
+
+        self.hbox2.Add((0,0),1)
+        self.hbox2.Add(self.offset_label, 0, flag=flags, border=10)
+        self.hbox2.Add(self.offset_spin, 0, flag=flags, border=10)
+
+
+        self.ModBox = wx.StaticBox(self, wx.ID_ANY, 'Image Segmentation')
+        self.ModBoxSizer = wx.StaticBoxSizer(self.ModBox, wx.VERTICAL)
+
+        self.ModBoxSizer.Add(self.hbox1,0)
+        self.ModBoxSizer.AddSpacer(10)
+        self.ModBoxSizer.Add(self.hbox2,0,flag=wx.EXPAND)
+
+        self.mainbox.Add(self.ModBoxSizer,0,flag=wx.LEFT|wx.RIGHT,border=10)
+
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.formulactrl_label = wx.StaticText(self, wx.ID_ANY, 
+            "Formula: ")
+        self.formulactrl = wx.TextCtrl(self,wx.ID_ANY)
+        self.compile_button = wx.Button(self,wx.ID_ANY, label = "Compile")
+        self.Bind(wx.EVT_BUTTON,self.on_compile,self.compile_button)
+
+        self.hbox3.Add(self.formulactrl_label,0,flag=wx.TOP|wx.ALIGN_CENTER_VERTICAL, border = 10)
+        self.hbox3.Add(self.formulactrl,1,flag=wx.TOP, border = 10)
+        self.hbox3.Add(self.compile_button,0,flag=wx.TOP, border = 10)
+
+        self.mainbox.Add((-1,10))
+        self.mainbox.Add(self.hbox3,0,wx.EXPAND)
+        
+
+        self.ParBox = wx.StaticBox(self, wx.ID_ANY, 'Parameter')
+        self.ParBoxSizer = wx.StaticBoxSizer(self.ParBox, wx.VERTICAL)
+
+        self.ParBoxDict = {}
+
+        for pnum in np.arange(10):
+            phbox = wx.BoxSizer(wx.HORIZONTAL)
+            name = "P{}".format(pnum)
+            self.ParBoxDict[name] = ParameterControl(self,name,phbox)
+            
+            self.ParBoxSizer.Add(phbox)
+            
+
+        self.mainbox.Add(self.ParBoxSizer,0)
+
+        self.savecancelbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.Cancel = wx.Button(self,wx.ID_ANY, label = "Cancel")
+        self.Save = wx.Button(self,wx.ID_ANY,label = "Save linecuts")
+
+        self.Bind(wx.EVT_BUTTON,self.on_cancel,self.Cancel)
+        self.Bind(wx.EVT_BUTTON,self.on_save,self.Save)
+
+        self.savecancelbox.Add(self.Cancel, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
+        self.savecancelbox.Add(self.Save, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
+
+        self.mainbox.Add(self.savecancelbox,0)
+
+        self.SetSizerAndFit(self.mainbox)
+        self.mainbox.Fit(self.parent)
+
+    def on_save(self, event):
+        print "Saving"
+
+    def on_compile(self,event):
+        fstring = self.formulactrl.GetValue()
+        self.formula = parser.parse(fstring)
+        
+        for num,k in enumerate(self.formula.pdict):
+            self.ParBoxDict['P'+str(num)].set_name(k)
+            self.ParBoxDict['P'+str(num)].enable(True)
+            
+        
+    def on_cancel(self, event):
+        self.parent.parent.modlist.remMod("adaptive-threshold")
+        self.parent.parent.modlist.applyModlist()
+        self.parent.parent.MainPanel.update_plot()
+        self.parent.MakeModal(False)
+        self.parent.Hide()
+
+    def on_chk_threshold(self, event):
+        if self.chk_threshold.GetValue():
+            self.parent.parent.modlist.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
+        else:
+            self.parent.parent.modlist.remMod("adaptive-threshold")
+        
+        self.parent.parent.modlist.applyModlist()
+
+        #self.parent.parent.MainPanel.init_colorspinctrls()
+        
+        self.parent.parent.MainPanel.update_plot()
+
+    def on_spin(self,event):
+        evt_obj = event.GetEventObject()
+
+        if evt_obj.GetName().startswith('thr_'): 
+            if self.chk_threshold.GetValue():
+                self.parent.parent.modlist.remMod("adaptive-threshold")
+                self.parent.parent.modlist.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
+                self.parent.parent.modlist.applyModlist()
+                self.parent.parent.MainPanel.update_plot()
+
+        elif evt_obj.GetName().startswith('par_'):
+            ctrl = self.ParBoxDict[evt_obj.GetName().split('_',1)[1]]
+            parm = ctrl.get_name()
+            val = ctrl.get_value()
+            
+            self.formula.setp({parm:val})
+            print "Drawing!"
+
+        elif evt_obj.GetName().startswith('incr_'):
+            ctrl = self.ParBoxDict[evt_obj.GetName().split('_',1)[1]]
+            ctrl.update()
+            
+                
+            
+class ParameterControl():
+    def __init__(self,parent,name,BoxSizer):
+        self.parent = parent
+        self.name = name
+        self.box = BoxSizer
+        self.label = wx.StaticText(self.parent, wx.ID_ANY, 
+            "{} / Increment: ".format(name))
+
+        self.value = 0
+        self.increment = 1
+        self.value_spin = FloatSpin(self.parent, name="par_"+name, 
+            value=0, 
+            increment = self.increment,
+            digits = 3)
+        self.value_spin.SetFormat("%e")
+        self.value_spin.Enable(False)
+
+        self.incr_spin = FloatSpin(self.parent, name="incr_"+name, 
+            value=0, 
+            increment = 1,
+            digits = 1)
+
+        self.incr_spin.Enable(False)
+
+        self.parent.Bind(EVT_FLOATSPIN, self.parent.on_spin)
+
+        self.box.Add(self.label)
+        self.box.Add(self.value_spin)
+        self.box.Add(self.incr_spin)
+        
+    def set_name(self,name):
+        self.name = name
+        self.label.SetLabel(name)
+
+    def get_name(self):
+        return self.name
+    def get_value(self):
+        return self.value
+    
+    def enable(self,Bool):
+        self.value_spin.Enable(Bool)
+        self.incr_spin.Enable(Bool)
+
+    def set_value(self,value):
+        self.value = value
+        self.value_spin.SetValue(value)
+
+    def set_increment(self,increment):
+        self.increment = increment
+        self.incr_spin.SetValue(self.increment)
+        self.value_spin.SetIncrement(10.**self.increment)
+
+    def update(self):
+        self.value = self.value_spin.GetValue()
+        self.increment = self.incr_spin.GetValue()
+        
+        self.value_spin.SetIncrement(10.**self.increment)
+        
 
 class MyLine():
     def __init__(self,axes,x1 = 0, y1 = 0, x2 = 0, y2 = 0, comment=""):
