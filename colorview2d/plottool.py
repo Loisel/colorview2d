@@ -1473,10 +1473,16 @@ class BinaryFitPanel(wx.Panel):
         self.blocksize_spin = wx.SpinCtrl(self, wx.ID_ANY,
                                           value = '1',
                                           min = 1,
+<<<<<<< HEAD
                                           max = maxsize.astype(int),
                                           name = 'thr_blocksize')
         self.Bind(wx.EVT_SPINCTRL,self.on_spin,self.blocksize_spin)
         self.offset_spin =  FloatSpin(self, name='thr_offset', 
+=======
+                                          max = maxsize.astype(int))
+        self.Bind(wx.EVT_SPINCTRL,self.on_spin,self.blocksize_spin)
+        self.offset_spin =  FloatSpin(self, name='offset', 
+>>>>>>> d47e98f61d5315833b40da9bc8b51d4f5d436ee0
             value=0, 
             min_val=-width,
             max_val=width,
@@ -1505,6 +1511,7 @@ class BinaryFitPanel(wx.Panel):
 
         self.mainbox.Add(self.ModBoxSizer,0,flag=wx.LEFT|wx.RIGHT,border=10)
 
+<<<<<<< HEAD
         self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
         self.formulactrl_label = wx.StaticText(self, wx.ID_ANY, 
             "Formula: ")
@@ -1535,6 +1542,8 @@ class BinaryFitPanel(wx.Panel):
 
         self.mainbox.Add(self.ParBoxSizer,0)
 
+=======
+>>>>>>> d47e98f61d5315833b40da9bc8b51d4f5d436ee0
         self.savecancelbox = wx.BoxSizer(wx.HORIZONTAL)
 
         self.Cancel = wx.Button(self,wx.ID_ANY, label = "Cancel")
@@ -1553,6 +1562,7 @@ class BinaryFitPanel(wx.Panel):
 
     def on_save(self, event):
         print "Saving"
+<<<<<<< HEAD
 
     def on_compile(self,event):
         fstring = self.formulactrl.GetValue()
@@ -1562,6 +1572,8 @@ class BinaryFitPanel(wx.Panel):
             self.ParBoxDict['P'+str(num)].set_name(k)
             self.ParBoxDict['P'+str(num)].enable(True)
             
+=======
+>>>>>>> d47e98f61d5315833b40da9bc8b51d4f5d436ee0
         
     def on_cancel(self, event):
         self.parent.parent.modlist.remMod("adaptive-threshold")
@@ -1583,6 +1595,7 @@ class BinaryFitPanel(wx.Panel):
         self.parent.parent.MainPanel.update_plot()
 
     def on_spin(self,event):
+<<<<<<< HEAD
         evt_obj = event.GetEventObject()
 
         if evt_obj.GetName().startswith('thr_'): 
@@ -1664,6 +1677,14 @@ class ParameterControl():
         
         self.value_spin.SetIncrement(10.**self.increment)
         
+=======
+        if self.chk_threshold.GetValue():
+            self.parent.parent.modlist.remMod("adaptive-threshold")
+            self.parent.parent.modlist.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
+            self.parent.parent.modlist.applyModlist()
+            self.parent.parent.MainPanel.update_plot()
+            
+>>>>>>> d47e98f61d5315833b40da9bc8b51d4f5d436ee0
 
 class MyLine():
     def __init__(self,axes,x1 = 0, y1 = 0, x2 = 0, y2 = 0, comment=""):

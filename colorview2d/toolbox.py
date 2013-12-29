@@ -61,4 +61,10 @@ class adaptive_threshold(modification):
         from skimage.filter import threshold_adaptive
         from skimage import img_as_float
 
+<<<<<<< HEAD
+=======
+        #print "Applying local odsu threshold with disksize {}.".format(self.blocksize)
+
+#        datafile.Zdata = img_as_float(datafile.Zdata)
+>>>>>>> d47e98f61d5315833b40da9bc8b51d4f5d436ee0
         datafile.update(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))
