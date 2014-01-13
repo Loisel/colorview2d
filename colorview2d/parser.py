@@ -3,6 +3,7 @@ from pyparsing import (Literal,CaselessLiteral,Word,Combine,Group,Optional,
                        ZeroOrMore,Forward,nums,alphas,oneOf)
 import math
 import operator
+import lmfit
 
 import re
 import numpy as np
@@ -28,30 +29,32 @@ class Formula():
     def __init__(self,string,parms):
         self.parameterlist = parms
         self.pstring = string
-        self.pdict = dict(zip(self.parameterlist,np.zeros(len(self.parameterlist))))
-        del self.pdict['x']
+        self.pdict = lmfit.Parameters()
+        for p in self.parameterlist:
+            if not p == 'x':
+                self.pdict.add(p,0)
+
         self.init_f()
+        self.nsp = NumericStringParser()
 
     def init_f(self):
         self.formula = self.pstring
-        for k,v in self.pdict.iteritems():
-            if not k == 'x':
-                self.formula = self.formula.replace(k,"{:.3e}".format(v))
+
+        for p in self.pdict:
+            self.formula = self.formula.replace(p,"{:e}".format(self.pdict[p].value))
 
 
-    def setp(self,pdict):
+    def setp(self,my_dict):
         try:
-            for k,v in pdict.iteritems():
-                self.pdict[k] = v
+            for p in my_dict:
+                self.pdict[p].value = my_dict[p]
         except KeyError:
             print "Parameter {} not in formula {}".format(k,self.pstring)
 
         self.init_f()
 
     def eval(self,x):
-         nsp = NumericStringParser()
-         
-         return nsp.eval(self.formula.replace('x',"{:.3e}".format(x)))
+         return self.nsp.eval(self.formula.replace('x',"{:e}".format(x)))
 
     def print_fx(self):
         print self.formula

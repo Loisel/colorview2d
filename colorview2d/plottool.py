@@ -160,6 +160,11 @@ class MainFrame(wx.Frame):
 
     def on_binaryfit(self,event):
         self.BinaryFitFrame.Show()
+        self.PlotFrame.PlotPanel.axes.autoscale(False)
+        if hasattr(self.BinaryFitFrame.BinaryFitPanel,'lineplot'):
+            self.PlotFrame.PlotPanel.axes.add_line(self.BinaryFitFrame.BinaryFitPanel.lineplot)
+        self.MainPanel.update_plot()
+
         self.BinaryFitFrame.MakeModal(True)
 
     def on_linecut(self,event):
@@ -1443,7 +1448,7 @@ class BinaryFitFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Segmentation and Fitting")
         self.parent = parent
-        panel = BinaryFitPanel(self)
+        self.BinaryFitPanel = BinaryFitPanel(self)
         self.Layout()
         
 
@@ -1452,6 +1457,7 @@ class BinaryFitPanel(wx.Panel):
         wx.Panel.__init__(self,parent)
         self.parent = parent
 
+        
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
         self.hbox1 = wx.BoxSizer(wx.HORIZONTAL) 
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL) 
@@ -1531,17 +1537,33 @@ class BinaryFitPanel(wx.Panel):
             self.ParBoxDict[name] = ParameterControl(self,name,phbox)
             
             self.ParBoxSizer.Add(phbox)
-            
 
+        self.delta_y_spin =  FloatSpin(self, name='delta_y', 
+            value=self.parent.parent.datafile.Ymax - self.parent.parent.datafile.Ymin, 
+            min_val=0,
+            max_val=self.parent.parent.datafile.Ymax - self.parent.parent.datafile.Ymin,
+            increment = self.parent.parent.datafile.dY,
+            digits = 3)
+
+
+        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.Fit = wx.Button(self,wx.ID_ANY, label = "Fit")
+        self.Bind(wx.EVT_BUTTON,self.on_fit,self.Fit)
+        self.Save = wx.Button(self,wx.ID_ANY,label = "Save")
+        self.Bind(wx.EVT_BUTTON,self.on_save,self.Save)
+
+        self.hbox4.Add(self.delta_y_spin,0)
+        self.hbox4.Add(self.Fit,0)
+        self.hbox4.Add(self.Save,0)
+        
         self.mainbox.Add(self.ParBoxSizer,0)
 
         self.savecancelbox = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.Cancel = wx.Button(self,wx.ID_ANY, label = "Cancel")
-        self.Save = wx.Button(self,wx.ID_ANY,label = "Save linecuts")
+        self.Close = wx.Button(self,wx.ID_ANY, label = "Close")
 
-        self.Bind(wx.EVT_BUTTON,self.on_cancel,self.Cancel)
-        self.Bind(wx.EVT_BUTTON,self.on_save,self.Save)
+        self.Bind(wx.EVT_BUTTON,self.on_close,self.Close)
 
         self.savecancelbox.Add(self.Cancel, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
         self.savecancelbox.Add(self.Save, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
@@ -1551,21 +1573,37 @@ class BinaryFitPanel(wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self.parent)
 
+        self.Xrange = self.parent.parent.datafile.Xrange
+
+
     def on_save(self, event):
         print "Saving"
 
     def on_compile(self,event):
+        self.axes = self.parent.parent.PlotFrame.PlotPanel.axes
+        self.axes.autoscale(False)
+        self.Xrange = self.parent.parent.datafile.Xrange
+        self.lineplot, = self.axes.plot(self.Xrange,np.zeros(self.Xrange.size))
+
         fstring = self.formulactrl.GetValue()
         self.formula = parser.parse(fstring)
-        
+
+
         for num,k in enumerate(self.formula.pdict):
             self.ParBoxDict['P'+str(num)].set_name(k)
             self.ParBoxDict['P'+str(num)].enable(True)
+
+        for n in range(num+1,10):
+            self.ParBoxDict['P'+str(n)].enable(False)
             
         
-    def on_cancel(self, event):
+    def on_close(self, event):
         self.parent.parent.modlist.remMod("adaptive-threshold")
         self.parent.parent.modlist.applyModlist()
+        self.lineplot.remove()
+
+        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
+
         self.parent.parent.MainPanel.update_plot()
         self.parent.MakeModal(False)
         self.parent.Hide()
@@ -1594,15 +1632,71 @@ class BinaryFitPanel(wx.Panel):
 
         elif evt_obj.GetName().startswith('par_'):
             ctrl = self.ParBoxDict[evt_obj.GetName().split('_',1)[1]]
+            
+            ctrl.update()
             parm = ctrl.get_name()
             val = ctrl.get_value()
+
+            #print "Parameter {}, Value {}".format(parm,val)
             
             self.formula.setp({parm:val})
-            print "Drawing!"
+            #self.formula.print_fx()
+            self.draw_function()
 
         elif evt_obj.GetName().startswith('incr_'):
             ctrl = self.ParBoxDict[evt_obj.GetName().split('_',1)[1]]
             ctrl.update()
+
+    def draw_function(self):
+
+        self.func_y = np.array([ self.formula.eval(x) for x in self.Xrange])
+
+        self.lineplot.set_ydata(self.func_y)
+        self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
+
+    def update_controls(self):
+        for p in self.ParBoxDict:
+            try:
+                #print "Set Key {}".format(self.ParBoxDict[p].get_name())
+                self.ParBoxDict[p].set_value(self.formula.pdict[self.ParBoxDict[p].get_name()].value)
+            except KeyError as e:
+                #print "Key not found: ",e.message
+                pass
+
+
+    def on_fit(self,event):
+        from lmfit import Minimizer, Parameters, report_errors
+        if self.chk_threshold.GetValue():
+            datafile = self.parent.parent.datafile
+            # Get indices of values that dy from function
+            delta_y = self.delta_y_spin.GetValue()
+            y_indexrange = int(delta_y/datafile.dY)
+            if y_indexrange <= 1:
+                y_indexrange = 1
+                
+            points_all = np.vstack(np.where(datafile.Zdata)).T
+            func_points = self.func_y[points_all[:,1]]
+
+            yrange = datafile.Yrange[::-1]
+            points_sel = points_all[abs(yrange[points_all[:,0]] - func_points) < delta_y]
+
+            def residual(params,xrange,data):
+                self.formula.init_f()
+                func_y = np.array([ self.formula.eval(x) for x in xrange])
+
+                return func_y - data
+
+
+            Min = Minimizer(residual, self.formula.pdict, fcn_args=(datafile.Xrange[points_sel[:,1]],yrange[points_sel[:,0]]))
+
+            result = Min.fmin()
+
+            report_errors(self.formula.pdict)
+
+            self.update_controls()
+            self.draw_function()
+
+
             
                 
             
@@ -1632,9 +1726,17 @@ class ParameterControl():
 
         self.parent.Bind(EVT_FLOATSPIN, self.parent.on_spin)
 
+        self.lock_check = wx.CheckBox(self.parent, name="lock_"+name)
+        self.parent.Bind(wx.EVT_CHECKBOX,self.on_lock, self.lock_check)
+        self.lock_check.Enable(False)
+        
         self.box.Add(self.label)
         self.box.Add(self.value_spin)
         self.box.Add(self.incr_spin)
+        self.box.Add(self.lock_check)
+
+    def on_lock(self,event):
+        self.parent.formula.pdict[self.name].vary = not self.lock_check.GetValue()
         
     def set_name(self,name):
         self.name = name
@@ -1648,6 +1750,7 @@ class ParameterControl():
     def enable(self,Bool):
         self.value_spin.Enable(Bool)
         self.incr_spin.Enable(Bool)
+        self.lock_check.Enable(Bool)
 
     def set_value(self,value):
         self.value = value
