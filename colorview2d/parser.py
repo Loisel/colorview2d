@@ -56,6 +56,10 @@ class Formula():
     def eval(self,x):
          return self.nsp.eval(self.formula.replace('x',"{:e}".format(x)))
 
+    def get_fx(self):
+        return self.formula
+    def get_fxp(self):
+        return self.pstring
     def print_fx(self):
         print self.formula
     def print_fxp(self):

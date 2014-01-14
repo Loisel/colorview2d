@@ -1553,11 +1553,13 @@ class BinaryFitPanel(wx.Panel):
         self.Save = wx.Button(self,wx.ID_ANY,label = "Save")
         self.Bind(wx.EVT_BUTTON,self.on_save,self.Save)
 
-        self.hbox4.Add(self.delta_y_spin,0)
-        self.hbox4.Add(self.Fit,0)
-        self.hbox4.Add(self.Save,0)
+        self.hbox4.Add(self.delta_y_spin,0,flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
+        self.hbox4.Add(self.Fit,0,flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
+        self.hbox4.Add(self.Save,0,flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
+
         
         self.mainbox.Add(self.ParBoxSizer,0)
+        self.mainbox.Add(self.hbox4,0)
 
         self.savecancelbox = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -1565,8 +1567,7 @@ class BinaryFitPanel(wx.Panel):
 
         self.Bind(wx.EVT_BUTTON,self.on_close,self.Close)
 
-        self.savecancelbox.Add(self.Cancel, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
-        self.savecancelbox.Add(self.Save, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
+        self.savecancelbox.Add(self.Close, 0, flag= wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border = 10)
 
         self.mainbox.Add(self.savecancelbox,0)
 
@@ -1577,7 +1578,35 @@ class BinaryFitPanel(wx.Panel):
 
 
     def on_save(self, event):
-        print "Saving"
+        file_choices = "DAT (*.dat)|*.dat"
+
+        datafilename = self.parent.parent.datafilename
+        
+        dlg = wx.FileDialog(
+            self, 
+            message="Save function and parameter to...",
+            defaultDir=os.getcwd(),
+            defaultFile="fitfunction.dat",
+            wildcard=file_choices,
+            style=wx.SAVE)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+
+        with open(path, 'a') as outfile:
+            outfile.write("# Fitted function to data in {} \n\
+# Function Body\n\
+{}\n\
+# Parameters:\n".format(datafilename,self.formula.get_fxp()))
+            for k,p in self.formula.pdict.iteritems():
+                outfile.write("{}\t{}\t\n".format(p.name,p.value))
+
+            outfile.write("\n\
+# Function with parameters:\n\
+{}\n\n".format(self.formula.get_fx()))
+
+
+
 
     def on_compile(self,event):
         self.axes = self.parent.parent.PlotFrame.PlotPanel.axes
@@ -1600,7 +1629,8 @@ class BinaryFitPanel(wx.Panel):
     def on_close(self, event):
         self.parent.parent.modlist.remMod("adaptive-threshold")
         self.parent.parent.modlist.applyModlist()
-        self.lineplot.remove()
+        if hasattr(self,'lineplot'):
+            self.lineplot.remove()
 
         self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
 
