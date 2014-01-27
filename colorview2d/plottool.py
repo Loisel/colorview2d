@@ -223,7 +223,8 @@ class MainFrame(wx.Frame):
         m = p.match(string)
 
         if m:
-            column = int(m.groups()[0]),int(m.groups()[1]),int(m.groups()[2])
+            column = (int(m.groups()[0]),int(m.groups()[1]),int(m.groups()[2]))
+            return column
         else:
             raise InputError('Not a valid column string: {}'.format(string))
         
@@ -247,6 +248,7 @@ class MainFrame(wx.Frame):
                 dlg.Destroy()
 
             self.datafile = read3d.gp_file(path,columns)
+            
             self.orig_datafile = self.datafile.deep_copy()
 
             self.datafilename = os.path.basename(path)
@@ -288,6 +290,8 @@ class PlotPanel(wx.Panel):
         self.mainbox.Add(self.toolbar,0)
 
         datafile = self.parent.parent.datafile
+
+        #print "Max: {} Min: {}".format(datafile.Zmax,datafile.Zmin)
         
         self.plot = self.axes.imshow(datafile.Zdata,
             extent=[datafile.Xmin,datafile.Xmax,datafile.Ymin,datafile.Ymax],
@@ -469,6 +473,10 @@ class MainPanel(wx.Panel):
                                           fractionWidth = 1,
                                           allowNegative = False)
 
+        self.chk_scale =  wx.CheckBox(self, wx.ID_ANY, 'Scale')
+        self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator())
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_scale,self.chk_scale)
+
         
         self.Bind(wx.EVT_CHECKBOX,self.on_chk_lowpass,self.chk_lowpass)
         self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_ywidth)
@@ -532,11 +540,18 @@ class MainPanel(wx.Panel):
 
         self.hbox4.Add(self.chk_deriv,0,flags,border=10)
 
+        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.hbox5.Add(self.chk_scale,0,flags,border=10)
+        self.hbox5.Add(self.num_scale,0,flags,border=10)
+
         
         self.middlevbox.AddSpacer(10)
         self.ModBoxSizer.Add(self.hbox3, 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.ModBoxSizer.AddSpacer(10)
         self.ModBoxSizer.Add(self.hbox4, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.ModBoxSizer.AddSpacer(10)
+        self.ModBoxSizer.Add(self.hbox5, 0, flag = wx.ALIGN_LEFT | wx.TOP)
 
         self.middlevbox.Add(self.ModBoxSizer,0)
         
@@ -558,7 +573,9 @@ class MainPanel(wx.Panel):
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
 
-        #print "max {} min {} increment {} centre {} width {}".format(maxval,minval,increment,(maxval+minval)/2, maxval-minval)
+        #print "max {} min {} increment {} centre {} width {}".format(maxval,minval,spin_increment,(maxval+minval)/2, maxval-minval)
+        self.widthslider.SetRes(slide_increment)
+        self.centreslider.SetRes(slide_increment)
         
         self.centrespin.SetRange(minval,maxval)
         self.widthspin.SetRange(0,maxval-minval+spin_increment)
@@ -581,9 +598,19 @@ class MainPanel(wx.Panel):
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
-        self.widthslider.SetRes(slide_increment)
-        self.centreslider.SetRes(slide_increment)
 
+    def on_chk_scale(self,event):
+        if self.chk_scale.GetValue():
+            self.Validate()
+            self.parent.modlist.addMod(tb.scale(float(self.num_scale.GetValue())))
+        else:
+            self.parent.modlist.remMod("scale")
+
+        self.parent.modlist.applyModlist()
+
+        self.init_colorspinctrls()
+        
+        self.update_plot()
         
     def on_colormapselect(self,event):
 
@@ -1383,7 +1410,7 @@ class SlopeExPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
 
-        with open(path, 'w') as outfile:
+        with open(path, 'a') as outfile:
             outfile.write("# Linear slopes extracted from {} \n\
 # line shift (x-axis) | slope | comment\n".format(datafilename))
             for line in self.linelist:
@@ -1848,7 +1875,55 @@ class VariableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
                  size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
-        
+
+
+
+class FloatValidator(wx.PyValidator):
+     """ This validator is used to ensure that the user has entered something
+         into the text object editor dialog's text field.
+     """
+     def __init__(self):
+         """ Standard constructor.
+         """
+         wx.PyValidator.__init__(self)
+
+
+
+     def Clone(self):
+         """ Standard cloner.
+
+             Note that every validator must implement the Clone() method.
+         """
+         return FloatValidator()
+
+     def Validate(self, win):
+         textCtrl = self.GetWindow()
+         num_string = textCtrl.GetValue()
+         try:
+             float(num_string)
+         except:
+             textCtrl.SetValue("1e0")
+             return False
+         return True
+
+
+     def TransferToWindow(self):
+         """ Transfer data from validator to window.
+
+             The default implementation returns False, indicating that an error
+             occurred.  We simply return True, as we don't do any data transfer.
+         """
+         return True # Prevent wxDialog from complaining.
+
+
+     def TransferFromWindow(self):
+         """ Transfer data from window to validator.
+
+             The default implementation returns False, indicating that an error
+             occurred.  We simply return True, as we don't do any data transfer.
+         """
+         return True # Prevent wxDialog from complaining.
+
 if __name__ == '__main__':
     app = wx.PySimpleApp()
     app.frame = MainFrame()

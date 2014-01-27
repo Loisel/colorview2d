@@ -62,3 +62,14 @@ class adaptive_threshold(modification):
         from skimage import img_as_float
 
         datafile.update(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))
+
+class scale(modification):
+    title = "scale"
+
+    def __init__(self,zscale):
+
+        self.zscale = zscale
+    
+    def apply_mod(self,datafile):
+
+        datafile.update(datafile.Zdata*self.zscale)
