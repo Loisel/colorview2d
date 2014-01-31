@@ -885,6 +885,8 @@ class LinecutPanel(wx.Panel):
         maxval = self.parent.parent.datafile.Xmax
         minval = self.parent.parent.datafile.Xmin
 
+        print "max {} / min {}".format(maxval,minval)
+
         mininterval = np.absolute(self.parent.parent.datafile.Xrange[1] -  self.parent.parent.datafile.Xrange[0])
 
         self.minspin = FloatSpin(self, name='min',
@@ -1046,7 +1048,7 @@ class LinecutPanel(wx.Panel):
         self.minspin.SetValue(minval)
         self.intervalspin.SetValue(interval)
             
-    def set_floatspincontrols(range):
+    def set_floatspincontrols(self,range):
         maxval = range[-1]
         minval = range[0]
         mininterval = np.absolute(range[1]-range[0])
