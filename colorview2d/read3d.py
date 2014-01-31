@@ -21,17 +21,26 @@ class gp_file:
 				self.Bsize = i		
 				break
 
+		self.Xrange = data[::self.Bsize,0]
+		self.Yrange = data[:self.Bsize,1]
+
 		self.Bnum = nlines/self.Bsize
 		self.Lnum = self.Bsize*self.Bnum
 
-		self.Xmin = data[0,0]
-		self.Xmax = data[self.Lnum-1,0]
+		self.Xleft = self.Xrange[0]
+		self.Xright = self.Xrange[-1]
 
-		self.Ymin = data[0,1]
-		self.Ymax = data[self.Bsize-1,1]
+		self.Xmin = sp.amin(self.Xrange)
+		self.Xmax = sp.amax(self.Xrange)
 
-		self.Xrange = sp.linspace(self.Xmin,self.Xmax,self.Bnum)
-		self.Yrange = sp.linspace(self.Ymin,self.Ymax,self.Bsize)
+		self.Ytop = self.Yrange[-1]
+		self.Ybottom = self.Yrange[0]
+
+		self.Ymin = sp.amin(self.Yrange)
+		self.Ymax = sp.amax(self.Yrange)
+
+		#self.Xrange = sp.linspace(self.Xmin,self.Xmax,self.Bnum)
+		#self.Yrange = sp.linspace(self.Ymin,self.Ymax,self.Bsize)
 
                 self.dX = self.Xrange[1] - self.Xrange[0]
                 self.dY = self.Yrange[1] - self.Yrange[0]
@@ -82,3 +91,15 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
                 f.write("\n")
 
             f.close()
+
+	def get_xrange_idx(self,value):
+            if value < self.Xmin or value > self.Xmax:
+		    raise Exception("x value out of X range: {}".format(value))
+	    else:
+		    return int((value-self.Xmin)/abs(self.dX))
+
+	def get_yrange_idx(self,value):
+            if value < self.Ymin or value > self.Ymax:
+		    raise Exception("x value out of X range: {}".format(value))
+	    else:
+		    return int((value-self.Ymin)/abs(self.dY))

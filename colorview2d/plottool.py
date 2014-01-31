@@ -10,9 +10,6 @@ from wx.lib.agw.floatspin import FloatSpin,EVT_FLOATSPIN
 from wx.lib.masked import NumCtrl,EVT_NUM
 from FloatSlider import FloatSlider
 
-# The recommended way to use wx with mpl is with the WXAgg
-# backend. 
-#
 import matplotlib
 matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
@@ -168,6 +165,7 @@ class MainFrame(wx.Frame):
         self.BinaryFitFrame.MakeModal(True)
 
     def on_linecut(self,event):
+        self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LinecutFrame.Show()
 
     def on_slopex(self,event):
@@ -857,6 +855,9 @@ class LinecutPanel(wx.Panel):
         wx.Panel.__init__(self,parent)
         self.parent = parent
 
+        self.axes = self.parent.parent.PlotFrame.PlotPanel.axes
+        self.canvas = parent.parent.PlotFrame.PlotPanel.canvas
+
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
         self.hbox1 = wx.BoxSizer(wx.HORIZONTAL) 
         
@@ -875,81 +876,140 @@ class LinecutPanel(wx.Panel):
 
         self.mainbox.Add(self.hbox1)
         
-        self.intervalspin_label = wx.StaticText(self, wx.ID_ANY, 
-            "Interval width: ")
-        self.minspin_label = wx.StaticText(self, wx.ID_ANY, 
-            "Range min: ")
-        self.maxspin_label = wx.StaticText(self, wx.ID_ANY, 
-            "Range max: ")
 
-        maxval = self.parent.parent.datafile.Xmax
-        minval = self.parent.parent.datafile.Xmin
 
-        print "max {} / min {}".format(maxval,minval)
 
-        mininterval = np.absolute(self.parent.parent.datafile.Xrange[1] -  self.parent.parent.datafile.Xrange[0])
+        x_maxval = self.parent.parent.datafile.Xmax
+        x_minval = self.parent.parent.datafile.Xmin
+        y_maxval = self.parent.parent.datafile.Ymax
+        y_minval = self.parent.parent.datafile.Ymin
 
-        self.minspin = FloatSpin(self, name='min',
-            value=minval,
-            min_val=minval,
-            max_val=maxval,
-            increment = mininterval,
+        #self.parent.parent.datafile.report()
+
+        x_mininterval = np.absolute(self.parent.parent.datafile.dX)
+        y_mininterval = np.absolute(self.parent.parent.datafile.dY)
+
+        self.x_minspin_label = wx.StaticText(self, wx.ID_ANY, 
+            "X range min: ")
+
+        self.x_minspin = FloatSpin(self, name='x_min',
+            value=x_minval,
+            min_val=x_minval,
+            max_val=x_maxval-x_mininterval,
+            increment = x_mininterval,
             digits = 3
             )
 
-        self.minspin.SetFormat("%e")
+        self.x_minspin.SetFormat("%e")
+
+        self.x_maxspin_label = wx.StaticText(self, wx.ID_ANY, 
+            "X range max: ")
         
-        self.maxspin = FloatSpin(self, name='max',
-            value=maxval, 
-            min_val=minval,
-            max_val=maxval,
-            increment = mininterval,
+        self.x_maxspin = FloatSpin(self, name='x_max',
+            value=x_maxval, 
+            min_val=x_minval+x_mininterval,
+            max_val=x_maxval,
+            increment = x_mininterval,
             digits = 3)
 
-        self.maxspin.SetFormat("%e")
+        self.x_maxspin.SetFormat("%e")
 
+        self.x_intervalspin_label = wx.StaticText(self, wx.ID_ANY, 
+            "Interval width (x axis): ")
         
-        self.intervalspin = FloatSpin(self, name='interval',
-            value=mininterval,
-            min_val=mininterval,
-            max_val=np.absolute(maxval-minval),
-            increment = mininterval,
+        self.x_intervalspin = FloatSpin(self, name='x_interval',
+            value=np.absolute(x_maxval-x_minval)/10,
+            min_val=x_mininterval,
+            max_val=np.absolute(x_maxval-x_minval),
+            increment = x_mininterval,
             digits = 3
             )
 
-        self.intervalspin.SetFormat("%e")
+        self.x_intervalspin.SetFormat("%e")
+        self.x_intervalspin.Enable(False)
+        
+        self.Bind(EVT_FLOATSPIN, self.on_floatspin)
+
+        self.y_minspin_label = wx.StaticText(self, wx.ID_ANY, 
+            "Y range min: ")
+
+        self.y_minspin = FloatSpin(self, name='y_min',
+            value=y_minval,
+            min_val=y_minval,
+            max_val=y_maxval-y_mininterval,
+            increment = y_mininterval,
+            digits = 3
+            )
+
+        self.y_minspin.SetFormat("%e")
+
+        self.y_maxspin_label = wx.StaticText(self, wx.ID_ANY, 
+            "Y range max: ")
+        
+        self.y_maxspin = FloatSpin(self, name='y_max',
+            value=y_maxval, 
+            min_val=y_minval+y_mininterval,
+            max_val=y_maxval,
+            increment = y_mininterval,
+            digits = 3)
+
+        self.y_maxspin.SetFormat("%e")
+
+        self.y_intervalspin_label = wx.StaticText(self, wx.ID_ANY, 
+            "Interval width (y axis): ")
+        
+        self.y_intervalspin = FloatSpin(self, name='y_interval',
+            value=np.absolute(y_maxval-y_minval)/10,
+            min_val=y_mininterval,
+            max_val=np.absolute(y_maxval-y_minval),
+            increment = y_mininterval,
+            digits = 3
+            )
+
+        self.y_intervalspin.SetFormat("%e")
         
         self.Bind(EVT_FLOATSPIN, self.on_floatspin)
 
 
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.hbox2.Add(self.maxspin_label,0,flag = flags, border = 10)
-        self.hbox2.Add(self.maxspin,0,flag = flags, border = 10)
-        self.hbox2.Add(self.minspin_label,0,flag = flags, border = 10)
-        self.hbox2.Add(self.minspin,0,flag = flags, border = 10)
-        self.hbox2.Add(self.intervalspin_label,0,flag = flags, border = 10)
-        self.hbox2.Add(self.intervalspin,0,flag = flags, border = 10)
+        self.hbox2.Add(self.x_maxspin_label,0,flag = flags, border = 10)
+        self.hbox2.Add(self.x_maxspin,0,flag = flags, border = 10)
+        self.hbox2.Add(self.x_minspin_label,0,flag = flags, border = 10)
+        self.hbox2.Add(self.x_minspin,0,flag = flags, border = 10)
+        self.hbox2.Add(self.x_intervalspin_label,0,flag = flags, border = 10)
+        self.hbox2.Add(self.x_intervalspin,0,flag = flags, border = 10)
+
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.hbox3.Add(self.y_maxspin_label,0,flag = flags, border = 10)
+        self.hbox3.Add(self.y_maxspin,0,flag = flags, border = 10)
+        self.hbox3.Add(self.y_minspin_label,0,flag = flags, border = 10)
+        self.hbox3.Add(self.y_minspin,0,flag = flags, border = 10)
+        self.hbox3.Add(self.y_intervalspin_label,0,flag = flags, border = 10)
+        self.hbox3.Add(self.y_intervalspin,0,flag = flags, border = 10)
 
         self.mainbox.AddSpacer(10,1)
         self.mainbox.Add(self.hbox2)
+        self.mainbox.AddSpacer(10,1)
+        self.mainbox.Add(self.hbox3)
 
-        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.filenamebox_label = wx.StaticText(self, wx.ID_ANY, 
             "Filename ({} for x/y val): ")
 
-        self.filenamebox = wx.TextCtrl(self,wx.ID_ANY)
+        self.filenamebox = wx.TextCtrl(self,wx.ID_ANY,"Linecut_y={}.dat")
 
-        self.hbox3.Add(self.filenamebox_label,0,flag=flags, border = 10)
-        self.hbox3.Add(self.filenamebox,1,flag = flags, border = 10)
+        self.hbox4.Add(self.filenamebox_label,0,flag=flags, border = 10)
+        self.hbox4.Add(self.filenamebox,1,flag = flags, border = 10)
 
         #self.SetSizerAndFit(self.hbox3)
         
         self.mainbox.AddSpacer(10,1)
-        self.mainbox.Add(self.hbox3,0,flag=wx.EXPAND)
+        self.mainbox.Add(self.hbox4,0,flag=wx.EXPAND)
 
-        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.Cancel = wx.Button(self,wx.ID_ANY, label = "Cancel")
         self.Save = wx.Button(self,wx.ID_ANY,label = "Save linecuts")
@@ -957,114 +1017,176 @@ class LinecutPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON,self.on_cancel,self.Cancel)
         self.Bind(wx.EVT_BUTTON,self.on_save,self.Save)
         
-        self.hbox4.Add(self.Save,0,flag = flags, border = 10)
-        self.hbox4.Add(self.Cancel,0, flag = flags, border = 10)
+        self.hbox5.Add(self.Save,0,flag = flags, border = 10)
+        self.hbox5.Add(self.Cancel,0, flag = flags, border = 10)
 
         self.mainbox.AddSpacer(10,1)
-        self.mainbox.Add(self.hbox4)
+        self.mainbox.Add(self.hbox5)
+
+        self.linelist = []
 
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self.parent)
 
     def on_save(self, event):
 
-        maxval = self.maxspin.GetValue()
-        minval = self.minspin.GetValue()
-        interval = self.intervalspin.GetValue()
+        datafile = self.parent.parent.datafile
+        total_xrange = datafile.Xrange
+        total_yrange = datafile.Yrange
 
-        total_xrange = self.parent.parent.datafile.Xrange
-        total_yrange = self.parent.parent.datafile.Yrange
-
-        if self.radiox.GetValue():
+        if self.radioy.GetValue():
 
             total_mininterval = np.absolute(total_xrange[1]-total_xrange[0])
             
-            start = int((minval-total_xrange[0])/total_mininterval)
-            end = int((maxval-total_xrange[0])/total_mininterval)
-            step = int(interval/total_mininterval)
+            x_start = datafile.get_xrange_idx(self.x_minspin.GetValue())
+            x_end = datafile.get_xrange_idx(self.x_maxspin.GetValue())
+            x_step = int(self.x_intervalspin.GetValue()/total_mininterval)
 
-            position = start
-            while position <= end:
+            y_start = datafile.get_yrange_idx(self.y_minspin.GetValue())
+            y_end = datafile.get_yrange_idx(self.y_maxspin.GetValue())
+
+            position = x_start
+            while position <= x_end:
                 
                 fname = self.filenamebox.GetValue()
                 #fname.replace("$","{}".format(total_xrange[position]))
 
-                print "Zdata shape : {}".format(self.parent.parent.datafile.Zdata[:,position].shape)
+                print "Zdata shape : {}".format(datafile.Zdata[:,position].shape)
                 print "Yrange shape : {}".format(total_yrange.shape)
                 
                 
-                linecut = np.vstack([total_yrange,self.parent.parent.datafile.Zdata[:,position]])
+                linecut = np.vstack([total_yrange[y_start:y_end],self.parent.parent.datafile.Zdata[y_start:y_end,position]])
                 print linecut.shape
                 np.savetxt(fname.format(total_xrange[position]),linecut.T)
 
-                position += step
+                position += x_step
 
-        if self.radioy.GetValue():
+        if self.radiox.GetValue():
 
             total_mininterval = np.absolute(total_yrange[1]-total_yrange[0])
             
-            start = int((minval-total_yrange[0])/total_mininterval)
-            end = int((maxval-total_yrange[0])/total_mininterval)
-            step = int(interval/total_mininterval)
+            y_start = datafile.get_yrange_idx(self.y_minspin.GetValue())
+            y_end = datafile.get_yrange_idx(self.y_maxspin.GetValue())
+            y_step = int(self.y_intervalspin.GetValue()/total_mininterval)
 
-            position = start
-            while position <= end:
+            x_start = datafile.get_xrange_idx(self.x_minspin.GetValue())
+            x_end = datafile.get_xrange_idx(self.x_maxspin.GetValue())
+
+            position = y_start
+            while position <= y_end:
                 
                 fname = self.filenamebox.GetValue()
-                #fname.replace("$","{}".format(total_yrange[position]))
+                #fname.replace("$","{}".format(total_xrange[position]))
 
-                np.savetxt(fname.format(total_yrange[position]),np.hstack([total_xrange,self.parent.parent.datafile.Zdata[position,:]]))
+                print "Zdata shape : {}".format(datafile.Zdata[position,x_start:x_end].shape)
+                print "Xrange shape : {}".format(total_xrange[x_start:x_end].shape)
+                
+                
+                linecut = np.vstack([total_xrange[x_start:x_end],self.parent.parent.datafile.Zdata[position,x_start:x_end]])
+                print linecut.shape
+                np.savetxt(fname.format(total_yrange[position]),linecut.T)
 
-                position += step
+                position += y_step
+
 
     def on_cancel(self, event):
+        if self.linelist:
+            for line in self.linelist:
+                line.remove()
+        self.canvas.draw()
+        self.axes.autoscale(True)
+
         self.parent.Hide()
         
     def on_radioxy(self, event):
         evt_obj = event.GetEventObject()
 
         if evt_obj.GetName == "radiox":
-            self.set_floatspincontrols(self.parent.parent.datafile.Xrange)
+            self.y_intervalspin.Enable(True)
+            self.x_intervalspin.Enable(False)
+            self.filenamebox.SetValue("Linecut_y={}.dat")
         if evt_obj.GetName() == "radioy":
-            self.set_floatspincontrols(self.parent.parent.datafile.Yrange)
+            self.x_intervalspin.Enable(True)
+            self.y_intervalspin.Enable(False)
+            self.filenamebox.SetValue("Linecut_x={}.dat")
+
  
     def on_floatspin(self,event):
         evt_obj = event.GetEventObject()
-        maxval = self.maxspin.GetValue()
-        minval = self.minspin.GetValue()
-        interval = self.intervalspin.GetValue()
+        if "x_" in evt_obj.GetName(): 
+            maxval = self.x_maxspin.GetValue()
+            minval = self.x_minspin.GetValue()
+            interval = self.x_intervalspin.GetValue()
+        else: 
+            maxval = self.y_maxspin.GetValue()
+            minval = self.y_minspin.GetValue()
+            interval = self.y_intervalspin.GetValue()
     
-        if evt_obj.GetName() == "min": 
+        if "min" in evt_obj.GetName(): 
             if maxval-interval < minval:
                 interval = maxval-minval
-        if evt_obj.GetName() == "max":
+        if "max" in evt_obj.GetName():
             if minval+interval > maxval:
                 interval = maxval-minval
-        if evt_obj.GetName() == "interval":
+        if "interval" in evt_obj.GetName():
             if maxval-minval < interval:
                 maxval = minval + interval
 
-        self.maxspin.SetValue(maxval)
-        self.minspin.SetValue(minval)
-        self.intervalspin.SetValue(interval)
-            
-    def set_floatspincontrols(self,range):
-        maxval = range[-1]
-        minval = range[0]
-        mininterval = np.absolute(range[1]-range[0])
+        if "x_" in evt_obj.GetName(): 
+            self.x_maxspin.SetValue(maxval)
+            self.x_minspin.SetValue(minval)
+            self.x_intervalspin.SetValue(interval)
+        else: 
+            self.y_maxspin.SetValue(maxval)
+            self.y_minspin.SetValue(minval)
+            self.y_intervalspin.SetValue(interval)
 
-        self.maxspin.SetRange(minval,maxval)
-        self.maxspin.SetValue(maxval)
-        self.maxspin.SetIncrement(mininterval)
+        self.drawGrid()
 
-        self.minspin.SetRange(minval,maxval)
-        self.minspin.SetValue(mininterval)
-        self.maxspin.SetIncrement(mininterval)
+    def drawGrid(self):
+        datafile = self.parent.parent.datafile
+        total_xrange = datafile.Xrange
+        total_yrange = datafile.Yrange
 
-        self.intervalspin.SetRange(mininterval,np.absolute(maxval-minval))
-        self.intervalspin.SetValue(mininterval)
-        self.intervalspin.SetIncrement(mininterval)
+        if self.linelist:
+            for line in self.linelist:
+                line.remove()
 
+        self.linelist = []
+
+        if self.radioy.GetValue():
+
+            x_start = self.x_minspin.GetValue()
+            x_end = self.x_maxspin.GetValue()
+            x_step = self.x_intervalspin.GetValue()
+
+            y_start = self.y_minspin.GetValue()
+            y_end = self.y_maxspin.GetValue()
+
+
+            position = x_start
+            while position <= x_end:
+                self.linelist.append(self.axes.plot([position,position],[y_start,y_end])[0])
+
+                position += x_step
+
+        if self.radiox.GetValue():
+
+            y_start = self.y_minspin.GetValue()
+            y_end = self.y_maxspin.GetValue()
+            y_step = self.y_intervalspin.GetValue()
+
+            x_start = self.x_minspin.GetValue()
+            x_end = self.x_maxspin.GetValue()
+
+
+            position = y_start
+            while position <= y_end:
+                self.linelist.append(self.axes.plot([x_start,x_end],[position,position])[0])
+
+                position += y_step
+
+        self.canvas.draw()
 
 class LineoutFrame(wx.Frame):
     def __init__(self,parent):
