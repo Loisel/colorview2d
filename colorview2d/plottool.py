@@ -81,7 +81,6 @@ class MainFrame(wx.Frame):
         self.LinecutFrame = LinecutFrame(self)
         self.LabelticksFrame = LabelticksFrame(self)
 
-
 #        self.PlotFrame.PlotPanel.draw_plot()
         self.LineoutFrame = LineoutFrame(self)
         self.BinaryFitFrame = BinaryFitFrame(self)
@@ -116,8 +115,14 @@ class MainFrame(wx.Frame):
 
         m_labelticks = menu_axes.Append(wx.ID_ANY, "Labels and &Ticks\tCtrl-T", "Set axes labels and tick label format")
         self.Bind(wx.EVT_MENU,self.on_labelticks,m_labelticks)
-        m_switchaxes = menu_axes.Append(wx.ID_ANY, "Switch", "Switch x and y axes")
-        self.Bind(wx.EVT_MENU, self.on_switchaxes, m_switchaxes)
+
+        m_rotatecw = menu_axes.Append(wx.ID_ANY, "Rotate cw", "Permutate the axes clockwise: x to y")
+        self.Bind(wx.EVT_MENU, self.on_rotatecw, m_rotatecw)
+        m_rotateccw = menu_axes.Append(wx.ID_ANY, "Rotate ccw", "Permutate the axes counter-clockwise: y to x")
+        self.Bind(wx.EVT_MENU, self.on_rotateccw, m_rotateccw)
+
+        m_cropaxes = menu_axes.Append(wx.ID_ANY, "Crop", "Crop x/y axes")
+        self.Bind(wx.EVT_MENU, self.on_cropaxes, m_cropaxes)
         
         m_linecut = menu_tools.Append(wx.ID_ANY,  "Linecut &Extraction\tCtrl-E", "Extract linecut series")
         self.Bind(wx.EVT_MENU, self.on_linecut, m_linecut)
@@ -149,8 +154,23 @@ class MainFrame(wx.Frame):
     def on_labelticks(self,event):
         self.LabelticksFrame.Show()
 
-    def on_switchaxes(self,event):
-        print "Switching axes."
+    def on_rotatecw(self,event):
+        self.restore_datafile()
+        self.datafile.rotate_cw()
+        self.orig_datafile = self.datafile.deep_copy()
+        #self.MainPanel.update_plot()
+        self.PlotFrame.PlotPanel.draw_plot()
+
+    def on_rotateccw(self,event):
+        self.restore_datafile()
+        self.datafile.rotate_ccw()
+        self.orig_datafile = self.datafile.deep_copy()
+        #self.MainPanel.update_plot()
+        self.PlotFrame.PlotPanel.draw_plot()
+
+    def on_cropaxes(self,event):
+        self.CropFrame = CropFrame(self)
+        self.CropFrame.Show()
 
     def on_lineout(self,event):
         self.LineoutFrame.Show()
@@ -292,7 +312,7 @@ class PlotPanel(wx.Panel):
         #print "Max: {} Min: {}".format(datafile.Zmax,datafile.Zmin)
         
         self.plot = self.axes.imshow(datafile.Zdata,
-            extent=[datafile.Xmin,datafile.Xmax,datafile.Ymin,datafile.Ymax],
+            extent=[datafile.Xleft,datafile.Xright,datafile.Ybottom,datafile.Ytop],
             aspect='auto',
             interpolation="nearest")
 
@@ -729,9 +749,13 @@ class MainPanel(wx.Panel):
         #
         #self.axes.clear()        
 
-        plotpanel.plot.set_data(self.parent.datafile.Zdata)
-        plotpanel.plot.set_extent([self.parent.datafile.Xmin,self.parent.datafile.Xmax,self.parent.datafile.Ymin,self.parent.datafile.Ymax])
+        plotpanel.plot.set_extent([self.parent.datafile.Xleft,self.parent.datafile.Xright,self.parent.datafile.Ybottom,self.parent.datafile.Ytop])
 
+        plotpanel.axes.set_xlim(self.parent.datafile.Xleft,self.parent.datafile.Xright)
+        plotpanel.axes.set_ylim(self.parent.datafile.Ybottom,self.parent.datafile.Ytop)
+
+        plotpanel.plot.set_data(self.parent.datafile.Zdata)
+        
         cbar_min = centre - width/2.
         cbar_max = centre + width/2.
 
@@ -840,7 +864,120 @@ class LabelticksPanel(wx.Panel):
     def on_cancel(self,event):
         self.parent.Hide()
 
-    
+class CropFrame(wx.Frame):
+    def __init__(self,parent):
+        wx.Frame.__init__(self, parent, title="Crop x/y axes")
+        self.parent = parent
+        self.CropPanel = CropPanel(self)
+        self.Layout()
+
+class CropPanel(wx.Panel):
+    def __init__(self,parent):
+        wx.Panel.__init__(self,parent)
+        self.parent = parent
+
+        self.widgetlist = []
+        datafile = self.parent.parent.datafile
+        #datafile.report()
+
+        self.xrangebox_label = wx.StaticText(self, wx.ID_ANY, 
+            "x-axis left/right: ")
+        self.widgetlist.append(self.xrangebox_label)
+        self.xrange_left_spin = FloatSpin(self, name='x_left',
+            value=datafile.Xleft,
+            min_val=datafile.Xmin,
+            max_val=datafile.Xmax,
+            increment = datafile.dX,
+            digits = 3
+            )
+        self.xrange_left_spin.SetFormat("%e")
+        self.widgetlist.append(self.xrange_left_spin)
+        self.xrange_right_spin = FloatSpin(self, name='x_right',
+            value=datafile.Xright,
+            min_val=datafile.Xmin,
+            max_val=datafile.Xmax,
+            increment = datafile.dX,
+            digits = 3
+            )
+        self.xrange_right_spin.SetFormat("%e")
+        self.widgetlist.append(self.xrange_right_spin)
+
+        self.yrangebox_label = wx.StaticText(self, wx.ID_ANY, 
+            "y-axis bottom/top: ")
+        self.widgetlist.append(self.yrangebox_label)
+        self.yrange_bottom_spin = FloatSpin(self, name='y_bottom',
+            value=datafile.Ybottom,
+            min_val=datafile.Ymin,
+            max_val=datafile.Ymax,
+            increment = datafile.dY,
+            digits = 3
+            )
+        self.yrange_bottom_spin.SetFormat("%e")
+        self.widgetlist.append(self.yrange_bottom_spin)
+        self.yrange_top_spin = FloatSpin(self, name='y_top',
+            value=datafile.Ytop,
+            min_val=datafile.Ymin,
+            max_val=datafile.Ymax,
+            increment = datafile.dY,
+            digits = 3
+            )
+        self.yrange_top_spin.SetFormat("%e")
+        self.widgetlist.append(self.yrange_top_spin)
+
+        self.Revert = wx.Button(self,wx.ID_ANY, label = "Revert")
+        self.Apply = wx.Button(self,wx.ID_ANY,label = "Apply")
+        self.Close = wx.Button(self,wx.ID_ANY,label = "Close")
+
+        self.Bind(wx.EVT_BUTTON,self.on_revert,self.Revert)
+        self.Bind(wx.EVT_BUTTON,self.on_apply,self.Apply)
+        self.Bind(wx.EVT_BUTTON,self.on_close,self.Close)
+
+        self.mainbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.RangeBox = wx.StaticBox(self, wx.ID_ANY, 'Ranges:')
+        self.RangeBoxSizer = wx.StaticBoxSizer(self.RangeBox, wx.VERTICAL)
+
+        self.RangeGridSizer = wx.GridSizer(rows=2, cols=3, hgap=5, vgap=10)
+        self.RangeBoxSizer.Add(self.RangeGridSizer)
+
+        gridflags = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
+
+        for widget in self.widgetlist:
+            self.RangeGridSizer.Add(widget,0,flag=gridflags)
+
+        self.mainbox.Add(self.RangeBoxSizer)
+        
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.Revert,0,flag=wx.ALIGN_CENTER|wx.ALL,border=10)
+        self.hbox.Add(self.Apply,0,flag=wx.ALIGN_CENTER|wx.ALL,border=10)
+        self.hbox.Add(self.Close,0,flag=wx.ALIGN_CENTER|wx.ALL,border=10)
+
+        self.mainbox.AddSpacer(10,1)
+        self.mainbox.Add(self.hbox)
+
+        self.SetSizerAndFit(self.mainbox)
+        self.mainbox.Fit(self.parent)
+
+    def on_apply(self,event):
+        xleft = self.xrange_left_spin.GetValue()
+        xright = self.xrange_right_spin.GetValue()
+        ytop = self.yrange_top_spin.GetValue()
+        ybottom = self.yrange_bottom_spin.GetValue()
+        
+        
+        self.parent.parent.modlist.remMod("crop")
+        self.parent.parent.modlist.addMod(tb.crop(xleft,xright,ybottom,ytop))
+
+        self.parent.parent.modlist.applyModlist()
+        self.parent.parent.MainPanel.update_plot()
+        
+    def on_revert(self,event):
+        self.parent.parent.modlist.remMod("crop")
+        self.parent.parent.modlist.applyModlist()
+        self.parent.parent.MainPanel.update_plot()
+        
+    def on_close(self,event):
+        self.parent.Destroy()
         
 class LinecutFrame(wx.Frame):
     def __init__(self,parent):

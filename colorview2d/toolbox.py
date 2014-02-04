@@ -73,3 +73,25 @@ class scale(modification):
     def apply_mod(self,datafile):
 
         datafile.update(datafile.Zdata*self.zscale)
+
+class crop(modification):
+    title = "crop"
+
+    def __init__(self,xleft,xright,ybottom,ytop):
+
+        self.xleft = xleft
+        self.xright = xright
+        self.ybottom = ybottom
+        self.ytop = ytop
+    
+    def apply_mod(self,datafile):
+        xleft_idx = datafile.get_xrange_idx(self.xleft)
+        xright_idx = datafile.get_xrange_idx(self.xright)
+        ybottom_idx = datafile.get_yrange_idx(self.ybottom)
+        ytop_idx = datafile.get_yrange_idx(self.ytop)
+
+        #print "left {} right {} bottom {} top {}".format(xleft_idx,xright_idx,ybottom_idx,ytop_idx)
+        #datafile.report()
+
+        datafile.set_xyrange(datafile.Xrange[xleft_idx:xright_idx],datafile.Yrange[ybottom_idx:ytop_idx])
+        datafile.update(datafile.get_region(xleft_idx,xright_idx,ybottom_idx,ytop_idx))

@@ -21,11 +21,22 @@ class gp_file:
 				self.Bsize = i		
 				break
 
-		self.Xrange = data[::self.Bsize,0]
-		self.Yrange = data[:self.Bsize,1]
+		self.set_xyrange(data[::self.Bsize,0],data[:self.Bsize,1])
 
 		self.Bnum = nlines/self.Bsize
 		self.Lnum = self.Bsize*self.Bnum
+
+
+		# Store the data
+
+		self.Zdata = sp.flipud(sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
+                self.Zmax = sp.amax(self.Zdata)
+                self.Zmin = sp.amin(self.Zdata)
+                #self.Zdata_Original = sp.copy(self.Zdata)
+
+	def set_xyrange(self,Xrange,Yrange):
+		self.Xrange = Xrange
+		self.Yrange = Yrange
 
 		self.Xleft = self.Xrange[0]
 		self.Xright = self.Xrange[-1]
@@ -44,14 +55,6 @@ class gp_file:
 
                 self.dX = self.Xrange[1] - self.Xrange[0]
                 self.dY = self.Yrange[1] - self.Yrange[0]
-
-
-		# Store the data
-
-		self.Zdata = sp.flipud(sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
-                self.Zmax = sp.amax(self.Zdata)
-                self.Zmin = sp.amin(self.Zdata)
-                #self.Zdata_Original = sp.copy(self.Zdata)
 
         def update(self,Zdata):
             self.Zdata = Zdata
@@ -96,10 +99,24 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
             if value < self.Xmin or value > self.Xmax:
 		    raise Exception("x value out of X range: {}".format(value))
 	    else:
-		    return int((value-self.Xmin)/abs(self.dX))
+		    return int(abs(value-self.Xleft)/abs(self.dX))
 
 	def get_yrange_idx(self,value):
             if value < self.Ymin or value > self.Ymax:
 		    raise Exception("x value out of X range: {}".format(value))
 	    else:
-		    return int((value-self.Ymin)/abs(self.dY))
+		    return int(abs(value-self.Ybottom)/abs(self.dY))
+
+	def rotate_cw(self):
+		self.set_xyrange(self.Yrange,self.Xrange[::-1])
+		self.update(sp.rot90(self.Zdata,k=3))
+
+	def rotate_ccw(self):
+		self.set_xyrange(self.Yrange[::-1],self.Xrange)
+		self.update(sp.rot90(self.Zdata,k=1))
+
+	def get_region(self,xleft,xright,ybottom,ytop):
+		try:
+			return self.Zdata[-ytop:-ybottom,xleft:xright]
+		except IndexError as e:
+			print "Index not in data range:",e
