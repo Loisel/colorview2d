@@ -18,23 +18,23 @@ class smooth(modification):
     """
 
     title = "lowpass"
-    
+
     def __init__(self,sizex,sizey):
 
         self.sizex = sizex
         self.sizey = sizey
 
-    
-    def apply_mod(self,datafile):     
 
-     datafile.update(gaussian_filter(datafile.Zdata,(self.sizex,self.sizey)))
+    def apply_mod(self,datafile):
+
+        datafile.update(gaussian_filter(datafile.Zdata,(self.sizex,self.sizey)))
 
 
 class deriv(modification):
 
     title = "deriv"
 
-    
+
     def apply_mod(self,datafile):
 
         dy = datafile.dY
@@ -55,7 +55,7 @@ class adaptive_threshold(modification):
         self.blocksize = blocksize
         self.offset = offset
 
-    
+
     def apply_mod(self,datafile):
 
         from skimage.filter import threshold_adaptive
@@ -69,7 +69,7 @@ class scale(modification):
     def __init__(self,zscale):
 
         self.zscale = zscale
-    
+
     def apply_mod(self,datafile):
 
         datafile.update(datafile.Zdata*self.zscale)
@@ -83,7 +83,7 @@ class crop(modification):
         self.xright = xright
         self.ybottom = ybottom
         self.ytop = ytop
-    
+
     def apply_mod(self,datafile):
         xleft_idx = datafile.get_xrange_idx(self.xleft)
         xright_idx = datafile.get_xrange_idx(self.xright)

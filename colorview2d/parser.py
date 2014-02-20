@@ -10,17 +10,17 @@ import numpy as np
 
 def parse(string):
     parms = re.findall('[a-zA-Z]',string)
-    
+
     p_num = len(parms)
 
     if p_num:
         print "{} parameter found: {}".format(p_num,parms)
         if not 'x' in parms:
             raise Exception("No running variable x specified.")
-            
+
         return Formula(string,parms)
-            
-        
+
+
 
 class Formula():
 
@@ -54,7 +54,7 @@ class Formula():
         self.init_f()
 
     def eval(self,x):
-         return self.nsp.eval(self.formula.replace('x',"{:e}".format(x)))
+        return self.nsp.eval(self.formula.replace('x',"{:e}".format(x)))
 
     def get_fx(self):
         return self.formula
@@ -64,8 +64,8 @@ class Formula():
         print self.formula
     def print_fxp(self):
         print self.pstring
-            
-        
+
+
 
 
 __author__='Paul McGuire'
@@ -87,7 +87,7 @@ class NumericStringParser(object):
     def pushFirst(self, strg, loc, toks ):
         self.exprStack.append( toks[0] )
     def pushUMinus(self, strg, loc, toks ):
-        if toks and toks[0]=='-': 
+        if toks and toks[0]=='-':
             self.exprStack.append( 'unary -' )
     def __init__(self):
         """
@@ -102,10 +102,10 @@ class NumericStringParser(object):
         """
         point = Literal( "." )
         e     = CaselessLiteral( "E" )
-        fnumber = Combine( Word( "+-"+nums, nums ) + 
+        fnumber = Combine( Word( "+-"+nums, nums ) +
                            Optional( point + Optional( Word( nums ) ) ) +
                            Optional( e + Word( "+-"+nums, nums ) ) )
-        ident = Word(alphas, alphas+nums+"_$")       
+        ident = Word(alphas, alphas+nums+"_$")
         plus  = Literal( "+" )
         minus = Literal( "-" )
         mult  = Literal( "*" )
@@ -120,8 +120,8 @@ class NumericStringParser(object):
         atom = ((Optional(oneOf("- +")) +
                  (pi|e|fnumber|ident+lpar+expr+rpar).setParseAction(self.pushFirst))
                 | Optional(oneOf("- +")) + Group(lpar+expr+rpar)
-                ).setParseAction(self.pushUMinus)       
-        # by defining exponentiation as "atom [ ^ factor ]..." instead of 
+                ).setParseAction(self.pushUMinus)
+        # by defining exponentiation as "atom [ ^ factor ]..." instead of
         # "atom [ ^ atom ]...", we get right-to-left exponents, instead of left-to-right
         # that is, 2^3^2 = 2^(3^2), not (2^3)^2.
         factor = Forward()
@@ -130,7 +130,7 @@ class NumericStringParser(object):
         expr << term + ZeroOrMore( ( addop + term ).setParseAction( self.pushFirst ) )
         # addop_term = ( addop + term ).setParseAction( self.pushFirst )
         # general_term = term + ZeroOrMore( addop_term ) | OneOrMore( addop_term)
-        # expr <<  general_term       
+        # expr <<  general_term
         self.bnf = expr
         # map operator symbols to corresponding arithmetic operations
         epsilon = 1e-12
