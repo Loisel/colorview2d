@@ -7,8 +7,8 @@ colorview2d
 
 A GUI driven application to visualize and analyze 3D
 datasets. Available tools include linear slope extraction,
-linecut series extraction and fitting of (almost) arbitrary
-functions to prominent features in the dataset.
+linecut series extraction and fitting of (almost) arbitrary 2d
+functions to prominent features in the 3d dataset.
 
 :copyright: 2014 by Alois Dirnaichner, see AUTHORS for more details
 :license: GPLv3, see LICENSE for more details
@@ -21,40 +21,64 @@ import os
 import sys
 import numpy as np
 import re
+import matplotlib
+matplotlib.use('WXAgg')
+
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+
 import wx.lib.mixins.listctrl as listmix
 from wx.lib.agw.floatspin import FloatSpin,EVT_FLOATSPIN
 from wx.lib.masked import NumCtrl,EVT_NUM
 from FloatSlider import FloatSlider
 
-import matplotlib
-matplotlib.use('WXAgg')
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
     NavigationToolbar2WxAgg as NavigationToolbar
 
 from matplotlib.ticker import FormatStrFormatter
 
-import toolbox as tb
 import parser
+import toolbox as tb
+
 
 class Modlist():
+    """
+    A container for data manipulation objects (mods).
+    It is associated with the parent frame and
+    calls a function (restore_datafile) of the frame object.
+    """
+    
     modlist = []
     def __init__(self,frame):
+        """ Initialization requires the parent frame object """
         self.frame = frame
 
     def addMod(self,mod):
+        """ Adds a modification object to the list """
         #print "Try to add {}".format(mod)
         if not any(mymod.title == mod.title for mymod in self.modlist):
             self.modlist.append(mod)
 
     def remMod(self,title):
+        """
+        Removes a modification object from the list using a
+        strin identifier.
+
+        Keyword arguments:
+        title -- string specifying the modification
+        """
+        
         for mod in self.modlist:
             if mod.title == title:
                 self.modlist.remove(mod)
 
     def applyModlist(self):
+        """
+        Applies the modlist to the frames datafile.
+        The datafile is first reverted to its original state,
+        then mods are applied in the order they were added.
+        """
         self.frame.restore_datafile()
         #print "Modlist {}".format(self.modlist)
         for mod in self.modlist:
@@ -64,6 +88,10 @@ class Modlist():
 
 
 class MainFrame(wx.Frame):
+    """
+    The MainFrame class hosts all subframes, the datafile object,
+    the colormap and information on ticks and labels.
+    """
 
     title = 'colorplot utility: '
     datafilename = 'demo.dat'
@@ -77,6 +105,10 @@ class MainFrame(wx.Frame):
     Cbtickformat = 'auto'
 
     def __init__(self):
+        """
+        Initialize the frame and create a default datafile object.
+        Create Menu, MainPanel and PlotFrame.
+        """
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title+self.datafilename,size=(440,330))
 
         self.alignToBottomRight()
@@ -98,7 +130,6 @@ class MainFrame(wx.Frame):
         self.LabelticksFrame = LabelticksFrame(self)
 
 #        self.PlotFrame.PlotPanel.draw_plot()
-        self.LineoutFrame = LineoutFrame(self)
         self.BinaryFitFrame = BinaryFitFrame(self)
 
         self.PlotFrame.Show()
@@ -189,6 +220,7 @@ class MainFrame(wx.Frame):
         self.CropFrame.Show()
 
     def on_lineout(self,event):
+        self.LineoutFrame = LineoutFrame(self)
         self.LineoutFrame.Show()
 
     def on_binaryfit(self,event):
@@ -1354,16 +1386,13 @@ class LineoutPanel(wx.Panel):
         wx.Panel.__init__(self,parent)
         self.parent = parent
 
-        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(False)
-        self.linelist = []
-        self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
 
         self.x1 = None
         self.x2 = None
         self.y1 = None
         self.y2 = None
 
-        self.cid = parent.parent.PlotFrame.PlotPanel.canvas.mpl_connect('button_press_event',self.on_click)
+        self.linelist = []
 
         self.fig = plt.figure()
 
@@ -1397,6 +1426,11 @@ class LineoutPanel(wx.Panel):
 
         self.SetSizer(self.mainbox)
         self.mainbox.Fit(self)
+
+        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(False)
+        self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
+        self.cid = parent.parent.PlotFrame.PlotPanel.canvas.mpl_connect('button_press_event',self.on_click)
+        
 
     def on_plot(self,event):
         self.draw_linetrace()
@@ -2201,13 +2235,17 @@ class FloatValidator(wx.PyValidator):
         """
         return True # Prevent wxDialog from complaining.
 
+class Colorview2d(wx.App):
+    def __init__(self, redirect=False, filename=None):
+        wx.App.__init__(self, redirect, filename)
+ 
+    def OnInit(self):
+        # create frame here
+        frame = MainFrame()
+        frame.Show()
+        frame.Layout()
+        return True
+    
 if __name__ == '__main__':
-    app = wx.PySimpleApp()
-    app.frame = MainFrame()
-
-    app.frame.Show()
-    app.frame.Layout()
-    #app.frame.Maximize()
-
-
+    app = Colorview2d()
     app.MainLoop()
