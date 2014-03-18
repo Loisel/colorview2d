@@ -104,12 +104,14 @@ class MainFrame(wx.Frame):
     Ytickformat = 'auto'
     Cbtickformat = 'auto'
 
-    def __init__(self):
+    def __init__(self,parent):
         """
-        Initialize the frame and create a default datafile object.
+        Initialize the frame, create subframes and  a default datafile object.
+        
         Create Menu, MainPanel and PlotFrame.
         """
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title+self.datafilename,size=(440,330))
+        self.parent = parent
 
         self.alignToBottomRight()
         self.modlist = Modlist(self)
@@ -137,6 +139,9 @@ class MainFrame(wx.Frame):
         #self.PlotFrame.Maximize()
 
     def alignToBottomRight(self):
+        """
+        Used to align the Main Window to the bottom right of the screen.
+        """
         dw, dh = wx.DisplaySize()
         w, h = self.GetSize()
         x = dw - w
@@ -144,9 +149,15 @@ class MainFrame(wx.Frame):
         self.SetPosition((x, y))
 
     def restore_datafile(self):
+        """
+        Replaces the datafile object by its original version.
+        """
         self.datafile = self.orig_datafile.deep_copy()
 
     def create_menu(self):
+        """
+        Creates the Menu in the toolbar.
+        """
         self.menubar = wx.MenuBar()
         menu_file = wx.Menu()
         menu_tools = wx.Menu()
@@ -199,9 +210,19 @@ class MainFrame(wx.Frame):
         self.statusbar = self.CreateStatusBar()
 
     def on_labelticks(self,event):
+        """
+        Show the previously created labelticks frame.
+        """
         self.LabelticksFrame.Show()
 
     def on_rotatecw(self,event):
+        """
+        Rotate the datafile and the connected plot clockwise by 90 degrees.
+        
+        The original datafile is also replaced.
+        To restore the original datafile, the file has to be rotated counter clockwise
+        or reloaded.
+        """
         self.restore_datafile()
         self.datafile.rotate_cw()
         self.orig_datafile = self.datafile.deep_copy()
@@ -209,6 +230,9 @@ class MainFrame(wx.Frame):
         self.PlotFrame.PlotPanel.draw_plot()
 
     def on_rotateccw(self,event):
+        """
+        Rotate the datafile counter clockwise.
+        """
         self.restore_datafile()
         self.datafile.rotate_ccw()
         self.orig_datafile = self.datafile.deep_copy()
@@ -216,14 +240,29 @@ class MainFrame(wx.Frame):
         self.PlotFrame.PlotPanel.draw_plot()
 
     def on_cropaxes(self,event):
+        """
+        Creates and shows the Crop Frame.
+
+        This frame thus only lives as long as it is shown.
+        """
         self.CropFrame = CropFrame(self)
         self.CropFrame.Show()
 
     def on_lineout(self,event):
+        """
+        Creates and shows the Frame to extract linecuts.
+        
+        The frame is destroyed on close.
+        """
         self.LineoutFrame = LineoutFrame(self)
         self.LineoutFrame.Show()
 
     def on_binaryfit(self,event):
+        """
+        Shows the fitting Frame.
+
+        The frame is modal. A previously created fit is redrawn.
+        """
         self.BinaryFitFrame.Show()
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         if hasattr(self.BinaryFitFrame.BinaryFitPanel,'lineplot'):
@@ -233,10 +272,16 @@ class MainFrame(wx.Frame):
         self.BinaryFitFrame.MakeModal(True)
 
     def on_linecut(self,event):
+        """
+        Shows the frame to extract linecut series.
+        """
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LinecutFrame.Show()
 
     def on_slopex(self,event):
+        """
+        Creates and shows the Frame to extract slopes.
+        """
         self.SlopeExFrame = SlopeExFrame(self)
         self.SlopeExFrame.Show()
         self.SlopeExFrame.Layout()
@@ -244,6 +289,13 @@ class MainFrame(wx.Frame):
 
 
     def on_save_datafile(self, event):
+        """
+        Saves the datafile in gnuplot format.
+
+        The datafile is saved with information
+        on the currently applied modifications and their parameters.
+        There is no information on cropping or rotating saved.
+        """
         file_choices = "DAT (*.dat)|*.dat"
 
         modlist = ', '.join([mod.title for mod in self.modlist.modlist])
@@ -267,9 +319,16 @@ class MainFrame(wx.Frame):
             self.datafile.save(path,comment)
 
     def on_exit(self, event):
+        """
+        Exits the program.
+        """
         self.Destroy()
+        self.parent.Exit()
 
     def on_about(self, event):
+        """
+        Shows information about the program and lists some features.
+        """
         msg = """ A 2D color plotting tool. Built using wxPython and matplotlib.
 
          * Automatically adjust axes and colorbar.
@@ -285,6 +344,9 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
 
     def read_columns(self,string):
+        """
+        Utility function to read columns in the python format (a,b,c) out of a string.
+        """
         p = re.compile('(\d+),(\d+),(\d+)')
         m = p.match(string)
 
@@ -295,6 +357,20 @@ class MainFrame(wx.Frame):
             raise InputError('Not a valid column string: {}'.format(string))
 
     def on_load_plot(self,event):
+        """
+        Shows a dialog to load datafile from gnuplot-style file on disk.
+
+        Reads a ASCII file formatted in columns and blocks seperated by newlines.
+        The first dimension (x-axis) is the value which is constant over one block.
+        It is supposed to increase linearly with blocknumber.
+        This value is found typically in the first column.
+        The second dimension (y-axis) is varied linearly within each block.
+        The third dimension contains the actual measured data (z-axis)
+        and there is no preliminary assumption on the values.
+
+        The columns connected to the axes of the datafile
+        can be selected in an additional dialog.
+        """
         file_choices = "DAT (*.dat)|*.dat"
 
         dlg = wx.FileDialog(self,
@@ -324,14 +400,28 @@ class MainFrame(wx.Frame):
 
 
 class PlotFrame(wx.Frame):
+    """
+    The plot frame hosts the panel for the 2D colorplot.
+    """
+    
     def __init__(self,parent):
+        """
+        Initializes the panel with the canvas.
+        """
         self.parent = parent
         wx.Frame.__init__(self, parent, title="Plotting "+parent.datafilename,size=(700,500))
         self.PlotPanel = PlotPanel(self)
         self.Layout()
 
 class PlotPanel(wx.Panel):
+    """
+    The plot panel hosts the canvas on which the 2D colorplot is drawn.
+    """
+    
     def __init__(self, parent):
+        """
+        Creates the mpl figure with a fixed 75 dpi and draws a first plot.
+        """
         wx.Panel.__init__(self, parent)
         self.parent = parent
 
@@ -344,6 +434,12 @@ class PlotPanel(wx.Panel):
         self.draw_plot()
 
     def draw_plot(self):
+        """
+        Draws a plot of the datafile object in the MainFrame.
+
+        The plot is drawn from zero, the figure axes are cleared and
+        the colorbar controls are initialized or updated, if neccessary.
+        """
 
         self.parent.parent.modlist.applyModlist()
 
@@ -385,6 +481,10 @@ class PlotPanel(wx.Panel):
         self.mainbox.Fit(self)
 
     def set_labelticks(self):
+        """
+        Applies the ticks and labels stored in the MainFrame.
+        """
+        
         self.axes.set_ylabel(self.parent.parent.Ylabel)
         self.axes.set_xlabel(self.parent.parent.Xlabel)
 
@@ -399,22 +499,29 @@ class PlotPanel(wx.Panel):
             self.colorbar.update_ticks()
 
 class MainPanel(wx.Panel):
+    """
+    Panel with colorbar controls and checkboxes for the plot modifications.
+    """
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         self.parent = parent
 
+        self.spin_divider = 10000
+        self.slide_divider = 1000
+        
+        self.create_panel()
 
-        # The spins
-        #
-
+    def create_panel(self):
+        """
+        Create, show and layout all widgets in the panel.
+        """
+        
         self.colorwidgetlist = []
 
 
         maxval = self.parent.datafile.Zmax
         minval = self.parent.datafile.Zmin
 
-        self.spin_divider = 10000
-        self.slide_divider = 1000
 
         spin_incr = np.absolute(maxval-minval)/self.spin_divider
         slide_incr = np.absolute(maxval-minval)/self.slide_divider
@@ -634,6 +741,10 @@ class MainPanel(wx.Panel):
         self.mainbox.Fit(self)
 
     def init_colorspinctrls(self):
+        """
+        Initialize the controls for the colorbar according to the datafile.
+        """
+        
         maxval = self.parent.datafile.Zmax
         minval = self.parent.datafile.Zmin
         spin_increment = (maxval-minval)/self.spin_divider
@@ -666,6 +777,11 @@ class MainPanel(wx.Panel):
 
 
     def on_chk_scale(self,event):
+        """
+        Scales the datafile's z-axis.
+
+        Bound to the scale checkbox. The value is provided by a text ctrl.
+        """
         if self.chk_scale.GetValue():
             self.Validate()
             self.parent.modlist.addMod(tb.scale(float(self.num_scale.GetValue())))
@@ -679,12 +795,20 @@ class MainPanel(wx.Panel):
         self.update_plot()
 
     def on_colormapselect(self,event):
-
+        """
+        Applies a colormap selected in the dropdown menu.
+        """
+        
         self.parent.Colormap = self.colormapselect.GetValue()
         self.update_plot()
 
     def on_scroll(self,event):
+        """
+        Handles events sent by the slider objects in the panel.
 
+        The values in the floatspin controls are updated and the event is passed
+        through to on_floatspin.
+        """
         evt_obj = event.GetEventObject()
 
         if evt_obj.GetName() == 'widthslider':
@@ -702,6 +826,11 @@ class MainPanel(wx.Panel):
 
 
     def on_chk_deriv(self,event):
+        """
+        Derives the datafile (z-axis) with respect to the y-axis.
+
+        Bound to the deriv checkbox.
+        """
         if self.chk_deriv.GetValue():
             self.parent.modlist.addMod(tb.deriv())
 
@@ -715,6 +844,12 @@ class MainPanel(wx.Panel):
         self.update_plot()
 
     def on_chk_lowpass(self,event):
+        """
+        Applies a lowpass filter to the data in the datafile (z-axis).
+
+        Bound to the lowpass checkbox. The parameters for the filtering are
+        provided by the num_lowpass controls.
+        """
         if self.chk_lowpass.GetValue():
             self.parent.modlist.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
         else:
@@ -726,6 +861,9 @@ class MainPanel(wx.Panel):
         self.update_plot()
 
     def on_num_lowpass(self,event):
+        """
+        Applies a lowpass filter with new parameters given the lowpass box is checked.
+        """
         if self.chk_lowpass.GetValue():
             self.parent.modlist.remMod("lowpass")
             self.parent.modlist.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
@@ -736,6 +874,13 @@ class MainPanel(wx.Panel):
 
 
     def on_floatspin(self, event):
+        """
+        Handles events sent by one of the floatspin controls in the panel.
+
+        The values in the controls are not independent, e.g. the width depends on
+        maximum and minimum etc.
+        The plot is updated with the new colorscale.
+        """
         evt_obj = event.GetEventObject()
 
         centre = self.centrespin.GetValue()
@@ -786,8 +931,10 @@ class MainPanel(wx.Panel):
 
 
     def update_plot(self):
-        """ Redraws the figure
         """
+        Redraws the plot in the plot panel using the values provided by the color controls.
+        """
+        
         width = self.widthspin.GetValue()
         centre = self.centrespin.GetValue()
 
@@ -2241,7 +2388,7 @@ class Colorview2d(wx.App):
  
     def OnInit(self):
         # create frame here
-        frame = MainFrame()
+        frame = MainFrame(self)
         frame.Show()
         frame.Layout()
         return True
