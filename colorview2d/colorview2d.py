@@ -45,8 +45,13 @@ import toolbox as tb
 class Modlist():
     """
     A container for data manipulation objects (mods).
+    
     It is associated with the parent frame and
     calls a function (restore_datafile) of the frame object.
+
+    Attributes:
+      modlist (list of modifications): A list of modifications.
+      frame (wx.Frame): The main frame hosting the datafile.
     """
     
     modlist = []
@@ -55,18 +60,22 @@ class Modlist():
         self.frame = frame
 
     def addMod(self,mod):
-        """ Adds a modification object to the list """
-        #print "Try to add {}".format(mod)
+        """
+        Adds a modification object to the list
+
+        Args:
+          mod (modification): Modification object to add.
+        """
+
         if not any(mymod.title == mod.title for mymod in self.modlist):
             self.modlist.append(mod)
 
     def remMod(self,title):
         """
-        Removes a modification object from the list using a
-        strin identifier.
+        Removes a modification object from the list using a string identifier.
 
-        Keyword arguments:
-        title -- string specifying the modification
+        Args:
+          title (string): string specifying the modification
         """
         
         for mod in self.modlist:
@@ -75,7 +84,8 @@ class Modlist():
 
     def applyModlist(self):
         """
-        Applies the modlist to the frames datafile.
+        Applies the modlist to the datafile in the parent frame.
+        
         The datafile is first reverted to its original state,
         then mods are applied in the order they were added.
         """
@@ -89,6 +99,8 @@ class Modlist():
 
 class MainFrame(wx.Frame):
     """
+    Central class of the application.
+    
     The MainFrame class hosts all subframes, the datafile object,
     the colormap and information on ticks and labels.
     """
@@ -128,7 +140,6 @@ class MainFrame(wx.Frame):
 
         self.MainPanel = MainPanel(self)
 
-        self.LinecutFrame = LinecutFrame(self)
         self.LabelticksFrame = LabelticksFrame(self)
 
 #        self.PlotFrame.PlotPanel.draw_plot()
@@ -273,8 +284,9 @@ class MainFrame(wx.Frame):
 
     def on_linecut(self,event):
         """
-        Shows the frame to extract linecut series.
+        Creates and shows the frame to extract linecut series.
         """
+        self.LinecutFrame = LinecutFrame(self)
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LinecutFrame.Show()
 
