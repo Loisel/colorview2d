@@ -16,7 +16,7 @@ functions to prominent features in the 3d dataset.
 
 import wx
 import gpfile
-import copy
+
 import os
 import sys
 import numpy as np
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import wx.lib.mixins.listctrl as listmix
 from wx.lib.agw.floatspin import FloatSpin,EVT_FLOATSPIN
 from wx.lib.masked import NumCtrl,EVT_NUM
-from FloatSlider import FloatSlider
+from floatslider import FloatSlider
 
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
