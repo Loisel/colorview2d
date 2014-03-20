@@ -106,7 +106,7 @@ class MainFrame(wx.Frame):
     """
 
     title = 'colorplot utility: '
-    datafilename = 'demo.dat'
+    datafilename = 'data/demo.dat'
     Colormap = 'jet'
     Xlabel = 'x-axis'
     Ylabel = 'y-axis'
