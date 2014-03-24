@@ -28,7 +28,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 import wx.lib.mixins.listctrl as listmix
-from wx.lib.agw.floatspin import FloatSpin,EVT_FLOATSPIN
+from floatspin import FloatSpin,EVT_FLOATSPIN
 from wx.lib.masked import NumCtrl,EVT_NUM
 from floatslider import FloatSlider
 
