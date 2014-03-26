@@ -74,8 +74,8 @@ class gpfile:
         #self.Xrange = sp.linspace(self.Xmin,self.Xmax,self.Bnum)
         #self.Yrange = sp.linspace(self.Ymin,self.Ymax,self.Bsize)
 
-        self.dX = self.Xrange[1] - self.Xrange[0]
-        self.dY = self.Yrange[1] - self.Yrange[0]
+        self.dX = (self.Xrange[-1] - self.Xrange[0])/(self.Xrange.size-1)
+        self.dY = (self.Yrange[-1] - self.Yrange[0])/(self.Yrange.size-1)
 
     def update(self,Zdata):
         self.Zdata = Zdata
@@ -117,16 +117,25 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         f.close()
 
     def get_xrange_idx(self,value):
-        if value < self.Xmin or value > self.Xmax:
-            raise Exception("x value out of X range: {}".format(value))
-        else:
-            return int(abs(value-self.Xleft)/abs(self.dX))
+        print "Xmin {} Xmax {} Value {}".format(self.Xmin,self.Xmax,value)
+        idx = int(sp.rint(abs(value-self.Xleft)/abs(self.dX)))
+
+        try:
+            self.Xrange[idx]
+        except IndexError:
+            print "Index {} deduced from value {} not within range.".format(idx,value)
+        return idx
+            
 
     def get_yrange_idx(self,value):
-        if value < self.Ymin or value > self.Ymax:
-            raise Exception("x value out of X range: {}".format(value))
-        else:
-            return int(abs(value-self.Ybottom)/abs(self.dY))
+        print "dY {} / Value {}".format(self.dY,value)
+        idx = int(sp.rint(abs(value-self.Ybottom)/abs(self.dY)))
+        try:
+            self.Yrange[idx]
+        except IndexError:
+            print "Index {} deduced from value {} not within range.".format(idx,value)
+        return idx
+
 
     def rotate_cw(self):
         self.set_xyrange(self.Yrange,self.Xrange[::-1])

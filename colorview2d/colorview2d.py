@@ -118,7 +118,7 @@ class MainFrame(wx.Frame):
 
     def __init__(self,parent):
         """
-        Initialize the frame, create subframes and  a default datafile object.
+        Initialize the frame, create subframes and load a default datafile object.
         
         Create Menu, MainPanel and PlotFrame.
         """
@@ -312,11 +312,13 @@ class MainFrame(wx.Frame):
 
         modlist = ', '.join([mod.title for mod in self.modlist.modlist])
 
-        comment = "# Original filename: {}\n\
-#\n\
-# data modifications: {}\n\
-#\n\
-# axes: {} | {} | {}\n".format(self.datafilename,modlist,self.Xlabel,self.Ylabel,self.Cblabel)
+        comment = """\
+# Original filename: {}
+#
+# data modifications: {}
+#
+# axes: {} | {} | {}
+""".format(self.datafilename,modlist,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
@@ -1375,6 +1377,7 @@ class LinecutPanel(wx.Panel):
     def on_save(self, event):
 
         datafile = self.parent.parent.datafile
+        print "Total zdata shape {}".format(datafile.Zdata.shape)
         total_xrange = datafile.Xrange
         total_yrange = datafile.Yrange
 
@@ -1416,11 +1419,16 @@ class LinecutPanel(wx.Panel):
             x_start = datafile.get_xrange_idx(self.x_minspin.GetValue())
             x_end = datafile.get_xrange_idx(self.x_maxspin.GetValue())
 
+            print "x start: {} / x end: {}".format(x_start,x_end)
+            print "y start: {} / y end: {} / y step: {}".format(y_start,y_end,y_step)
+
             position = y_start
             while position <= y_end:
 
                 fname = self.filenamebox.GetValue()
                 #fname.replace("$","{}".format(total_xrange[position]))
+
+                print "y position {}".format(position)
 
                 print "Zdata shape : {}".format(datafile.Zdata[position,x_start:x_end].shape)
                 print "Xrange shape : {}".format(total_xrange[x_start:x_end].shape)
