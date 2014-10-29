@@ -9,6 +9,7 @@ from scipy import optimize
 
 class modification:
     title = ""
+    removeOnLoadFile = False
     def __eq__(self, other):
         return self.title == other.title
 
@@ -76,6 +77,7 @@ class scale(modification):
 
 class crop(modification):
     title = "crop"
+    removeOnLoadFile = True
 
     def __init__(self,xleft,xright,ybottom,ytop):
 

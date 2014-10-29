@@ -117,7 +117,6 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         f.close()
 
     def get_xrange_idx(self,value):
-        print "Xmin {} Xmax {} Value {}".format(self.Xmin,self.Xmax,value)
         idx = int(sp.rint(abs(value-self.Xleft)/abs(self.dX)))
 
         try:
@@ -128,7 +127,6 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
             
 
     def get_yrange_idx(self,value):
-        print "dY {} / Value {}".format(self.dY,value)
         idx = int(sp.rint(abs(value-self.Ybottom)/abs(self.dY)))
         try:
             self.Yrange[idx]

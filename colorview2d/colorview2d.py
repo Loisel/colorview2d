@@ -1419,23 +1419,21 @@ class LinecutPanel(wx.Panel):
             x_start = datafile.get_xrange_idx(self.x_minspin.GetValue())
             x_end = datafile.get_xrange_idx(self.x_maxspin.GetValue())
 
-            print "x start: {} / x end: {}".format(x_start,x_end)
-            print "y start: {} / y end: {} / y step: {}".format(y_start,y_end,y_step)
+            ## print "x start: {} / x end: {}".format(x_start,x_end)
+            ## print "y start: {} / y end: {} / y step: {}".format(y_start,y_end,y_step)
 
             position = y_start
             while position <= y_end:
 
                 fname = self.filenamebox.GetValue()
-                #fname.replace("$","{}".format(total_xrange[position]))
 
-                print "y position {}".format(position)
-
-                print "Zdata shape : {}".format(datafile.Zdata[position,x_start:x_end].shape)
-                print "Xrange shape : {}".format(total_xrange[x_start:x_end].shape)
+                # print "y position {}".format(position)
+                # print "Zdata shape : {}".format(datafile.Zdata[position,x_start:x_end].shape)
+                # print "Xrange shape : {}".format(total_xrange[x_start:x_end].shape)
 
 
                 linecut = np.vstack([total_xrange[x_start:x_end],self.parent.parent.datafile.Zdata[position,x_start:x_end]])
-                print linecut.shape
+
                 np.savetxt(fname.format(total_yrange[position]),linecut.T)
 
                 position += y_step
