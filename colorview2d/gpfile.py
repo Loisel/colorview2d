@@ -42,7 +42,7 @@ class gpfile:
                 self.Bsize = i
                 break
 
-        self.set_xyrange(data[::self.Bsize,0],data[:self.Bsize,1])
+        self.set_xyrange(data[self.Bsize-1::self.Bsize,0],data[:self.Bsize,1])
 
         self.Bnum = nlines/self.Bsize
         self.Lnum = self.Bsize*self.Bnum
@@ -50,7 +50,7 @@ class gpfile:
 
         # Store the data
 
-        self.Zdata = sp.flipud(sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
+        self.Zdata = (sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
         self.Zmax = sp.amax(self.Zdata)
         self.Zmin = sp.amin(self.Zdata)
         #self.Zdata_Original = sp.copy(self.Zdata)
@@ -76,6 +76,7 @@ class gpfile:
 
         self.dX = (self.Xrange[-1] - self.Xrange[0])/(self.Xrange.size-1)
         self.dY = (self.Yrange[-1] - self.Yrange[0])/(self.Yrange.size-1)
+
 
     def update(self,Zdata):
         self.Zdata = Zdata
@@ -111,7 +112,7 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
 
         for i in range(self.Bnum):
 
-            sp.savetxt(f,sp.vstack((self.Xrange[i]*sp.ones(self.Bsize),self.Yrange,self.Zdata[::-1,i])).T)
+            sp.savetxt(f,sp.vstack((self.Xrange[i]*sp.ones(self.Yrange.shape[0]),self.Yrange,self.Zdata[::-1,i])).T)
             f.write("\n")
 
         f.close()
