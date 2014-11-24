@@ -40,25 +40,21 @@ from matplotlib.ticker import FormatStrFormatter
 
 import parser
 import toolbox as tb
+from Subject import *
 
 
-class Modlist():
-    """
-    A container for data manipulation objects (mods).
+
+class View(Subject):
+    def __init__(self,frame,datafile):
+        Subject.__init__(self)
+        self.original_datafile = datafile
+        self.datafile = datafile.deep_copy()
+        self.modlist = []
+        
+        self.attach(frame.PlotFrame.PlotPanel)
+        self.attach(frame.MainPanel)
+
     
-    It is associated with the parent frame and
-    calls a function (restore_datafile) of the frame object.
-
-    Attributes:
-      modlist (list of modifications): A list of modifications.
-      frame (wx.Frame): The main frame hosting the datafile.
-    """
-    
-    modlist = []
-    def __init__(self,frame):
-        """ Initialization requires the parent frame object """
-        self.frame = frame
-
     def addMod(self,mod):
         """
         Adds a modification object to the list
@@ -69,6 +65,9 @@ class Modlist():
 
         if not any(mymod.title == mod.title for mymod in self.modlist):
             self.modlist.append(mod)
+
+        self.apply()
+
 
     def remMod(self,title):
         """
@@ -82,20 +81,33 @@ class Modlist():
             if mod.title == title:
                 self.modlist.remove(mod)
 
-    def applyModlist(self):
+        self.apply()
+
+    def apply(self):
         """
         Applies the modlist to the datafile in the parent frame.
         
         The datafile is first reverted to its original state,
         then mods are applied in the order they were added.
         """
-        self.frame.restore_datafile()
+
+        self.datafile = self.original_datafile.deep_copy()
+
         #print "Modlist {}".format(self.modlist)
         for mod in self.modlist:
 #            print "Applying mod {}".format(mod.title)
-            mod.apply_mod(self.frame.datafile)
+            mod.apply_mod(self.datafile)
+        
+        self.notify()
 
-
+    def reset(self):
+        self.datafile = self.original_datafile.deep_copy()
+        self.set_cbar(self.datafile.Zmin,self.datafile.Zmax)
+        self.modlist = []
+        self.apply()
+        
+    def get_data(self):
+        return self.datafile.Zdata
 
 class MainFrame(wx.Frame):
     """
@@ -128,10 +140,6 @@ class MainFrame(wx.Frame):
         self.parent = parent
 
         self.alignToBottomRight()
-        self.modlist = Modlist(self)
-
-        self.datafile = gpfile.gpfile(self.datafilename,(0,1,2))
-        self.orig_datafile = self.datafile.deep_copy()
 
         #self.datafile.report()
 
@@ -141,11 +149,17 @@ class MainFrame(wx.Frame):
         self.PlotFrame = PlotFrame(self)
 
         self.MainPanel = MainPanel(self)
+        self.MainPanel.attach(self.PlotFrame.PlotPanel)
+
+        self.view = View(self,gpfile.gpfile(self.datafilename,(0,1,2)))
 
         self.LabelticksFrame = LabelticksFrame(self)
 
 #        self.PlotFrame.PlotPanel.draw_plot()
         self.BinaryFitFrame = BinaryFitFrame(self)
+
+        self.PlotFrame.PlotPanel.draw_plot()
+        self.MainPanel.create_panel()
 
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
@@ -161,11 +175,11 @@ class MainFrame(wx.Frame):
         y = dh-2*h
         self.SetPosition((x, y))
 
-    def restore_datafile(self):
-        """
-        Replaces the datafile object by its original version.
-        """
-        self.datafile = self.orig_datafile.deep_copy()
+    # def restore_datafile(self):
+    #     """
+    #     Replaces the datafile object by its original version.
+    #     """
+    #     self.datafile = self.orig_datafile.deep_copy()
 
     def create_menu(self):
         """
@@ -236,21 +250,17 @@ class MainFrame(wx.Frame):
         To restore the original datafile, the file has to be rotated counter clockwise
         or reloaded.
         """
-        self.restore_datafile()
-        self.datafile.rotate_cw()
-        self.orig_datafile = self.datafile.deep_copy()
-        #self.MainPanel.update_plot()
-        self.PlotFrame.PlotPanel.draw_plot()
+        
+        self.view = View(self,self.view.datafile.rotate_cw())
+        self.view.notify()
 
     def on_rotateccw(self,event):
         """
         Rotate the datafile counter clockwise.
         """
-        self.restore_datafile()
-        self.datafile.rotate_ccw()
-        self.orig_datafile = self.datafile.deep_copy()
-        #self.MainPanel.update_plot()
-        self.PlotFrame.PlotPanel.draw_plot()
+
+        self.view = View(self,self.view.datafile.rotate_ccw())
+        self.view.notify()
 
     def on_cropaxes(self,event):
         """
@@ -312,7 +322,7 @@ class MainFrame(wx.Frame):
         """
         file_choices = "DAT (*.dat)|*.dat"
 
-        modlist = ', '.join([mod.title for mod in self.modlist.modlist])
+        modlist = ', '.join([mod.title for mod in self.view.modlist])
 
         comment = """\
 # Original filename: {}
@@ -320,19 +330,19 @@ class MainFrame(wx.Frame):
 # data modifications: {}
 #
 # axes: {} | {} | {}
-""".format(self.datafilename,modlist,self.Xlabel,self.Ylabel,self.Cblabel)
+""".format(self.view.datafile.datafilename,modlist,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
             message="Save plot data as...",
             defaultDir=os.getcwd(),
-            defaultFile=self.datafilename,
+            defaultFile=self.view.datafile.datafilename,
             wildcard=file_choices,
             style=wx.SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.datafile.save(path,comment)
+            self.view.datafile.save(path,comment)
 
     def on_exit(self, event):
         """
@@ -405,12 +415,9 @@ class MainFrame(wx.Frame):
                 columns = self.read_columns(dlg.GetValue())
                 dlg.Destroy()
 
-            self.datafile = gpfile.gpfile(path,columns)
+            self.view = View(gpfile.gpfile(path,columns))
 
-            self.orig_datafile = self.datafile.deep_copy()
-
-            self.datafilename = os.path.basename(path)
-            self.SetTitle(self.title+self.datafilename)
+            self.SetTitle(self.title+self.view.datafile.datafilename)
 
             self.PlotFrame.PlotPanel.draw_plot()
 
@@ -441,13 +448,44 @@ class PlotPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.parent = parent
 
+
         # Create the mpl Figure and FigCanvas objects.
         # 5x4 inches, 100 dots-per-inch
         #
         self.dpi = 75
         self.fig = plt.figure(1,dpi=self.dpi)
 
-        self.draw_plot()
+    def update(self,subject):
+        """
+        Redraws the plot in the plot panel using the values provided by the color controls.
+        """
+        
+        if isinstance(subject,View):
+            # self.axes.clear()
+            self.plot.set_data(subject.get_data())
+            self.plot.set_extent([subject.datafile.Xleft,subject.datafile.Xright,subject.datafile.Ybottom,subject.datafile.Ytop])
+
+            self.axes.set_xlim(subject.datafile.Xleft,subject.datafile.Xright)
+            self.axes.set_ylim(subject.datafile.Ybottom,subject.datafile.Ytop)
+            
+        elif isinstance(subject,MainPanel):
+            width = subject.widthspin.GetValue()
+            centre = subject.centrespin.GetValue()
+
+            # clear the axes and redraw the plot anew
+            #
+
+
+            cbar_min = centre - width/2.
+            cbar_max = centre + width/2.
+
+            self.plot.set_cmap(self.parent.parent.Colormap)
+            self.plot.set_clim(cbar_min,cbar_max)
+
+        self.plot.changed()
+
+        #self.colorbar.update_normal(self.plot)
+        self.canvas.draw()
 
     def draw_plot(self):
         """
@@ -457,8 +495,6 @@ class PlotPanel(wx.Panel):
         the colorbar controls are initialized or updated, if neccessary.
         """
 
-        self.parent.parent.modlist.applyModlist()
-
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
@@ -467,12 +503,12 @@ class PlotPanel(wx.Panel):
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
         self.mainbox.Add(self.toolbar,0)
 
-        datafile = self.parent.parent.datafile
+        view = self.parent.parent.view
 
         #print "Max: {} Min: {}".format(datafile.Zmax,datafile.Zmin)
 
-        self.plot = self.axes.imshow(datafile.Zdata,
-            extent=[datafile.Xleft,datafile.Xright,datafile.Ybottom,datafile.Ytop],
+        self.plot = self.axes.imshow(view.get_data(),
+            extent=[view.datafile.Xleft,view.datafile.Xright,view.datafile.Ybottom,view.datafile.Ytop],
             aspect='auto',
             origin='lower',
             interpolation="nearest")
@@ -488,10 +524,6 @@ class PlotPanel(wx.Panel):
         self.canvas.draw()
 
         self.mainbox.Add(self.canvas, 1,flag =  wx.EXPAND)
-
-        if hasattr(self.parent.parent,'MainPanel'):
-            #print "Call init:"
-            self.parent.parent.MainPanel.init_colorspinctrls()
 
 
         self.SetSizer(self.mainbox)
@@ -515,18 +547,19 @@ class PlotPanel(wx.Panel):
             self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.Cbtickformat))
             self.colorbar.update_ticks()
 
-class MainPanel(wx.Panel):
+class MainPanel(Subject,wx.Panel):
     """
     Panel with colorbar controls and checkboxes for the plot modifications.
     """
     def __init__(self, parent):
+        Subject.__init__(self)
         wx.Panel.__init__(self, parent)
         self.parent = parent
 
         self.spin_divider = 10000
         self.slide_divider = 1000
         
-        self.create_panel()
+        # self.create_panel()
 
     def create_panel(self):
         """
@@ -535,10 +568,10 @@ class MainPanel(wx.Panel):
         
         self.colorwidgetlist = []
 
-
-        maxval = self.parent.datafile.Zmax
-        minval = self.parent.datafile.Zmin
-
+        view  = self.parent.view
+        
+        maxval = view.datafile.Zmax
+        minval = view.datafile.Zmin
 
         spin_incr = np.absolute(maxval-minval)/self.spin_divider
         slide_incr = np.absolute(maxval-minval)/self.slide_divider
@@ -757,13 +790,14 @@ class MainPanel(wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self)
 
-    def init_colorspinctrls(self):
+
+    def update(self,subject):
         """
         Initialize the controls for the colorbar according to the datafile.
         """
         
-        maxval = self.parent.datafile.Zmax
-        minval = self.parent.datafile.Zmin
+        maxval = subject.datafile.Zmax
+        minval = subject.datafile.Zmin
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
 
@@ -792,6 +826,10 @@ class MainPanel(wx.Panel):
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
+        # Tell plot panel to update plot
+
+        self.notify()
+
 
     def on_chk_scale(self,event):
         """
@@ -801,15 +839,10 @@ class MainPanel(wx.Panel):
         """
         if self.chk_scale.GetValue():
             self.Validate()
-            self.parent.modlist.addMod(tb.scale(float(self.num_scale.GetValue())))
+            self.parent.view.addMod(tb.scale(float(self.num_scale.GetValue())))
         else:
-            self.parent.modlist.remMod("scale")
+            self.parent.view.remMod("scale")
 
-        self.parent.modlist.applyModlist()
-
-        self.init_colorspinctrls()
-
-        self.update_plot()
 
     def on_colormapselect(self,event):
         """
@@ -817,7 +850,7 @@ class MainPanel(wx.Panel):
         """
         
         self.parent.Colormap = self.colormapselect.GetValue()
-        self.update_plot()
+        self.notify()
 
     def on_scroll(self,event):
         """
@@ -849,16 +882,11 @@ class MainPanel(wx.Panel):
         Bound to the deriv checkbox.
         """
         if self.chk_deriv.GetValue():
-            self.parent.modlist.addMod(tb.deriv())
+            self.parent.view.addMod(tb.deriv())
 
         else:
-            self.parent.modlist.remMod("deriv")
+            self.parent.view.remMod("deriv")
 
-        self.parent.modlist.applyModlist()
-
-        self.init_colorspinctrls()
-
-        self.update_plot()
 
     def on_chk_lowpass(self,event):
         """
@@ -868,25 +896,18 @@ class MainPanel(wx.Panel):
         provided by the num_lowpass controls.
         """
         if self.chk_lowpass.GetValue():
-            self.parent.modlist.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
+            self.parent.view.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
         else:
-            self.parent.modlist.remMod("lowpass")
+            self.parent.view.remMod("lowpass")
 
-        self.parent.modlist.applyModlist()
-
-        self.init_colorspinctrls()
-        self.update_plot()
 
     def on_num_lowpass(self,event):
         """
         Applies a lowpass filter with new parameters given the lowpass box is checked.
         """
         if self.chk_lowpass.GetValue():
-            self.parent.modlist.remMod("lowpass")
-            self.parent.modlist.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
-
-        self.parent.modlist.applyModlist()
-        self.update_plot()
+            self.parent.view.remMod("lowpass")
+            self.parent.view.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
 
 
 
@@ -943,41 +964,9 @@ class MainPanel(wx.Panel):
         self.centreslider.SetValue(centre)
         self.widthslider.SetValue(width)
 
-        self.update_plot()
+        self.notify()
 
 
-
-    def update_plot(self):
-        """
-        Redraws the plot in the plot panel using the values provided by the color controls.
-        """
-        
-        width = self.widthspin.GetValue()
-        centre = self.centrespin.GetValue()
-
-        plotpanel = self.parent.PlotFrame.PlotPanel
-
-        # clear the axes and redraw the plot anew
-        #
-        #self.axes.clear()
-
-        plotpanel.plot.set_extent([self.parent.datafile.Xleft,self.parent.datafile.Xright,self.parent.datafile.Ybottom,self.parent.datafile.Ytop])
-
-        plotpanel.axes.set_xlim(self.parent.datafile.Xleft,self.parent.datafile.Xright)
-        plotpanel.axes.set_ylim(self.parent.datafile.Ybottom,self.parent.datafile.Ytop)
-
-        plotpanel.plot.set_data(self.parent.datafile.Zdata)
-
-        cbar_min = centre - width/2.
-        cbar_max = centre + width/2.
-
-        plotpanel.plot.set_cmap(self.parent.Colormap)
-        plotpanel.plot.set_clim(cbar_min,cbar_max)
-
-        plotpanel.plot.changed()
-
-        #self.colorbar.update_normal(self.plot)
-        plotpanel.canvas.draw()
 
 
 class LabelticksFrame(wx.Frame):
@@ -1071,7 +1060,7 @@ class LabelticksPanel(wx.Panel):
         self.parent.parent.Cbtickformat = self.cbformattextbox.GetValue()
 
         self.parent.parent.PlotFrame.PlotPanel.set_labelticks()
-        self.parent.parent.MainPanel.update_plot()
+        self.parent.parent.MainPanel.update()
 
     def on_cancel(self,event):
         self.parent.Hide()
@@ -1089,7 +1078,7 @@ class CropPanel(wx.Panel):
         self.parent = parent
 
         self.widgetlist = []
-        datafile = self.parent.parent.datafile
+        datafile = self.parent.parent.view.datafile
         #datafile.report()
 
         self.xrangebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -1177,16 +1166,11 @@ class CropPanel(wx.Panel):
         ybottom = self.yrange_bottom_spin.GetValue()
 
 
-        self.parent.parent.modlist.remMod("crop")
-        self.parent.parent.modlist.addMod(tb.crop(xleft,xright,ybottom,ytop))
-
-        self.parent.parent.modlist.applyModlist()
-        self.parent.parent.MainPanel.update_plot()
+        self.parent.parent.view.remMod("crop")
+        self.parent.parent.view.addMod(tb.crop(xleft,xright,ybottom,ytop))
 
     def on_revert(self,event):
-        self.parent.parent.modlist.remMod("crop")
-        self.parent.parent.modlist.applyModlist()
-        self.parent.parent.MainPanel.update_plot()
+        self.parent.parent.view.remMod("crop")
 
     def on_close(self,event):
         self.parent.Destroy()
@@ -1225,8 +1209,7 @@ class LinecutPanel(wx.Panel):
 
         self.mainbox.Add(self.hbox1)
 
-
-        self.datafile = self.parent.parent.datafile 
+        self.datafile = self.parent.parent.view.datafile 
 
         #self.parent.parent.datafile.report()
 
@@ -1637,7 +1620,7 @@ class LineoutPanel(wx.Panel):
 
     def draw_linetrace(self):
 
-        datafile = self.parent.parent.datafile
+        datafile = self.parent.parent.view.datafile
 
         idx1 = self.closest_idx(self.x1,datafile.Xrange)
         idx2 = self.closest_idx(self.x2,datafile.Xrange)
@@ -1698,10 +1681,10 @@ class SlopeExPanel(wx.Panel):
 
         self.pointwidgetlist = []
 
-        max_xval = self.parent.parent.datafile.Xmax
-        min_xval = self.parent.parent.datafile.Xmin
-        max_yval = self.parent.parent.datafile.Ymax
-        min_yval = self.parent.parent.datafile.Ymin
+        max_xval = self.parent.parent.view.datafile.Xmax
+        min_xval = self.parent.parent.view.datafile.Xmin
+        max_yval = self.parent.parent.view.datafile.Ymax
+        min_yval = self.parent.parent.view.datafile.Ymin
 
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
@@ -1981,9 +1964,9 @@ class BinaryFitPanel(wx.Panel):
         self.offset_label = wx.StaticText(self, wx.ID_ANY,
             "Offset: ")
 
-        maxval = self.parent.parent.datafile.Zmax
-        minval = self.parent.parent.datafile.Zmin
-        maxsize = np.amin([self.parent.parent.datafile.Bsize,self.parent.parent.datafile.Bnum])/2
+        maxval = self.parent.parent.view.datafile.Zmax
+        minval = self.parent.parent.view.datafile.Zmin
+        maxsize = np.amin([self.parent.parent.view.datafile.Bsize,self.parent.parent.view.datafile.Bnum])/2
         width = maxval-minval
         spin_incr = width/1000
 
@@ -2050,10 +2033,10 @@ class BinaryFitPanel(wx.Panel):
             self.ParBoxSizer.Add(phbox)
 
         self.delta_y_spin =  FloatSpin(self, name='delta_y',
-            value=self.parent.parent.datafile.Ymax - self.parent.parent.datafile.Ymin,
+            value=self.parent.parent.view.datafile.Ymax - self.parent.parent.view.datafile.Ymin,
             min_val=0,
-            max_val=self.parent.parent.datafile.Ymax - self.parent.parent.datafile.Ymin,
-            increment = self.parent.parent.datafile.dY,
+            max_val=self.parent.parent.view.datafile.Ymax - self.parent.parent.view.datafile.Ymin,
+            increment = self.parent.parent.view.datafile.dY,
             digits = 3)
 
 
@@ -2085,13 +2068,13 @@ class BinaryFitPanel(wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self.parent)
 
-        self.Xrange = self.parent.parent.datafile.Xrange
+        self.Xrange = self.parent.parent.view.datafile.Xrange
 
 
     def on_save(self, event):
         file_choices = "DAT (*.dat)|*.dat"
 
-        datafilename = self.parent.parent.datafilename
+        datafilename = self.parent.parent.view.datafilename
 
         dlg = wx.FileDialog(
             self,
@@ -2122,7 +2105,7 @@ class BinaryFitPanel(wx.Panel):
     def on_compile(self,event):
         self.axes = self.parent.parent.PlotFrame.PlotPanel.axes
         self.axes.autoscale(False)
-        self.Xrange = self.parent.parent.datafile.Xrange
+        self.Xrange = self.parent.parent.view.datafile.Xrange
         self.lineplot, = self.axes.plot(self.Xrange,np.zeros(self.Xrange.size))
 
         fstring = self.formulactrl.GetValue()
@@ -2138,8 +2121,8 @@ class BinaryFitPanel(wx.Panel):
 
 
     def on_close(self, event):
-        self.parent.parent.modlist.remMod("adaptive-threshold")
-        self.parent.parent.modlist.applyModlist()
+        self.parent.parent.view.remMod("adaptive-threshold")
+
         if hasattr(self,'lineplot'):
             self.lineplot.remove()
 
@@ -2151,25 +2134,17 @@ class BinaryFitPanel(wx.Panel):
 
     def on_chk_threshold(self, event):
         if self.chk_threshold.GetValue():
-            self.parent.parent.modlist.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
+            self.parent.parent.view.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
         else:
-            self.parent.parent.modlist.remMod("adaptive-threshold")
-
-        self.parent.parent.modlist.applyModlist()
-
-        #self.parent.parent.MainPanel.init_colorspinctrls()
-
-        self.parent.parent.MainPanel.update_plot()
+            self.parent.parent.view.remMod("adaptive-threshold")
 
     def on_spin(self,event):
         evt_obj = event.GetEventObject()
 
         if evt_obj.GetName().startswith('thr_'):
             if self.chk_threshold.GetValue():
-                self.parent.parent.modlist.remMod("adaptive-threshold")
-                self.parent.parent.modlist.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
-                self.parent.parent.modlist.applyModlist()
-                self.parent.parent.MainPanel.update_plot()
+                self.parent.parent.view.remMod("adaptive-threshold")
+                self.parent.parent.view.addMod(tb.adaptive_threshold(self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
 
         elif evt_obj.GetName().startswith('par_'):
             ctrl = self.ParBoxDict[evt_obj.GetName().split('_',1)[1]]
@@ -2208,7 +2183,7 @@ class BinaryFitPanel(wx.Panel):
     def on_fit(self,event):
         from lmfit import Minimizer, Parameters, report_errors
         if self.chk_threshold.GetValue():
-            datafile = self.parent.parent.datafile
+            datafile = self.parent.parent.view.datafile
             # Get indices of values that dy from function
             delta_y = self.delta_y_spin.GetValue()
             y_indexrange = int(delta_y/datafile.dY)

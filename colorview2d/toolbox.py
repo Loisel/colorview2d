@@ -28,7 +28,7 @@ class smooth(modification):
 
     def apply_mod(self,datafile):
 
-        datafile.update(gaussian_filter(datafile.Zdata,(self.sizex,self.sizey)))
+        datafile.set_Zdata(gaussian_filter(datafile.Zdata,(self.sizex,self.sizey)))
 
 
 class deriv(modification):
@@ -45,7 +45,7 @@ class deriv(modification):
         datafile.Zdata[:-1] = dydata
         datafile.Zdata[-1] = datafile.Zdata[-2]
 
-        datafile.update(datafile.Zdata)
+        datafile.set_Zdata(datafile.Zdata)
 
 class adaptive_threshold(modification):
 
@@ -62,7 +62,7 @@ class adaptive_threshold(modification):
         from skimage.filter import threshold_adaptive
         from skimage import img_as_float
 
-        datafile.update(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))
+        datafile.set_Zdata(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))
 
 class scale(modification):
     title = "scale"
@@ -73,7 +73,7 @@ class scale(modification):
 
     def apply_mod(self,datafile):
 
-        datafile.update(datafile.Zdata*self.zscale)
+        datafile.set_Zdata(datafile.Zdata*self.zscale)
 
 class crop(modification):
     title = "crop"
@@ -96,4 +96,4 @@ class crop(modification):
         #datafile.report()
 
         datafile.set_xyrange(datafile.Xrange[xleft_idx:xright_idx],datafile.Yrange[ybottom_idx:ytop_idx])
-        datafile.update(datafile.get_region(xleft_idx,xright_idx,ybottom_idx,ytop_idx))
+        datafile.set_Zdata(datafile.get_region(xleft_idx,xright_idx,ybottom_idx,ytop_idx))

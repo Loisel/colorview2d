@@ -24,7 +24,8 @@ The files are represented by the gp_file object.
 import scipy as sp
 import copy
 
-class gpfile:
+
+class gpfile():
     """A gnuplot data file object"""
 
     def __init__(self,filename,columns):
@@ -78,7 +79,7 @@ class gpfile:
         self.dY = (self.Yrange[-1] - self.Yrange[0])/(self.Yrange.size-1)
 
 
-    def update(self,Zdata):
+    def set_Zdata(self,Zdata):
         self.Zdata = Zdata
 
         self.Zmax = sp.amax(self.Zdata)
@@ -138,11 +139,15 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
 
     def rotate_cw(self):
         self.set_xyrange(self.Yrange,self.Xrange[::-1])
-        self.update(sp.rot90(self.Zdata,k=3))
+        self.set_Zdata(sp.rot90(self.Zdata,k=3))
+
+        return self
 
     def rotate_ccw(self):
         self.set_xyrange(self.Yrange[::-1],self.Xrange)
-        self.update(sp.rot90(self.Zdata,k=1))
+        self.set_Zdata(sp.rot90(self.Zdata,k=1))
+
+        return self
 
     def get_region(self,xleft,xright,ybottom,ytop):
         try:
