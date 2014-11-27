@@ -83,6 +83,14 @@ class View(Subject):
 
         self.apply()
 
+    def hasMod(self,title):
+        for mod in self.modlist:
+            if mod.title == title:
+                return True
+
+        return False
+
+
     def apply(self):
         """
         Applies the modlist to the datafile in the parent frame.
@@ -101,8 +109,6 @@ class View(Subject):
         self.notify()
 
     def reset(self):
-        self.datafile = self.original_datafile.deep_copy()
-        self.set_cbar(self.datafile.Zmin,self.datafile.Zmax)
         self.modlist = []
         self.apply()
         
@@ -251,6 +257,7 @@ class MainFrame(wx.Frame):
         or reloaded.
         """
         
+        self.view.reset()
         self.view = View(self,self.view.datafile.rotate_cw())
         self.view.notify()
 
@@ -259,6 +266,7 @@ class MainFrame(wx.Frame):
         Rotate the datafile counter clockwise.
         """
 
+        self.view.reset()
         self.view = View(self,self.view.datafile.rotate_ccw())
         self.view.notify()
 
@@ -290,7 +298,7 @@ class MainFrame(wx.Frame):
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         if hasattr(self.BinaryFitFrame.BinaryFitPanel,'lineplot'):
             self.PlotFrame.PlotPanel.axes.add_line(self.BinaryFitFrame.BinaryFitPanel.lineplot)
-        self.MainPanel.update_plot()
+        self.PlotFrame.PlotPanel.update()
 
         self.BinaryFitFrame.MakeModal(True)
 
@@ -498,6 +506,7 @@ class PlotPanel(wx.Panel):
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
+
         self.toolbar = NavigationToolbar(self.canvas)
 
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
@@ -790,7 +799,6 @@ class MainPanel(Subject,wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self)
 
-
     def update(self,subject):
         """
         Initialize the controls for the colorbar according to the datafile.
@@ -827,6 +835,13 @@ class MainPanel(Subject,wx.Panel):
         self.maxspin.SetIncrement(spin_increment)
 
         # Tell plot panel to update plot
+
+        if not subject.hasMod('deriv'):
+            self.chk_deriv.SetValue(False)
+        if not subject.hasMod('scale'):
+            self.chk_scale.SetValue(False)
+        if not subject.hasMod('lowpass'):
+            self.chk_lowpass.SetValue(False)
 
         self.notify()
 
@@ -1596,7 +1611,7 @@ class LineoutPanel(wx.Panel):
             for line in self.linelist:
                 line.removeline()
         self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
-        self.parent.parent.MainPanel.update_plot()
+        self.parent.parent.PlotFrame.PlotPanel.update(self)
         self.parent.Destroy()
 
     def on_click(self,event):
@@ -1659,10 +1674,13 @@ class SlopeExFrame(wx.Frame):
         self.Layout()
 
 
-class SlopeExPanel(wx.Panel):
+class SlopeExPanel(Subject,wx.Panel):
     def __init__(self,parent):
         wx.Panel.__init__(self,parent)
+        Subject.__init__(self)
         self.parent = parent
+
+        self.attach(self.parent.parent.PlotFrame.PlotPanel)
 
         self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(False)
         self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
@@ -1846,9 +1864,9 @@ class SlopeExPanel(wx.Panel):
             self.linelistbox.SetStringItem(self.lineindex,1,"{0:.2e}".format(self.linelist[self.lineindex].get_slope()))
             self.linelistbox.SetStringItem(self.lineindex,2,self.linelist[self.lineindex].get_comment())
 
-            self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
-
             self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
+
+            self.notify()
 
 
 
@@ -1860,7 +1878,7 @@ class SlopeExPanel(wx.Panel):
 
             self.linelist.pop().removeline()
 
-            self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
+            self.notify()
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
@@ -1890,8 +1908,8 @@ class SlopeExPanel(wx.Panel):
             for line in self.linelist:
                 line.removeline()
 
+        self.notify()
         self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
-        self.parent.parent.MainPanel.update_plot()
         self.parent.Destroy()
 
     def on_floatspin(self,event):
@@ -1929,7 +1947,7 @@ class SlopeExPanel(wx.Panel):
         #self.currentline.figure.tight_layout()
         #self.currentline.figure.canvas.draw()
         #self.parent.parent.PlotFrame.PlotPanel.fig.tight_layout()
-        self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
+        self.notify()
         #self.parent.Layout()
 
     def update_spinctrl(self):
