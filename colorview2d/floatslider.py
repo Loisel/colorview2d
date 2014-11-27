@@ -6,7 +6,7 @@ import wx
 
 class FloatSlider(wx.Slider):
 
-    def __init__(self, parent, id, value, minval, maxval, res,
+    def __init__(self, parent, id=wx.ID_ANY, value=0.0, minval=0.0, maxval=0.0, res=1.0,
                  size=wx.DefaultSize, style=wx.SL_HORIZONTAL,
                  name='floatslider'):
         self._value = value

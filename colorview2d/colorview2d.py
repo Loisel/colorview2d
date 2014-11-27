@@ -423,9 +423,9 @@ class MainFrame(wx.Frame):
                 columns = self.read_columns(dlg.GetValue())
                 dlg.Destroy()
 
-            self.view = View(gpfile.gpfile(path,columns))
+            self.view = View(self,gpfile.gpfile(path,columns))
 
-            self.SetTitle(self.title+self.view.datafile.datafilename)
+            self.SetTitle(self.title+self.view.datafile.filename)
 
             self.PlotFrame.PlotPanel.draw_plot()
 
