@@ -458,10 +458,28 @@ class PlotPanel(wx.Panel):
 
 
         # Create the mpl Figure and FigCanvas objects.
-        # 5x4 inches, 100 dots-per-inch
-        #
+        # We add a toolbar to the canvas and add everything 
+        # to a sizer
+
         self.dpi = 75
         self.fig = plt.figure(1,dpi=self.dpi)
+        self.axes = self.fig.add_subplot(111)
+        self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
+
+        self.toolbar = NavigationToolbar(self.canvas)
+
+        self.mainbox = wx.BoxSizer(wx.VERTICAL)
+        self.mainbox.Add(self.toolbar,0)
+        self.mainbox.Add(self.canvas, 1,flag =  wx.EXPAND)
+
+        # The Sizer mainbox determines the size of the Panel
+        self.SetSizer(self.mainbox)
+
+        # We load a dummy image
+        self.plot = self.axes.imshow(np.zeros((2,2)))
+
+        # Call all sizing routines
+        self.Layout()
 
     def update(self,subject):
         """
@@ -505,12 +523,7 @@ class PlotPanel(wx.Panel):
 
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
-        self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
 
-        self.toolbar = NavigationToolbar(self.canvas)
-
-        self.mainbox = wx.BoxSizer(wx.VERTICAL)
-        self.mainbox.Add(self.toolbar,0)
 
         view = self.parent.parent.view
 
@@ -531,12 +544,8 @@ class PlotPanel(wx.Panel):
         self.colorbar.set_label(self.parent.parent.Cblabel)
 
         self.canvas.draw()
-
-        self.mainbox.Add(self.canvas, 1,flag =  wx.EXPAND)
-
-
-        self.SetSizer(self.mainbox)
-        self.mainbox.Fit(self)
+        self.Layout()
+        # self.SetSize((self.Size[0],self.canvas.Size[1]))
 
     def set_labelticks(self):
         """
