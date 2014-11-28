@@ -47,10 +47,8 @@ from Subject import *
 class View(Subject):
     def __init__(self,frame,datafile):
         Subject.__init__(self)
-        self.original_datafile = datafile
-        self.datafile = datafile.deep_copy()
         self.modlist = []
-        
+        self.set_datafile(datafile)
         self.attach(frame.PlotFrame.PlotPanel)
         self.attach(frame.MainPanel)
 
@@ -115,6 +113,21 @@ class View(Subject):
     def get_data(self):
         return self.datafile.Zdata
 
+    def set_datafile(self,datafile):
+        self.original_datafile = datafile
+        self.datafile = datafile.deep_copy()
+        self.apply()
+
+    def rotate_cw(self):
+        self.reset()
+        self.set_datafile(self.datafile.rotate_cw())
+
+    def rotate_ccw(self):
+        self.reset()
+        self.set_datafile(self.datafile.rotate_ccw())
+
+        
+
 class MainFrame(wx.Frame):
     """
     Central class of the application.
@@ -157,9 +170,10 @@ class MainFrame(wx.Frame):
         self.MainPanel = MainPanel(self)
         self.MainPanel.attach(self.PlotFrame.PlotPanel)
 
+        self.LabelticksFrame = LabelticksFrame(self)
+
         self.view = View(self,gpfile.gpfile(self.datafilename,(0,1,2)))
 
-        self.LabelticksFrame = LabelticksFrame(self)
 
 #        self.PlotFrame.PlotPanel.draw_plot()
         self.BinaryFitFrame = BinaryFitFrame(self)
@@ -257,18 +271,18 @@ class MainFrame(wx.Frame):
         or reloaded.
         """
         
-        self.view.reset()
-        self.view = View(self,self.view.datafile.rotate_cw())
-        self.view.notify()
+        #self.view.reset()
+        self.view.rotate_cw()
+        #self.view.notify()
 
     def on_rotateccw(self,event):
         """
         Rotate the datafile counter clockwise.
         """
 
-        self.view.reset()
-        self.view = View(self,self.view.datafile.rotate_ccw())
-        self.view.notify()
+        #self.view.reset()
+        self.view.rotate_ccw()
+        #self.view.notify()
 
     def on_cropaxes(self,event):
         """
@@ -423,11 +437,9 @@ class MainFrame(wx.Frame):
                 columns = self.read_columns(dlg.GetValue())
                 dlg.Destroy()
 
-            self.view = View(self,gpfile.gpfile(path,columns))
+            self.view.set_datafile(gpfile.gpfile(path,columns))
 
             self.SetTitle(self.title+self.view.datafile.filename)
-
-            self.PlotFrame.PlotPanel.draw_plot()
 
 
 class PlotFrame(wx.Frame):
