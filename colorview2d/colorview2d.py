@@ -49,8 +49,6 @@ class View(Subject):
         Subject.__init__(self)
         self.modlist = []
         self.set_datafile(datafile)
-        self.attach(frame.PlotFrame.PlotPanel)
-        self.attach(frame.MainPanel)
 
     
     def addMod(self,mod):
@@ -82,6 +80,12 @@ class View(Subject):
         self.apply()
 
     def hasMod(self,title):
+        """
+        Checks if the modlist contains a mod using a string identifier.
+
+        Args:
+          title (string): string specifying the modification
+        """
         for mod in self.modlist:
             if mod.title == title:
                 return True
@@ -95,11 +99,11 @@ class View(Subject):
         
         The datafile is first reverted to its original state,
         then mods are applied in the order they were added.
+        Observers are notifed.
         """
 
         self.datafile = self.original_datafile.deep_copy()
 
-        #print "Modlist {}".format(self.modlist)
         for mod in self.modlist:
 #            print "Applying mod {}".format(mod.title)
             mod.apply_mod(self.datafile)
@@ -107,22 +111,51 @@ class View(Subject):
         self.notify()
 
     def reset(self):
+        """
+        Resets the datafile object by emptying the modlist.
+        """
+
         self.modlist = []
         self.apply()
         
     def get_data(self):
+        """
+        Shortcut for the 2d data contained int the datafile. 
+        Interface for plotting routine.
+        """
         return self.datafile.Zdata
 
     def set_datafile(self,datafile):
+        """
+        Sets the datafile.
+        The original datafile is replaced as well and the modlist is applied.
+
+        Args:
+          datafile: a datafile object
+        """
         self.original_datafile = datafile
         self.datafile = datafile.deep_copy()
         self.apply()
 
     def rotate_cw(self):
+        """
+        Resets the datafile and rotates it clockwise.
+        """
+
+        # datafile.rotate returns a rotated version of self.
+        # That is why set_datafile is used.
+
         self.reset()
         self.set_datafile(self.datafile.rotate_cw())
 
     def rotate_ccw(self):
+        """
+        Resets the datafile and rotates it anti-clockwise.
+        """
+
+        # datafile.rotate returns a rotated version of self.
+        # That is why set_datafile is used.
+
         self.reset()
         self.set_datafile(self.datafile.rotate_ccw())
 
@@ -173,17 +206,21 @@ class MainFrame(wx.Frame):
         self.LabelticksFrame = LabelticksFrame(self)
 
         self.view = View(self,gpfile.gpfile(self.datafilename,(0,1,2)))
+        self.view.attach(self.PlotFrame.PlotPanel)
+        self.view.attach(self.MainPanel)
 
-
-#        self.PlotFrame.PlotPanel.draw_plot()
-        self.BinaryFitFrame = BinaryFitFrame(self)
+        # The first view is drawn manually (without invoking view.notify()) to
+        # avoid race conditions
 
         self.PlotFrame.PlotPanel.draw_plot()
+
+        # BinaryFitFrame and the MainPanel creation require a view to exist
+        self.BinaryFitFrame = BinaryFitFrame(self)
         self.MainPanel.create_panel()
 
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
-        #self.PlotFrame.Maximize()
+
 
     def alignToBottomRight(self):
         """
@@ -195,11 +232,6 @@ class MainFrame(wx.Frame):
         y = dh-2*h
         self.SetPosition((x, y))
 
-    # def restore_datafile(self):
-    #     """
-    #     Replaces the datafile object by its original version.
-    #     """
-    #     self.datafile = self.orig_datafile.deep_copy()
 
     def create_menu(self):
         """
@@ -437,6 +469,9 @@ class MainFrame(wx.Frame):
                 columns = self.read_columns(dlg.GetValue())
                 dlg.Destroy()
 
+            # We set the new datafile in the view
+            # By changing the datafile, the view notifies its observers
+            # and the plot is updated
             self.view.set_datafile(gpfile.gpfile(path,columns))
 
             self.SetTitle(self.title+self.view.datafile.filename)
@@ -449,7 +484,7 @@ class PlotFrame(wx.Frame):
     
     def __init__(self,parent):
         """
-        Initializes the panel with the canvas.
+        Initialize the panel.
         """
         self.parent = parent
         wx.Frame.__init__(self, parent, title="Plotting "+parent.datafilename,size=(700,500))
@@ -463,7 +498,7 @@ class PlotPanel(wx.Panel):
     
     def __init__(self, parent):
         """
-        Creates the mpl figure with a fixed 75 dpi and draws a first plot.
+        Creates the mpl figure with a fixed 75 dpi and draws a first (dummy) plot.
         """
         wx.Panel.__init__(self, parent)
         self.parent = parent
@@ -495,11 +530,17 @@ class PlotPanel(wx.Panel):
 
     def update(self,subject):
         """
-        Redraws the plot in the plot panel using the values provided by the color controls.
+        The call-back function of the Plotpanel. It observes the MainPanel and the View object.
+        The reaction to a notification event is specific to the caller.
+
+        Caller is View:
+          Set the data in the datafile and adjust the axes.
+        Caller is MainPanel:
+          Adjust the colorscale according to controls on the MainPanel
+     
         """
         
         if isinstance(subject,View):
-            # self.axes.clear()
             self.plot.set_data(subject.get_data())
             self.plot.set_extent([subject.datafile.Xleft,subject.datafile.Xright,subject.datafile.Ybottom,subject.datafile.Ytop])
 
@@ -510,10 +551,6 @@ class PlotPanel(wx.Panel):
             width = subject.widthspin.GetValue()
             centre = subject.centrespin.GetValue()
 
-            # clear the axes and redraw the plot anew
-            #
-
-
             cbar_min = centre - width/2.
             cbar_max = centre + width/2.
 
@@ -521,9 +558,8 @@ class PlotPanel(wx.Panel):
             self.plot.set_clim(cbar_min,cbar_max)
 
         self.plot.changed()
-
-        #self.colorbar.update_normal(self.plot)
         self.canvas.draw()
+
 
     def draw_plot(self):
         """
@@ -531,6 +567,10 @@ class PlotPanel(wx.Panel):
 
         The plot is drawn from zero, the figure axes are cleared and
         the colorbar controls are initialized or updated, if neccessary.
+        
+        This routine is needed to avoid a race condition during intialization 
+        in the Observer Pattern.
+        
         """
 
         self.fig.clear()
@@ -539,7 +579,6 @@ class PlotPanel(wx.Panel):
 
         view = self.parent.parent.view
 
-        #print "Max: {} Min: {}".format(datafile.Zmax,datafile.Zmin)
 
         self.plot = self.axes.imshow(view.get_data(),
             extent=[view.datafile.Xleft,view.datafile.Xright,view.datafile.Ybottom,view.datafile.Ytop],
@@ -557,7 +596,7 @@ class PlotPanel(wx.Panel):
 
         self.canvas.draw()
         self.Layout()
-        # self.SetSize((self.Size[0],self.canvas.Size[1]))
+
 
     def set_labelticks(self):
         """
@@ -1573,11 +1612,13 @@ class LineoutFrame(wx.Frame):
         self.Layout()
 
 
-class LineoutPanel(wx.Panel):
+class LineoutPanel(wx.Panel,Subject):
     def __init__(self,parent):
         wx.Panel.__init__(self,parent)
-        self.parent = parent
+        Subject.__init__(self)
 
+        self.parent = parent
+        self.attach(self.parent.parent.PlotFrame.PlotPanel)
 
         self.x1 = None
         self.x2 = None
@@ -1631,8 +1672,10 @@ class LineoutPanel(wx.Panel):
         if self.linelist:
             for line in self.linelist:
                 line.removeline()
+
+        self.notify()
         self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
-        self.parent.parent.PlotFrame.PlotPanel.update(self)
+
         self.parent.Destroy()
 
     def on_click(self,event):
@@ -1650,8 +1693,9 @@ class LineoutPanel(wx.Panel):
 
     def draw_line(self):
         self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
+        self.notify()
 
-        self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
+        #self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
 
 
     def draw_linetrace(self):
