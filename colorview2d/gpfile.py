@@ -136,6 +136,11 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
             print "Index {} deduced from value {} not within range.".format(idx,value)
         return idx
 
+    def get_Zmax(self):
+        return self.Zdata.max()
+
+    def get_Zmin(self):
+        return self.Zdata.min()
 
     def rotate_cw(self):
         self.set_xyrange(self.Yrange,self.Xrange[::-1])
