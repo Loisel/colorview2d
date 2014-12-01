@@ -2,6 +2,7 @@ import wx
 import gpfile
 import numpy as np
 import re
+import os
 from matplotlib.pyplot import cm
 from floatspin import FloatSpin,EVT_FLOATSPIN
 from floatslider import FloatSlider
@@ -507,23 +508,23 @@ class MainPanel(Subject,wx.Panel):
         self.middlevbox.AddSpacer(10)
 
 
-        gridflags = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND
+        self.gridflags = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND
         flags = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
 
         self.ColorGridSizer = wx.GridBagSizer(hgap=5, vgap=10)
 
-        self.ColorGridSizer.Add(self.widthspin_label,pos=(0,0),flag=gridflags)
-        self.ColorGridSizer.Add(self.widthspin,pos=(0,1),flag=gridflags)
-        self.ColorGridSizer.Add(self.widthslider,pos=(0,2),span=(1,2),flag=gridflags)
+        self.ColorGridSizer.Add(self.widthspin_label,pos=(0,0),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.widthspin,pos=(0,1),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.widthslider,pos=(0,2),span=(1,2),flag=self.gridflags)
 
-        self.ColorGridSizer.Add(self.centrespin_label,pos=(1,0),flag=gridflags)
-        self.ColorGridSizer.Add(self.centrespin,pos=(1,1),flag=gridflags)
-        self.ColorGridSizer.Add(self.centreslider,pos=(1,2),span=(1,2),flag=gridflags)
+        self.ColorGridSizer.Add(self.centrespin_label,pos=(1,0),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.centrespin,pos=(1,1),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.centreslider,pos=(1,2),span=(1,2),flag=self.gridflags)
 
-        self.ColorGridSizer.Add(self.minspin_label,pos=(2,0),flag=gridflags)
-        self.ColorGridSizer.Add(self.minspin,pos=(2,1),flag=gridflags)
-        self.ColorGridSizer.Add(self.maxspin_label,pos=(2,2),flag=gridflags)
-        self.ColorGridSizer.Add(self.maxspin,pos=(2,3),flag=gridflags)
+        self.ColorGridSizer.Add(self.minspin_label,pos=(2,0),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.minspin,pos=(2,1),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.maxspin_label,pos=(2,2),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.maxspin,pos=(2,3),flag=self.gridflags)
 
         self.ColorGridSizer.AddGrowableCol(0,3)
         self.ColorGridSizer.AddGrowableCol(1,3)
@@ -583,6 +584,18 @@ class MainPanel(Subject,wx.Panel):
         slide_increment = (maxval-minval)/self.slide_divider
 
         # print "max {} min {} increment {} centre {} width {}".format(maxval,minval,slide_increment,(maxval+minval)/2, maxval-minval)
+
+        # We really have to replace this widget in order to avoid a race 
+        # condition when using slider.set_range and slider.set_res
+
+        # self.ColorGridSizer.Remove(self.widthslider)
+        # self.ColorGridSizer.Remove(self.centreslider)
+
+        self.ColorGridSizer.Hide(self.widthslider)
+        self.ColorGridSizer.Hide(self.centreslider)
+        self.ColorGridSizer.Remove(self.widthslider)
+        self.ColorGridSizer.Remove(self.centreslider)
+
         
         self.centreslider = FloatSlider(self,wx.ID_ANY,(maxval+minval)/2,minval,maxval,slide_increment,
                                     size = (200,15),
@@ -591,6 +604,13 @@ class MainPanel(Subject,wx.Panel):
                                        size = (200,15),
                                        name = 'widthslider')
 
+        
+        self.ColorGridSizer.Add(self.widthslider,pos=(0,2),span=(1,2),flag=self.gridflags)
+        self.ColorGridSizer.Add(self.centreslider,pos=(1,2),span=(1,2),flag=self.gridflags)
+        self.Bind(wx.EVT_SCROLL,self.on_scroll,self.centreslider)
+        self.Bind(wx.EVT_SCROLL,self.on_scroll,self.widthslider)
+
+        self.Layout()
 
 
         self.centrespin.SetRange(minval,maxval)
@@ -604,8 +624,8 @@ class MainPanel(Subject,wx.Panel):
         self.maxspin.SetValue(maxval)
         self.minspin.SetValue(minval)
 
-        self.widthslider.SetValue(maxval-minval)
-        self.centreslider.SetValue((minval+maxval)/2)
+        #self.widthslider.SetValue(maxval-minval)
+        #self.centreslider.SetValue((minval+maxval)/2)
 
         self.centrespin.SetIncrement(spin_increment)
         self.widthspin.SetIncrement(spin_increment)
