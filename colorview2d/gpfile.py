@@ -28,12 +28,19 @@ import copy
 class gpfile():
     """A gnuplot data file object"""
 
-    def __init__(self,filename,columns):
+    def __init__(self,*args):
 
-        self.filename = filename
+        if isinstance(args[0],basestring):
 
-        data = sp.loadtxt(filename,usecols = columns)
+            self.filename = args[0]
+            data = sp.loadtxt(self.filename,usecols = args[1])
 
+        elif isinstance(args[0],numpy.ndarray):
+            data = args[0]
+            self. filename = "defaultfilename.dat"
+        else:
+            raise ValueError("Received {}. gpfile has to be initiated by filename or array.".format(args))
+            
         nlines = data.shape[0]
 
         self.Bnum = 0
@@ -55,6 +62,9 @@ class gpfile():
         self.Zmax = sp.amax(self.Zdata)
         self.Zmin = sp.amin(self.Zdata)
         #self.Zdata_Original = sp.copy(self.Zdata)
+
+    def set_filename(self,filename):
+        self.filename = filename
 
     def set_xyrange(self,Xrange,Yrange):
         self.Xrange = Xrange

@@ -20,8 +20,6 @@ matplotlib.use('WXAgg')
 
 from MainFrame import MainFrame
 
-# import sys
-
 
 class Colorview2d(wx.App):
     def __init__(self, redirect=False, filename=None):
