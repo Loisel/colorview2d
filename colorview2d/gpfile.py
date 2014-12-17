@@ -37,7 +37,7 @@ class gpfile():
 
         elif isinstance(args[0],numpy.ndarray):
             data = args[0]
-            self. filename = "defaultfilename.dat"
+            self.filename = "defaultfilename.dat"
         else:
             raise ValueError("Received {}. gpfile has to be initiated by filename or array.".format(args))
             
@@ -123,7 +123,7 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
 
         for i in range(self.Bnum):
 
-            sp.savetxt(f,sp.vstack((self.Xrange[i]*sp.ones(self.Yrange.shape[0]),self.Yrange,self.Zdata[::-1,i])).T)
+            sp.savetxt(f,sp.vstack((self.Xrange[i]*sp.ones(self.Yrange.shape[0]),self.Yrange,self.Zdata[::,i])).T)
             f.write("\n")
 
         f.close()
