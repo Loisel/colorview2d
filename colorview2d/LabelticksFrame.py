@@ -91,7 +91,7 @@ class LabelticksPanel(wx.Panel):
         self.parent.parent.Cbtickformat = self.cbformattextbox.GetValue()
 
         self.parent.parent.PlotFrame.PlotPanel.set_labelticks()
-        self.parent.parent.MainPanel.update()
+        self.parent.parent.MainPanel.update(self)
 
     def on_cancel(self,event):
         self.parent.Hide()
