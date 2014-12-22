@@ -21,6 +21,8 @@ from SlopeExFrame import SlopeExFrame
 from BinaryFitFrame import BinaryFitFrame
 from LabelticksFrame import LabelticksFrame
 
+from FloatValidator import FloatValidator
+
 class MainFrame(wx.Frame):
     """
     Central class of the application.
@@ -480,7 +482,7 @@ class MainPanel(Subject,wx.Panel):
                                           allowNegative = False)
 
         self.chk_scale =  wx.CheckBox(self, wx.ID_ANY, 'Scale')
-        self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator())
+        self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator('1e0'))
         self.Bind(wx.EVT_CHECKBOX,self.on_chk_scale,self.chk_scale)
 
 
@@ -779,48 +781,3 @@ class MainPanel(Subject,wx.Panel):
 
         self.notify()
 
-class FloatValidator(wx.PyValidator):
-    """ This validator is used to ensure that the user has entered something
-        into the text object editor dialog's text field.
-    """
-    def __init__(self):
-        """ Standard constructor.
-        """
-        wx.PyValidator.__init__(self)
-
-
-
-    def Clone(self):
-        """ Standard cloner.
-
-            Note that every validator must implement the Clone() method.
-        """
-        return FloatValidator()
-
-    def Validate(self, win):
-        textCtrl = self.GetWindow()
-        num_string = textCtrl.GetValue()
-        try:
-            float(num_string)
-        except:
-            textCtrl.SetValue("1e0")
-            return False
-        return True
-
-
-    def TransferToWindow(self):
-        """ Transfer data from validator to window.
-
-            The default implementation returns False, indicating that an error
-            occurred.  We simply return True, as we don't do any data transfer.
-        """
-        return True # Prevent wxDialog from complaining.
-
-
-    def TransferFromWindow(self):
-        """ Transfer data from window to validator.
-
-            The default implementation returns False, indicating that an error
-            occurred.  We simply return True, as we don't do any data transfer.
-        """
-        return True # Prevent wxDialog from complaining.
