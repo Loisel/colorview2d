@@ -1,6 +1,8 @@
 import wx
 import numpy as np
+import yaml
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from View import View
 
 from matplotlib.backends.backend_wxagg import \
@@ -20,7 +22,7 @@ class PlotFrame(wx.Frame):
         Initialize the panel.
         """
         self.parent = parent
-        wx.Frame.__init__(self, parent, title="Plotting "+parent.datafilename,size=(700,500))
+        wx.Frame.__init__(self, parent, title="Plotting "+self.parent.config['datafilename'],size=(700,500))
         self.PlotPanel = PlotPanel(self)
         self.Layout()
 
@@ -36,6 +38,7 @@ class PlotPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.parent = parent
 
+        self.config = self.parent.parent.config
 
         # Create the mpl Figure and FigCanvas objects.
         # We add a toolbar to the canvas and add everything 
@@ -56,12 +59,12 @@ class PlotPanel(wx.Panel):
         self.SetSizer(self.mainbox)
 
         # We load a dummy image
-        self.plot = self.axes.imshow(np.zeros((2,2)))
+        self.plot = self.axes.imshow(np.random.random((2,2)))
 
         # Call all sizing routines
         self.Layout()
 
-    def update(self,subject):
+    def update(self,subject=None):
         from View import View
         from MainFrame import MainPanel
         """
@@ -89,7 +92,7 @@ class PlotPanel(wx.Panel):
             cbar_min = centre - width/2.
             cbar_max = centre + width/2.
 
-            self.plot.set_cmap(self.parent.parent.Colormap)
+            self.plot.set_cmap(self.config['Colormap'])
             self.plot.set_clim(cbar_min,cbar_max)
 
         self.plot.changed()
@@ -109,44 +112,60 @@ class PlotPanel(wx.Panel):
         """
 
         self.fig.clear()
+        self.apply_config()
+
         self.axes = self.fig.add_subplot(111)
 
 
         view = self.parent.parent.view
-
 
         self.plot = self.axes.imshow(view.get_data(),
             extent=[view.datafile.Xleft,view.datafile.Xright,view.datafile.Ybottom,view.datafile.Ytop],
             aspect='auto',
             origin='lower',
             interpolation="nearest")
+  
+        self.plot.set_cmap(self.config['Colormap'])
+        self.colorbar = plt.colorbar(self.plot)
 
-        self.axes.set_ylabel(self.parent.parent.Ylabel)
-        self.axes.set_xlabel(self.parent.parent.Xlabel)
+        self.set_labels()
 
         self.fig.tight_layout()
-
-        self.colorbar = self.fig.colorbar(self.plot)
-        self.colorbar.set_label(self.parent.parent.Cblabel)
 
         self.canvas.draw()
         self.Layout()
 
+    def set_labels(self):
+        self.axes.set_ylabel(self.config['Ylabel'])
+        self.axes.set_xlabel(self.config['Xlabel'])
 
-    def set_labelticks(self):
+        self.colorbar.set_label(self.config['Cblabel'])
+        if not self.config['Xtickformat'] == 'auto':
+            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.config['Xtickformat']))
+        if not self.config['Ytickformat'] == 'auto':
+            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.config['Ytickformat']))
+        if not self.config['Cbtickformat'] == 'auto':
+            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(self.config['Cbtickformat']))
+            self.colorbar.update_ticks()
+
+
+    def apply_config(self,config={}):
         """
         Applies the ticks and labels stored in the MainFrame.
         """
-        
-        self.axes.set_ylabel(self.parent.parent.Ylabel)
-        self.axes.set_xlabel(self.parent.parent.Xlabel)
 
-        self.colorbar.set_label(self.parent.parent.Cblabel)
+        try:
+            for key in config:
+                self.config[key] = config[key]
+        except KeyError:
+            print 'Key {} not known to function set_config'.format(key)
 
-        if not self.parent.parent.Xtickformat == 'auto':
-            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.Xtickformat))
-        if not self.parent.parent.Ytickformat == 'auto':
-            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.Ytickformat))
-        if not self.parent.parent.Cbtickformat == 'auto':
-            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.Cbtickformat))
-            self.colorbar.update_ticks()
+        # Apply plt.rcParams
+
+        plt.rcParams['font.family'] = self.config['Font']
+        plt.rcParams['font.size'] = self.config['Fontsize']
+        plt.rcParams['xtick.major.size'] = self.config['Xticklength']
+        plt.rcParams['ytick.major.size'] = self.config['Yticklength']
+
+
+

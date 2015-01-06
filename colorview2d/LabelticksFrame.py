@@ -16,6 +16,8 @@ class LabelticksPanel(wx.Panel):
         wx.Panel.__init__(self,parent)
         self.parent = parent
 
+        self.config = self.parent.parent.config
+
         self.init_widgetlist_left()
         self.init_widgetlist_right()
 
@@ -73,9 +75,8 @@ class LabelticksPanel(wx.Panel):
         self.widgetlist_right.append(self.fontselect_label)
 
         # Set default font in the widget
-        default_font = plt.rcParams['font.sans-serif'][0]
         self.fontselect = wx.ComboBox(self,
-                                      value=default_font,
+                                      value=self.config['Font'],
                                       size=wx.DefaultSize,
                                       style=wx.CB_READONLY)
 
@@ -92,7 +93,7 @@ class LabelticksPanel(wx.Panel):
                                    fractionWidth = 0,
                                    allowNegative = False)
         
-        self.fontsizebox.SetValue(plt.rcParams['font.size'])
+        self.fontsizebox.SetValue(self.config['Fontsize'])
         self.widgetlist_right.append(self.fontsizebox)
 
         self.xticksizebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -102,7 +103,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.xticksizebox.SetValue(plt.rcParams['xtick.major.size'])
+        self.xticksizebox.SetValue(self.config['Xticklength'])
         self.widgetlist_right.append(self.xticksizebox)
 
         self.yticksizebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -112,28 +113,8 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.yticksizebox.SetValue(plt.rcParams['ytick.major.size'])
+        self.yticksizebox.SetValue(self.config['Yticklength'])
         self.widgetlist_right.append(self.yticksizebox)
-
-        self.xtickstepbox_label = wx.StaticText(self, wx.ID_ANY,
-            "Tick spacing x: ")
-        self.widgetlist_right.append(self.xtickstepbox_label)
-        self.xtickstepbox = wx.TextCtrl(self,wx.ID_ANY,
-                                    name = 'xtickstepbox',
-                                    validator = FloatValidator('0e0'))
-        self.xtickstepbox.SetValue('0')
-        self.widgetlist_right.append(self.xtickstepbox)
-
-        self.ytickstepbox_label = wx.StaticText(self, wx.ID_ANY,
-            "Tick spacing y: ")
-        self.widgetlist_right.append(self.ytickstepbox_label)
-        self.ytickstepbox = wx.TextCtrl(self,wx.ID_ANY,
-                                    name = 'ytickstepbox',
-                                    validator = FloatValidator('0e0'))
-        
-
-        self.ytickstepbox.SetValue('0')
-        self.widgetlist_right.append(self.ytickstepbox)
 
         self.linewidthbox_label = wx.StaticText(self, wx.ID_ANY,
             "Linewidth: ")
@@ -142,23 +123,12 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.linewidthbox.SetValue(plt.rcParams['axes.linewidth'])
+        self.linewidthbox.SetValue(self.config['Linewidth'])
         self.widgetlist_right.append(self.linewidthbox)
 
-        self.ytickstepbox.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
-        self.xtickstepbox.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
 
 
-        
-    def OnKillFocus(self,event):
-        evt_obj = event.GetEventObject()
-        print "Loosing focus, control {}".format(evt_obj.GetName())
-
-        if evt_obj.GetName() in ['xtickstepbox','ytickstepbox']:
-            self.Validate()
-
-        event.Skip()
-
+    
     def init_widgetlist_left(self):
         self.widgetlist_left = []
 
@@ -166,14 +136,14 @@ class LabelticksPanel(wx.Panel):
             "x-axis label: ")
         self.widgetlist_left.append(self.xtextbox_label)
         self.xtextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.xtextbox.SetValue(self.parent.parent.Xlabel)
+        self.xtextbox.SetValue(self.config['Xlabel'])
         self.widgetlist_left.append(self.xtextbox)
 
         self.xformattextbox_label = wx.StaticText(self, wx.ID_ANY,
             "format: ")
         self.widgetlist_left.append(self.xformattextbox_label)
         self.xformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.xformattextbox.SetValue('auto')
+        self.xformattextbox.SetValue(self.config['Xtickformat'])
         self.widgetlist_left.append(self.xformattextbox)
 
 
@@ -181,14 +151,14 @@ class LabelticksPanel(wx.Panel):
             "y-axis label: ")
         self.widgetlist_left.append(self.ytextbox_label)
         self.ytextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.ytextbox.SetValue(self.parent.parent.Ylabel)
+        self.ytextbox.SetValue(self.config['Ylabel'])
         self.widgetlist_left.append(self.ytextbox)
 
         self.yformattextbox_label = wx.StaticText(self, wx.ID_ANY,
             "format: ")
         self.widgetlist_left.append(self.yformattextbox_label)
         self.yformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.yformattextbox.SetValue('auto')
+        self.yformattextbox.SetValue(self.config['Ytickformat'])
         self.widgetlist_left.append(self.yformattextbox)
 
 
@@ -196,7 +166,7 @@ class LabelticksPanel(wx.Panel):
             "cb-axis label: ")
         self.widgetlist_left.append(self.cbtextbox_label)
         self.cbtextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.cbtextbox.SetValue(self.parent.parent.Cblabel)
+        self.cbtextbox.SetValue(self.config['Cblabel'])
 
         self.widgetlist_left.append(self.cbtextbox)
 
@@ -204,20 +174,16 @@ class LabelticksPanel(wx.Panel):
             "format: ")
         self.widgetlist_left.append(self.cbformattextbox_label)
         self.cbformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.cbformattextbox.SetValue('auto')
+        self.cbformattextbox.SetValue(self.config['Cbtickformat'])
         self.widgetlist_left.append(self.cbformattextbox)
 
     def on_apply(self,event):
-        self.parent.parent.Xlabel = self.xtextbox.GetValue()
-        self.parent.parent.Ylabel = self.ytextbox.GetValue()
-        self.parent.parent.Cblabel = self.cbtextbox.GetValue()
-
-        self.parent.parent.Xtickformat = self.xformattextbox.GetValue()
-        self.parent.parent.Ytickformat = self.yformattextbox.GetValue()
-        self.parent.parent.Cbtickformat = self.cbformattextbox.GetValue()
-
-        self.parent.parent.PlotFrame.PlotPanel.set_labelticks()
-        self.parent.parent.MainPanel.update(self)
+        self.config['Font'] = self.fontselect.GetStringSelection()
+        self.config['Fontsize'] = self.fontsizebox.GetValue()
+        self.config['Xticklength'] = self.xticksizebox.GetValue()
+        self.config['Yticklength'] = self.yticksizebox.GetValue()
+        self.config['Linewidth'] = self.linewidthbox.GetValue()
+        self.parent.parent.PlotFrame.PlotPanel.draw_plot()
 
     def on_cancel(self,event):
         self.parent.Hide()

@@ -3,6 +3,9 @@ import gpfile
 import numpy as np
 import re
 import os
+import yaml
+
+import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 from floatspin import FloatSpin,EVT_FLOATSPIN
 from floatslider import FloatSlider
@@ -32,15 +35,7 @@ class MainFrame(wx.Frame):
     """
 
     title = 'colorplot utility: '
-    datafilename = 'data/demo.dat'
-    Colormap = 'jet'
-    Xlabel = 'x-axis'
-    Ylabel = 'y-axis'
-    Cblabel = 'colorscale'
-
-    Xtickformat = 'auto'
-    Ytickformat = 'auto'
-    Cbtickformat = 'auto'
+    default_config = 'default.config'
 
     def __init__(self,parent):
         """
@@ -49,10 +44,16 @@ class MainFrame(wx.Frame):
         
         Create Menu, MainPanel and PlotFrame.
         """
-
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title+self.datafilename,size=(440,330),style=wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(440,330),style=wx.SYSTEM_MENU)
         self.parent = parent
 
+        with open(self.default_config) as file:
+            self.config = yaml.load(file)
+
+        if self.config['Font'] == 'default':
+            self.config['Font'] = plt.rcParams['font.sans-serif'][0]
+
+        self.SetTitle(self.title+self.config['datafilename'])
         self.alignToBottomRight()
 
         #self.datafile.report()
@@ -67,7 +68,7 @@ class MainFrame(wx.Frame):
 
         self.LabelticksFrame = LabelticksFrame(self)
 
-        self.view = View(gpfile.gpfile(self.datafilename,(0,1,2)))
+        self.view = View(gpfile.gpfile(self.config['datafilename'],(0,1,2)))
         self.view.attach(self.PlotFrame.PlotPanel)
         self.view.attach(self.MainPanel)
 
@@ -107,6 +108,9 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_load_plot, m_load)
         m_expt = menu_file.Append(wx.ID_ANY, "&Save Data\tCtrl-S", "Save data to file")
         self.Bind(wx.EVT_MENU, self.on_save_datafile, m_expt)
+        menu_file.AppendSeparator()
+        m_expt = menu_file.Append(wx.ID_ANY, "&Save Pdf\tCtrl-S", "Save to pdf file")
+        self.Bind(wx.EVT_MENU, self.on_save_pdf, m_expt)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(wx.ID_ANY, "E&xit\tCtrl-X", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -234,25 +238,47 @@ class MainFrame(wx.Frame):
 
         modlist = ', '.join([mod.title for mod in self.view.modlist])
 
+
         comment = """\
 # Original filename: {}
 #
 # data modifications: {}
 #
 # axes: {} | {} | {}
-""".format(self.view.datafile.datafilename,modlist,self.Xlabel,self.Ylabel,self.Cblabel)
+""".format(self.config['datafilename'],modlist,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
             message="Save plot data as...",
             defaultDir=os.getcwd(),
-            defaultFile=self.view.datafile.datafilename,
+            defaultFile=self.config['datafilename'],
             wildcard=file_choices,
             style=wx.SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.view.datafile.save(path,comment)
+
+
+    def on_save_pdf(self, event):
+        """
+        Saves the plot in pdf format.
+
+        """
+        file_choices = "PDF (*.pdf)|*.pdf"
+        defaultfilename = os.path.splitext(self.config['datafilename'])[0]+'.pdf'
+
+        dlg = wx.FileDialog(
+            self,
+            message="Save plot as...",
+            defaultDir=os.getcwd(),
+            defaultFile=defaultfilename,
+            wildcard=file_choices,
+            style=wx.SAVE)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            plt.savefig(path)
 
     def on_exit(self, event):
         """
@@ -372,7 +398,7 @@ class MainPanel(Subject,wx.Panel):
         for m in self.maps:
             self.colormapselect.Append(m)
 
-        self.colormapselect.SetStringSelection(self.parent.Colormap)
+        self.colormapselect.SetStringSelection(self.parent.config['Colormap'])
 
         self.Bind(wx.EVT_COMBOBOX,self.on_colormapselect,self.colormapselect)
 
