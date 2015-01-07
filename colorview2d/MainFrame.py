@@ -3,10 +3,12 @@ import gpfile
 import numpy as np
 import re
 import os
+import warnings
 import yaml
 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
+from matplotlib.font_manager import FontProperties,findfont
 from floatspin import FloatSpin,EVT_FLOATSPIN
 from floatslider import FloatSlider
 
@@ -51,7 +53,15 @@ class MainFrame(wx.Frame):
             self.config = yaml.load(file)
 
         if self.config['Font'] == 'default':
-            self.config['Font'] = plt.rcParams['font.sans-serif'][0]
+            for font in plt.rcParams['font.sans-serif']:
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always")
+                    findfont(FontProperties(family=font))
+                    if len(w):
+                        continue
+                    else:
+                        self.config['Font'] = font
+                        break
 
         self.SetTitle(self.title+self.config['datafilename'])
         self.alignToBottomRight()

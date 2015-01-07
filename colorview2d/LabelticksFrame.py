@@ -75,13 +75,19 @@ class LabelticksPanel(wx.Panel):
         self.widgetlist_right.append(self.fontselect_label)
 
         # Set default font in the widget
+        fontliststrings = [fm.FontProperties(fname=fname).get_name() for fname in fontlist]
+        # remove duplicates
+        fontliststrings = list(set(fontliststrings))
+        fontliststrings.sort()
+        
+        # print fontliststrings
+        
         self.fontselect = wx.ComboBox(self,
                                       value=self.config['Font'],
                                       size=wx.DefaultSize,
+                                      choices=fontliststrings,
                                       style=wx.CB_READONLY)
 
-        for fname in fontlist:
-            self.fontselect.Append(fm.FontProperties(fname=fname).get_name())
 
         
         self.widgetlist_right.append(self.fontselect)
