@@ -40,7 +40,7 @@ class deriv(modification):
 
         dy = datafile.dY
 
-        dydata = -sp.diff(datafile.Zdata,axis=0)
+        dydata = sp.diff(datafile.Zdata,axis=0)
 
         datafile.Zdata[:-1] = dydata
         datafile.Zdata[-1] = datafile.Zdata[-2]
