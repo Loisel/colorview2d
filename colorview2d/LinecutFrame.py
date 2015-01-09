@@ -224,6 +224,8 @@ class LinecutPanel(wx.Panel):
                     np.savetxt(file,linecut.T)
 
                 position += x_step_idx*x_sign
+                if x_sign == 0:
+                    break
 
         if self.radiox.GetValue():
 
@@ -251,7 +253,8 @@ class LinecutPanel(wx.Panel):
                     np.savetxt(file,linecut.T)
 
                 position += y_step_idx*y_sign
-
+                if y_sign == 0:
+                    break
 
     def on_cancel(self, event):
         if self.linelist:
@@ -325,6 +328,8 @@ class LinecutPanel(wx.Panel):
 
             sign = np.sign(x_end-x_start)
 
+            # If xstart == xend, sign should be 0
+
             x_step = self.x_intervalspin.GetValue()*sign
 
             y_start = self.y_minspin.GetValue()
@@ -334,6 +339,8 @@ class LinecutPanel(wx.Panel):
             while position*sign <= x_end*sign:
                 self.linelist.append(self.axes.plot([position,position],[y_start,y_end])[0])
                 position += x_step
+                if x_step == 0:
+                    break
 
         if self.radiox.GetValue():
 
@@ -347,11 +354,12 @@ class LinecutPanel(wx.Panel):
             x_end = self.x_maxspin.GetValue()
 
 
-
             position = y_start
             while position*sign <= y_end*sign:
                 self.linelist.append(self.axes.plot([x_start,x_end],[position,position])[0])
 
                 position += y_step
+                if y_step == 0:
+                    break
 
         self.canvas.draw()
