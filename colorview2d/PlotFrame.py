@@ -44,8 +44,7 @@ class PlotPanel(wx.Panel):
         # We add a toolbar to the canvas and add everything 
         # to a sizer
 
-        self.dpi = 75
-        self.fig = plt.figure(1,dpi=self.dpi)
+        self.fig = plt.figure(1,dpi=self.config['Dpi'])
         self.axes = self.fig.add_subplot(111)
         self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
 
@@ -112,6 +111,8 @@ class PlotPanel(wx.Panel):
         """
 
         self.fig.clear()
+        if self.config['Width'] != 0 and self.config['Height'] != 0:
+            self.fig.set_size_inches((self.config['Width'],self.config['Height']))
         self.apply_config()
 
         self.axes = self.fig.add_subplot(111)
@@ -149,19 +150,14 @@ class PlotPanel(wx.Panel):
             self.colorbar.update_ticks()
 
 
-    def apply_config(self,config={}):
+    def apply_config(self):
         """
         Applies the ticks and labels stored in the MainFrame.
         """
-
-        try:
-            for key in config:
-                self.config[key] = config[key]
-        except KeyError:
-            print 'Key {} not known to function set_config'.format(key)
-
+        import pdb; pdb.set_trace()
         # Apply plt.rcParams
 
+        print "Font now {}".format(self.config['Font'])
         plt.rcParams['font.family'] = self.config['Font']
         plt.rcParams['font.size'] = self.config['Fontsize']
         plt.rcParams['xtick.major.size'] = self.config['Xticklength']

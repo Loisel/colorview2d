@@ -24,6 +24,25 @@ class LabelticksPanel(wx.Panel):
         self.Cancel = wx.Button(self,wx.ID_ANY, label = "Cancel")
         self.Apply = wx.Button(self,wx.ID_ANY,label = "Apply")
 
+        self.HeightBoxLabel = wx.StaticText(self, wx.ID_ANY,'Height:')
+        self.HeightBox = NumCtrl(self,wx.ID_ANY,
+                                 value = 0,
+                                 fractionWidth = 1,
+                                 allowNegative = False)
+        
+        self.WidthBoxLabel = wx.StaticText(self, wx.ID_ANY,'Width:')
+        self.WidthBox = NumCtrl(self,wx.ID_ANY,
+                                value = 0,
+                                fractionWidth = 1,
+                                allowNegative = False)
+
+        self.DpiBoxLabel = wx.StaticText(self, wx.ID_ANY,'Dpi:')
+        self.DpiBox = NumCtrl(self,wx.ID_ANY,
+                              value = 100,
+                              fractionWidth = 0,
+                              allowNegative = False)
+
+
         self.Bind(wx.EVT_BUTTON,self.on_cancel,self.Cancel)
         self.Bind(wx.EVT_BUTTON,self.on_apply,self.Apply)
 
@@ -34,10 +53,19 @@ class LabelticksPanel(wx.Panel):
         self.LabelFormatBox = wx.StaticBox(self, wx.ID_ANY, 'Labels')
         self.LabelFormatBoxSizer = wx.StaticBoxSizer(self.LabelFormatBox, wx.VERTICAL)
 
+        self.PlotBox = wx.StaticBox(self, wx.ID_ANY, 'Plotsize')
+        self.PlotBoxSizer = wx.StaticBoxSizer(self.PlotBox, wx.HORIZONTAL)
+
+        self.PlotBoxSizer.Add(self.WidthBoxLabel,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
+        self.PlotBoxSizer.Add(self.WidthBox,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
+        self.PlotBoxSizer.Add(self.HeightBoxLabel,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
+        self.PlotBoxSizer.Add(self.HeightBox,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
+        self.PlotBoxSizer.Add(self.DpiBoxLabel,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
+        self.PlotBoxSizer.Add(self.DpiBox,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
+        
         self.FontFormatBox = wx.StaticBox(self, wx.ID_ANY, 'Font, ticks and lines')
         self.FontFormatBoxSizer = wx.StaticBoxSizer(self.FontFormatBox, wx.VERTICAL)
 
-        
         
         self.gridbox_left = wx.GridSizer(3,2,5,5)
         self.gridbox_right = wx.GridSizer(3,2,5,5)
@@ -56,6 +84,7 @@ class LabelticksPanel(wx.Panel):
 
         self.leftbox.Add(self.LabelFormatBoxSizer,0)
         self.rightbox.Add(self.FontFormatBoxSizer,0)
+        self.rightbox.Add(self.PlotBoxSizer,0)
         self.leftbox.Add(self.hbox,0,wx.EXPAND)
 
         self.mainbox.Add(self.leftbox,0)
@@ -83,12 +112,11 @@ class LabelticksPanel(wx.Panel):
         # print fontliststrings
         
         self.fontselect = wx.ComboBox(self,
-                                      value=self.config['Font'],
                                       size=wx.DefaultSize,
                                       choices=fontliststrings,
                                       style=wx.CB_READONLY)
 
-
+        self.fontselect.SetStringSelection(self.config['Font'])
         
         self.widgetlist_right.append(self.fontselect)
 
@@ -195,6 +223,9 @@ class LabelticksPanel(wx.Panel):
         self.config['Xticklength'] = self.xticksizebox.GetValue()
         self.config['Yticklength'] = self.yticksizebox.GetValue()
         self.config['Linewidth'] = self.linewidthbox.GetValue()
+        self.config['Width'] = self.WidthBox.GetValue()
+        self.config['Height'] = self.HeightBox.GetValue()
+        self.config['Dpi'] = self.DpiBox.GetValue()
         self.parent.parent.PlotFrame.PlotPanel.draw_plot()
 
     def on_cancel(self,event):

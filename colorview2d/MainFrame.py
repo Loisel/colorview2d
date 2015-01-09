@@ -119,13 +119,13 @@ class MainFrame(wx.Frame):
         m_expt = menu_file.Append(wx.ID_ANY, "&Save Data\tCtrl-S", "Save data to file")
         self.Bind(wx.EVT_MENU, self.on_save_datafile, m_expt)
         menu_file.AppendSeparator()
-        m_expt = menu_file.Append(wx.ID_ANY, "&Save Pdf\tCtrl-S", "Save to pdf file")
+        m_expt = menu_file.Append(wx.ID_ANY, "Save &Pdf\tCtrl-P", "Save to pdf file")
         self.Bind(wx.EVT_MENU, self.on_save_pdf, m_expt)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(wx.ID_ANY, "E&xit\tCtrl-X", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
 
-        m_labelticks = menu_axes.Append(wx.ID_ANY, "Labels and &Ticks\tCtrl-T", "Set axes labels and tick label format")
+        m_labelticks = menu_axes.Append(wx.ID_ANY, "&Configure Plot\tCtrl-C", "Set axes labels and tick label format")
         self.Bind(wx.EVT_MENU,self.on_labelticks,m_labelticks)
 
         m_rotatecw = menu_axes.Append(wx.ID_ANY, "Rotate cw", "Permutate the axes clockwise: x to y")
@@ -365,6 +365,8 @@ class MainFrame(wx.Frame):
             # By changing the datafile, the view notifies its observers
             # and the plot is updated
             self.view.set_datafile(gpfile.gpfile(path,columns))
+
+            self.config['datafilename'] = os.path.basename(path)
 
             self.SetTitle(self.title+self.view.datafile.filename)
 
