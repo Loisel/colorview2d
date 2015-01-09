@@ -111,8 +111,9 @@ class PlotPanel(wx.Panel):
         """
 
         self.fig.clear()
-        if self.config['Width'] != 0 and self.config['Height'] != 0:
-            self.fig.set_size_inches((self.config['Width'],self.config['Height']))
+
+        self.fig.set_size_inches((self.config['Width'],self.config['Height']))
+
         self.apply_config()
 
         self.axes = self.fig.add_subplot(111)

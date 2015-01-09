@@ -26,19 +26,19 @@ class LabelticksPanel(wx.Panel):
 
         self.HeightBoxLabel = wx.StaticText(self, wx.ID_ANY,'Height:')
         self.HeightBox = NumCtrl(self,wx.ID_ANY,
-                                 value = 0,
+                                 value = self.config['Height'],
                                  fractionWidth = 1,
                                  allowNegative = False)
         
         self.WidthBoxLabel = wx.StaticText(self, wx.ID_ANY,'Width:')
         self.WidthBox = NumCtrl(self,wx.ID_ANY,
-                                value = 0,
+                                value = self.config['Width'],
                                 fractionWidth = 1,
                                 allowNegative = False)
 
         self.DpiBoxLabel = wx.StaticText(self, wx.ID_ANY,'Dpi:')
         self.DpiBox = NumCtrl(self,wx.ID_ANY,
-                              value = 100,
+                              value = self.config['Dpi'],
                               fractionWidth = 0,
                               allowNegative = False)
 
