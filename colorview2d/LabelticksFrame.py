@@ -184,6 +184,12 @@ class LabelticksPanel(wx.Panel):
         self.widgetlist_left.append(self.cbformattextbox)
 
     def on_apply(self,event):
+        self.config['Xlabel'] = self.xtextbox.GetValue()
+        self.config['Xtickformat'] = self.xformattextbox.GetValue()
+        self.config['Ylabel'] = self.ytextbox.GetValue()
+        self.config['Ytickformat'] = self.yformattextbox.GetValue()
+        self.config['Cblabel'] = self.cbtextbox.GetValue()
+        self.config['Cbtickformat'] = self.cbformattextbox.GetValue()
         self.config['Font'] = self.fontselect.GetStringSelection()
         self.config['Fontsize'] = self.fontsizebox.GetValue()
         self.config['Xticklength'] = self.xticksizebox.GetValue()
