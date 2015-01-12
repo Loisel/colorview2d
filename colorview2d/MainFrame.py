@@ -807,6 +807,7 @@ class MainPanel(Subject,wx.Panel):
         maxval = centre+width/2.
 
         if evt_obj.GetName() == 'min':
+            minval = self.minspin.GetValue()
             if minval < centre - width/2.:
                 centre = minval + width/2.
                 maxval = centre + width/2.
@@ -814,12 +815,14 @@ class MainPanel(Subject,wx.Panel):
                 width = 2*(centre-minval)
                 maxval = minval + width
         if evt_obj.GetName() == 'max':
+            maxval = self.maxspin.GetValue()
             if maxval > centre + width/2.:
                 centre = maxval-width/2.
                 minval = centre-width/2.
             if maxval < centre + width/2.:
                 width = 2*(maxval-centre)
                 minval = maxval - width
+                
 
         self.centrespin.SetValue(centre)
         self.widthspin.SetValue(width)
