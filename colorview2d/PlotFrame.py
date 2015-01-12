@@ -155,7 +155,7 @@ class PlotPanel(wx.Panel):
         """
         Applies the ticks and labels stored in the MainFrame.
         """
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         # Apply plt.rcParams
 
         print "Font now {}".format(self.config['Font'])

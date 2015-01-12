@@ -210,7 +210,6 @@ class SlopeExPanel(Subject,wx.Panel):
             self.notify()
 
 
-
     def on_removeline(self,event):
         if self.linelist:
 
@@ -223,7 +222,7 @@ class SlopeExPanel(Subject,wx.Panel):
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
-        datafilename = self.parent.parent.datafilename
+        datafilename = self.parent.parent.config['datafilename']
 
         dlg = wx.FileDialog(
             self,

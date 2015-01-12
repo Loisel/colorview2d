@@ -48,6 +48,15 @@ class MyLine():
         self.commenttext = self.axes.text(self.x1,self.y1-0.5,self.comment)
 
 
+    def get_slope(self):        
+        try:
+            return self.dy/self.dx
+        except ZeroDivisionError:
+            print "Slope not defined for a perpendicular line."
+        
+    def get_shift(self):
+        return self.y1-self.get_slope()*self.x1
+            
     def get_y(self,x):
         return (x-self.x1)/self.dx
 

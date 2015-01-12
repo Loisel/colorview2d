@@ -521,7 +521,10 @@ class MainPanel(Subject,wx.Panel):
 
         self.chk_scale =  wx.CheckBox(self, wx.ID_ANY, 'Scale')
         self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator('1e0'))
+        self.auto_scale_button = wx.Button(self,wx.ID_ANY,'dI/dV')
+        
         self.Bind(wx.EVT_CHECKBOX,self.on_chk_scale,self.chk_scale)
+        self.Bind(wx.EVT_BUTTON,self.on_auto_scale_button,self.auto_scale_button)
 
 
         self.Bind(wx.EVT_CHECKBOX,self.on_chk_lowpass,self.chk_lowpass)
@@ -582,15 +585,21 @@ class MainPanel(Subject,wx.Panel):
         self.hbox3.Add(self.num_lowpass_xwidth,0,flags,border=10)
         self.hbox3.Add(self.num_lowpass_ywidth,0,flags,border=10)
 
+        # The box with derive
+
         self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.hbox4.Add(self.chk_deriv,0,flags,border=10)
 
+        # The box with scale
+        
         self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.hbox5.Add(self.chk_scale,0,flags,border=10)
         self.hbox5.Add(self.num_scale,0,flags,border=10)
+        self.hbox5.Add(self.auto_scale_button,0,flags,border=10)
 
+        
 
         self.middlevbox.AddSpacer(10)
         self.ModBoxSizer.Add(self.hbox3, 0, flag = wx.ALIGN_LEFT | wx.TOP)
@@ -695,6 +704,9 @@ class MainPanel(Subject,wx.Panel):
             self.parent.view.addMod(tb.scale(float(self.num_scale.GetValue())))
         else:
             self.parent.view.remMod("scale")
+
+    def on_auto_scale_button(self,event):
+        self.num_scale.SetValue(str(2.5812e5/self.parent.view.datafile.dY))        
 
 
     def on_colormapselect(self,event):
