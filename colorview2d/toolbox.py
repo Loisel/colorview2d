@@ -87,6 +87,7 @@ class crop(modification):
         self.ytop = ytop
 
     def apply_mod(self,datafile):
+        
         xleft_idx = datafile.get_xrange_idx(self.xleft)
         xright_idx = datafile.get_xrange_idx(self.xright)
         ybottom_idx = datafile.get_yrange_idx(self.ybottom)

@@ -145,7 +145,7 @@ class MainFrame(wx.Frame):
         m_lineout = menu_tools.Append(wx.ID_ANY,  "Linecut &Viewer\tCtrl-V", "Plot data along line")
         self.Bind(wx.EVT_MENU, self.on_lineout, m_lineout)
 
-        m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit", "Fit to prominent data features")
+        m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit (beta!)", "Fit to prominent data features")
         self.Bind(wx.EVT_MENU,self.on_binaryfit,m_binaryfit)
 
 
@@ -714,7 +714,7 @@ class MainPanel(Subject,wx.Panel):
         Applies a colormap selected in the dropdown menu.
         """
         
-        self.parent.Colormap = self.colormapselect.GetValue()
+        self.parent.config['Colormap'] = self.colormapselect.GetValue()
         self.notify()
 
     def on_scroll(self,event):

@@ -166,6 +166,6 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
 
     def get_region(self,xleft,xright,ybottom,ytop):
         try:
-            return self.Zdata[-ytop:-ybottom,xleft:xright]
+            return self.Zdata[ybottom:ytop,xleft:xright]
         except IndexError as e:
             print "Index not in data range:",e
