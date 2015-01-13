@@ -706,7 +706,7 @@ class MainPanel(Subject,wx.Panel):
             self.parent.view.remMod("scale")
 
     def on_auto_scale_button(self,event):
-        self.num_scale.SetValue(str(2.5812e5/self.parent.view.datafile.dY))        
+        self.num_scale.SetValue(str(2.5812e4/self.parent.view.datafile.dY))        
 
 
     def on_colormapselect(self,event):

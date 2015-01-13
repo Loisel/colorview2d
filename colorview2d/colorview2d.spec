@@ -1,10 +1,21 @@
 # -*- mode: python -*-
+
+block_cipher = None
+
+
 a = Analysis(['colorview2d.py'],
              pathex=['/home/al/colorview2d/colorview2d'],
              hiddenimports=[],
              hookspath=None,
-             runtime_hooks=None)
-pyz = PYZ(a.pure)
+             runtime_hooks=None,
+             excludes=['zmq'],
+             cipher=block_cipher)
+
+a.datas += [('default.config','default.config','DATA')]
+a.datas += [('demo.dat','demo.dat','DATA')]
+
+pyz = PYZ(a.pure,
+             cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
