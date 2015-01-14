@@ -67,8 +67,8 @@ class LabelticksPanel(wx.Panel):
         self.FontFormatBoxSizer = wx.StaticBoxSizer(self.FontFormatBox, wx.VERTICAL)
 
         
-        self.gridbox_left = wx.GridSizer(3,2,5,5)
-        self.gridbox_right = wx.GridSizer(3,2,5,5)
+        self.gridbox_left = wx.GridSizer(6,2,5,5)
+        self.gridbox_right = wx.GridSizer(5,2,5,5)
 
         for widget in self.widgetlist_left:
             self.gridbox_left.Add(widget,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
