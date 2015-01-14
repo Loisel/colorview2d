@@ -97,7 +97,7 @@ class LabelticksPanel(wx.Panel):
         self.widgetlist_right = []
 
         # get list of available fonts and put it inside the widget
-        fontlist = fm.get_fontconfig_fonts()
+        fontlist = fm.findSystemFonts()
 
         self.fontselect_label = wx.StaticText(self, wx.ID_ANY,'Font:')
 

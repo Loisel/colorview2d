@@ -46,7 +46,7 @@ class MainFrame(wx.Frame):
         
         Create Menu, MainPanel and PlotFrame.
         """
-        wx.Frame.__init__(self, None, wx.ID_ANY, size=(440,330),style=wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(440,330),style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.parent = parent
 
         with open(self.default_config) as file:
@@ -642,8 +642,13 @@ class MainPanel(Subject,wx.Panel):
 
         self.ColorGridSizer.Hide(self.widthslider)
         self.ColorGridSizer.Hide(self.centreslider)
-        self.ColorGridSizer.Remove(self.widthslider)
-        self.ColorGridSizer.Remove(self.centreslider)
+        self.ColorGridSizer.Detach(self.widthslider)
+        self.ColorGridSizer.Detach(self.centreslider)
+
+        # self.ColorGridSizer.Hide(2)
+        # self.ColorGridSizer.Hide(5)
+        # self.ColorGridSizer.Remove(2)
+        # self.ColorGridSizer.Remove(5)
 
         
         self.centreslider = FloatSlider(self,wx.ID_ANY,(maxval+minval)/2,minval,maxval,slide_increment,

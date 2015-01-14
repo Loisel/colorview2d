@@ -42,7 +42,7 @@ class LineoutPanel(wx.Panel,Subject):
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
         self.mainbox.Add(self.toolbar,0)
 
-        self.axes.set_ylabel(self.parent.parent.Cblabel)
+        self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
 
         self.fig.tight_layout()
 
