@@ -58,10 +58,10 @@ class MyLine():
         return self.y1-self.get_slope()*self.x1
             
     def get_y(self,x):
-        return (x-self.x1)/self.dx
+        return x*self.get_slope()+self.get_shift()
 
     def get_x(self,y):
-        return (y-self.y1)/self.dy
+        return (y-self.get_shift())/self.get_slope()
 
     def get_comment(self):
         return self.comment

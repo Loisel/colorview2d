@@ -113,6 +113,8 @@ class LineoutPanel(wx.Panel,Subject):
         idy1 = self.closest_idx(self.y1,datafile.Yrange)
         idy2 = self.closest_idx(self.y2,datafile.Yrange)
 
+        import pdb; pdb.set_trace()
+        
         if idx1 == idx2:
             x_range = [idx1]
             y_range = range(idy1,idy2+1)
