@@ -113,20 +113,20 @@ class LineoutPanel(wx.Panel,Subject):
         idy1 = self.closest_idx(self.y1,datafile.Yrange)
         idy2 = self.closest_idx(self.y2,datafile.Yrange)
 
-        import pdb; pdb.set_trace()
         
         if idx1 == idx2:
             x_range = [idx1]
-            y_range = range(idy1,idy2+1)
+            y_range = range(idy1,idy2+1,np.sign(idy2-idy1))
         elif idy1 == idy2:
-            x_range = range(idx1,idx2+1)
+            x_range = range(idx1,idx2+1,np.sign(idx2-idx1))
             y_range = [idy1]            
         elif np.abs(idx2 - idx1) > np.abs(idy2 - idy1):
-            x_range = np.linspace(idx1,idx2,int(np.absolute(idx2-idx1)+1)).astype(int)
+            x_range = range(idx1,idx2+1,np.sign(idx2-idx1))
+            # x_range = np.linspace(idx1,idx2,int(np.absolute(idx2-idx1)+1)).astype(int)
             y_range = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.Yrange) for xval in datafile.Xrange[x_range]])
 
         else:
-            y_range = np.linspace(idy1,idy2,int(np.absolute(idy2-idy1)+1)).astype(int)
+            y_range = range(idy1,idy2,np.sign(idy2-idy1))
             x_range = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.Xrange) for yval in datafile.Yrange[y_range]])
 
 
