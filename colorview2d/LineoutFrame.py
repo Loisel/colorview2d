@@ -15,6 +15,7 @@ class LineoutFrame(wx.Frame):
         self.parent = parent
         self.LineoutPanel = LineoutPanel(self)
         self.Layout()
+        self.Bind(wx.EVT_SHOW,self.LineoutPanel.on_show)
 
 
 class LineoutPanel(wx.Panel,Subject):
@@ -42,11 +43,9 @@ class LineoutPanel(wx.Panel,Subject):
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
         self.mainbox.Add(self.toolbar,0)
 
-        self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
-
         self.fig.tight_layout()
 
-        self.canvas.draw()
+        #self.canvas.draw()
 
         self.mainbox.Add(self.canvas, 1,flag =  wx.EXPAND)
 
@@ -65,23 +64,42 @@ class LineoutPanel(wx.Panel,Subject):
         self.SetSizer(self.mainbox)
         self.mainbox.Fit(self)
 
-        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(False)
-        self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
-        self.cid = parent.parent.PlotFrame.PlotPanel.canvas.mpl_connect('button_press_event',self.on_click)
-        
+        #self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(False)
 
+        
+    def on_show(self,event):
+        print "Show called {}".format(event.GetShow())
+        if event.GetShow():
+            print "Showing"
+            self.axes.cla()            
+            self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
+            self.x1 = 0.
+            self.x2 = 0.
+            self.y1 = 0.
+            self.y2 = 0.
+            
+            self.canvas.draw()
+            
+            self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
+            self.cid = self.parent.parent.PlotFrame.PlotPanel.canvas.mpl_connect('button_press_event',self.on_click)
+        else:
+            print "Hiding"
+            self.cid = self.parent.parent.PlotFrame.PlotPanel.canvas.mpl_disconnect(self.cid)
+        
     def on_plot(self,event):
         self.draw_linetrace()
+
     def on_close(self,event):
         self.currentline.removeline()
         if self.linelist:
             for line in self.linelist:
                 line.removeline()
+        self.linelist = []
+        #self.currentline = None
 
         self.notify()
         self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
-
-        self.parent.Destroy()
+        self.parent.Hide()
 
     def on_click(self,event):
         if event.inaxes!=self.currentline.axes: return
@@ -97,6 +115,8 @@ class LineoutPanel(wx.Panel,Subject):
 
 
     def draw_line(self):
+        #import pdb;pdb.set_trace()
+
         self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
         self.notify()
 

@@ -4,6 +4,7 @@ import yaml
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from View import View
+from LineoutFrame import LineoutPanel
 
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
@@ -94,8 +95,14 @@ class PlotPanel(wx.Panel):
             self.plot.set_cmap(self.config['Colormap'])
             self.plot.set_clim(cbar_min,cbar_max)
 
+        elif isinstance(subject,LineoutPanel):
+            self.axes.relim()
+            self.axes.autoscale_view(True,True,True)
+            #import pdb;pdb.set_trace()
+
         self.plot.changed()
         self.canvas.draw()
+
 
 
     def draw_plot(self):

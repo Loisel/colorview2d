@@ -324,8 +324,6 @@ class LinecutPanel(wx.Panel):
         total_xrange = self.datafile.Xrange
         total_yrange = self.datafile.Yrange
 
-        import pdb;pdb.set_trace()
-
         if self.linelist:
             for line in self.linelist:
                 line.remove()

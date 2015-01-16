@@ -87,6 +87,7 @@ class MainFrame(wx.Frame):
 
         self.PlotFrame.PlotPanel.draw_plot()
         self.LinecutFrame = LinecutFrame(self)
+        self.LineoutFrame = LineoutFrame(self)
 
         # BinaryFitFrame and the MainPanel creation require a view to exist
         self.MainPanel.create_panel()
@@ -207,7 +208,6 @@ class MainFrame(wx.Frame):
         
         The frame is destroyed on close.
         """
-        self.LineoutFrame = LineoutFrame(self)
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LineoutFrame.Show()
 
