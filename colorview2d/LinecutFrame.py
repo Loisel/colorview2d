@@ -186,7 +186,14 @@ class LinecutPanel(wx.Panel):
 
         fname = self.filenamebox.GetValue()
 
-        print "Total zdata shape {}".format(self.datafile.Zdata.shape)
+        dialog = wx.DirDialog(None, "Choose a directory to save the linetraces:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+
+        if dialog.ShowModal() == wx.ID_OK:
+            path = dialog.GetPath()
+
+        fname = path+"/"+fname
+            
+        #print "Total zdata shape {}".format(self.datafile.Zdata.shape)
         total_xrange = self.datafile.Xrange
         total_yrange = self.datafile.Yrange
 
@@ -260,6 +267,8 @@ class LinecutPanel(wx.Panel):
         if self.linelist:
             for line in self.linelist:
                 line.remove()
+        self.linelist = []
+        
         self.canvas.draw()
         self.axes.autoscale(True)
 
@@ -314,6 +323,8 @@ class LinecutPanel(wx.Panel):
 
         total_xrange = self.datafile.Xrange
         total_yrange = self.datafile.Yrange
+
+        import pdb;pdb.set_trace()
 
         if self.linelist:
             for line in self.linelist:

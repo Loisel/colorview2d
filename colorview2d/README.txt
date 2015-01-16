@@ -1,7 +1,8 @@
 
 colorview2d is a 2D color plotting utility. 
 
-It uses the power of numpy, scipy and matplotlib to visualize 3d datasets provided in ASCII text data files. 
+It uses the power of numpy, scipy and matplotlib to visualize 3d datasets 
+provided as ASCII text data files. 
 
 ---
 
@@ -23,7 +24,7 @@ Installation and Usage:
 * Windows:
  Download and execute the colorview2d binary or script file, 
  whilst the default plotting file ("demo.dat") and the 
- configuration file ("default.config") is present in the same directory. 
+ configuration file ("default.config") are present in the same directory. 
 
 * Linux:
  You can download a binary package, compressed as a 7z archive. 

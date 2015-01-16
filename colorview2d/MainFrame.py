@@ -86,6 +86,7 @@ class MainFrame(wx.Frame):
         # avoid race conditions
 
         self.PlotFrame.PlotPanel.draw_plot()
+        self.LinecutFrame = LinecutFrame(self)
 
         # BinaryFitFrame and the MainPanel creation require a view to exist
         self.MainPanel.create_panel()
@@ -207,6 +208,7 @@ class MainFrame(wx.Frame):
         The frame is destroyed on close.
         """
         self.LineoutFrame = LineoutFrame(self)
+        self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LineoutFrame.Show()
 
     def on_binaryfit(self,event):
@@ -222,7 +224,6 @@ class MainFrame(wx.Frame):
         """
         Creates and shows the frame to extract linecut series.
         """
-        self.LinecutFrame = LinecutFrame(self)
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LinecutFrame.Show()
 
