@@ -1,6 +1,8 @@
 import wx
+import os
 import numpy as np
 from floatspin import FloatSpin,EVT_FLOATSPIN
+from Compat import resource_path
 
 class LinecutFrame(wx.Frame):
     def __init__(self,parent):
@@ -190,8 +192,10 @@ class LinecutPanel(wx.Panel):
 
         if dialog.ShowModal() == wx.ID_OK:
             path = dialog.GetPath()
+            fname = os.path.join(path,fname)
+        else:
+            fname = resource_path(fname)
 
-        fname = path+"/"+fname
             
         #print "Total zdata shape {}".format(self.datafile.Zdata.shape)
         total_xrange = self.datafile.Xrange
