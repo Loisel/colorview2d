@@ -13,6 +13,7 @@ class SlopeExFrame(wx.Frame):
         self.parent = parent
         self.SlopeExPanel = SlopeExPanel(self)
         self.Layout()
+        self.Bind(wx.EVT_SHOW,self.SlopeExPanel.on_show)
 
 
 class SlopeExPanel(Subject,wx.Panel):
@@ -23,23 +24,109 @@ class SlopeExPanel(Subject,wx.Panel):
 
         self.attach(self.parent.parent.PlotFrame.PlotPanel)
 
-        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(False)
-        self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
+        self.plotpanel = self.parent.parent.PlotFrame.PlotPanel
+
         self.linelist = []
-
         self.lineindex = -1
-
-        self.x1 = None
-        self.x2 = None
-        self.y1 = None
-        self.y2 = None
-
-        self.cid = parent.parent.PlotFrame.PlotPanel.canvas.mpl_connect('button_press_event',self.on_click)
+        self.evenodd = 0
 
         # the line spin-control widgets
 
-        self.pointwidgetlist = []
+        self.create_pointwidgets()
 
+        # the line list widget
+
+        self.linelistbox = VariableListCtrl(self,wx.ID_ANY,size=(250,160), style = wx.LC_REPORT|wx.BORDER_SUNKEN)
+
+        self.linelistbox.InsertColumn(0,'x-shift',width=70)
+        self.linelistbox.InsertColumn(1,'slope',width=70)
+        self.linelistbox.InsertColumn(2,'comment')
+
+        self.addlinebutton = wx.Button(self, label="Add Line")
+        self.removelinebutton = wx.Button(self, label="Remove last Line")
+        self.savelistbutton = wx.Button(self, label="Save List")
+
+        self.Bind(wx.EVT_BUTTON,self.on_addline,self.addlinebutton)
+        self.Bind(wx.EVT_BUTTON,self.on_removeline,self.removelinebutton)
+        self.Bind(wx.EVT_BUTTON,self.on_savelist,self.savelistbutton)
+
+
+        # close button
+
+        self.close_button = wx.Button(self,wx.ID_CLOSE, "Close")
+
+        self.Bind(wx.EVT_BUTTON,self.on_close,self.close_button)
+
+        # End of widget definition
+        # Formatting ...
+
+        self.mainbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.middlevbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.CoordBox = wx.StaticBox(self, wx.ID_ANY, 'Point coordinates')
+        self.CoordBoxSizer = wx.StaticBoxSizer(self.CoordBox, wx.VERTICAL)
+
+        self.CoordGridSizer = wx.GridSizer(rows=2, cols=4, hgap=5, vgap=10)
+
+        gridflags = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
+
+        for widget in self.pointwidgetlist:
+            self.CoordGridSizer.Add(widget,flag = gridflags)
+
+        self.CoordBoxSizer.Add(self.CoordGridSizer)
+
+        self.middlevbox.Add(self.CoordBoxSizer)
+        self.middlevbox.AddSizer((-1,10))
+
+        self.listhbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.listvbox_left = wx.BoxSizer(wx.VERTICAL)
+        self.listvbox_right = wx.BoxSizer(wx.VERTICAL)
+
+        self.listvbox_left.Add(self.linelistbox,1,wx.ALL|wx.EXPAND,border=10)
+
+        self.listvbox_right.Add(self.commenttext,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
+        self.listvbox_right.Add(self.commenttextbox,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
+
+        self.listvbox_right.Add(self.addlinebutton,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
+        self.listvbox_right.Add(self.removelinebutton,0,wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        self.listvbox_right.Add(self.savelistbutton,0,wx.ALIGN_CENTER_VERTICAL| wx.ALL, border = 5)
+
+        self.listhbox.Add(self.listvbox_left)
+        self.listhbox.Add(self.listvbox_right,1,wx.EXPAND)
+
+        self.middlevbox.Add(self.listhbox,1,wx.EXPAND)
+
+        self.middlevbox.Add(wx.StaticLine(self, -1))
+        self.middlevbox.Add(self.close_button,flag = wx.ALIGN_CENTER)
+
+        self.mainbox.Add((10,10))
+        self.mainbox.Add(self.middlevbox)
+        self.mainbox.Add((10,10))
+
+        self.SetSizerAndFit(self.mainbox)
+
+    def update(self):
+        self.linelist = []
+        max_xval = self.parent.parent.view.datafile.Xmax
+        min_xval = self.parent.parent.view.datafile.Xmin
+        max_yval = self.parent.parent.view.datafile.Ymax
+        min_yval = self.parent.parent.view.datafile.Ymin
+        incr_x = np.absolute(max_xval-min_xval)/1000
+        incr_y = np.absolute(max_yval-min_yval)/1000
+        self.x1spin.SetRange(min_xval,max_xval)
+        self.x1spin.SetIncrement(incr_x)
+        self.x2spin.SetRange(min_xval,max_xval)
+        self.x2spin.SetIncrement(incr_x)
+        self.y1spin.SetRange(min_yval,max_yval)
+        self.y1spin.SetIncrement(incr_y)
+        self.y2spin.SetRange(min_yval,max_yval)
+        self.y1spin.SetIncrement(incr_y)
+
+    def create_pointwidgets(self):
+
+        self.pointwidgetlist = []
+        
         max_xval = self.parent.parent.view.datafile.Xmax
         min_xval = self.parent.parent.view.datafile.Xmin
         max_yval = self.parent.parent.view.datafile.Ymax
@@ -120,77 +207,36 @@ class SlopeExPanel(Subject,wx.Panel):
         self.commenttext = wx.StaticText(self,wx.ID_ANY,"Comment:")
         self.commenttextbox = wx.TextCtrl(self,wx.ID_ANY)
 
-        # the line list widget
+        
+    def on_show(self,event):
+        """
+        Called on frame show and hide. Used to prepare the line plot panel,
+        adjust the axes, prevent the autoscale of the plotpanel and
+        connect the mouse click to the on_click routine.
 
-        self.linelistbox = VariableListCtrl(self,wx.ID_ANY,size=(250,160), style = wx.LC_REPORT|wx.BORDER_SUNKEN)
+        Attributes:
+          event (EVT_SHOW): a hide/show event object
+        
+        """
 
-        self.linelistbox.InsertColumn(0,'x-shift',width=70)
-        self.linelistbox.InsertColumn(1,'slope',width=70)
-        self.linelistbox.InsertColumn(2,'comment')
+        if event.GetShow():
+            print "Showing"
 
-        self.addlinebutton = wx.Button(self, label="Add Line")
-        self.removelinebutton = wx.Button(self, label="Remove last Line")
-        self.savelistbutton = wx.Button(self, label="Save List")
+            self.plotpanel.draw_plot()
 
-        self.Bind(wx.EVT_BUTTON,self.on_addline,self.addlinebutton)
-        self.Bind(wx.EVT_BUTTON,self.on_removeline,self.removelinebutton)
-        self.Bind(wx.EVT_BUTTON,self.on_savelist,self.savelistbutton)
+            self.plotpanel.axes.autoscale(False)
 
+            self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
 
-        # close button
-
-        self.close_button = wx.Button(self,wx.ID_CLOSE, "Close")
-
-        self.Bind(wx.EVT_BUTTON,self.on_close,self.close_button)
-
-        # End of widget definition
-        # Formatting ...
-
-        self.mainbox = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.middlevbox = wx.BoxSizer(wx.VERTICAL)
-
-        self.CoordBox = wx.StaticBox(self, wx.ID_ANY, 'Point coordinates')
-        self.CoordBoxSizer = wx.StaticBoxSizer(self.CoordBox, wx.VERTICAL)
-
-        self.CoordGridSizer = wx.GridSizer(rows=2, cols=4, hgap=5, vgap=10)
-
-        gridflags = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
-
-        for widget in self.pointwidgetlist:
-            self.CoordGridSizer.Add(widget,flag = gridflags)
-
-        self.CoordBoxSizer.Add(self.CoordGridSizer)
-
-        self.middlevbox.Add(self.CoordBoxSizer)
-        self.middlevbox.AddSizer((-1,10))
-
-        self.listhbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.listvbox_left = wx.BoxSizer(wx.VERTICAL)
-        self.listvbox_right = wx.BoxSizer(wx.VERTICAL)
-
-        self.listvbox_left.Add(self.linelistbox,1,wx.ALL|wx.EXPAND,border=10)
-
-        self.listvbox_right.Add(self.commenttext,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
-        self.listvbox_right.Add(self.commenttextbox,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
-
-        self.listvbox_right.Add(self.addlinebutton,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
-        self.listvbox_right.Add(self.removelinebutton,0,wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
-        self.listvbox_right.Add(self.savelistbutton,0,wx.ALIGN_CENTER_VERTICAL| wx.ALL, border = 5)
-
-        self.listhbox.Add(self.listvbox_left)
-        self.listhbox.Add(self.listvbox_right,1,wx.EXPAND)
-
-        self.middlevbox.Add(self.listhbox,1,wx.EXPAND)
-
-        self.middlevbox.Add(wx.StaticLine(self, -1))
-        self.middlevbox.Add(self.close_button,flag = wx.ALIGN_CENTER)
-
-        self.mainbox.Add((10,10))
-        self.mainbox.Add(self.middlevbox)
-        self.mainbox.Add((10,10))
-
-        self.SetSizerAndFit(self.mainbox)
+            if self.linelist:
+                for line in self.linelist:
+                    line.addline(self.plotpanel.axes)
+            self.notify()
+            
+        else:
+            print "Hiding"
+            self.plotpanel.axes.autoscale(True)
+            self.cid = self.plotpanel.canvas.mpl_disconnect(self.cid)
 
     def on_addline(self,event):
         if self.x1 != self.x2:
@@ -205,7 +251,7 @@ class SlopeExPanel(Subject,wx.Panel):
             self.linelistbox.SetStringItem(self.lineindex,1,"{0:.2e}".format(self.linelist[self.lineindex].get_slope()))
             self.linelistbox.SetStringItem(self.lineindex,2,self.linelist[self.lineindex].get_comment())
 
-            self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
+            delattr(self,'currentline')
 
             self.notify()
 
@@ -243,14 +289,18 @@ class SlopeExPanel(Subject,wx.Panel):
 
 
     def on_close(self,event):
-        self.currentline.removeline()
+        if hasattr(self,'currentline'):
+            self.currentline.removeline()
+            delattr(self,'currentline')
+
         if self.linelist:
             for line in self.linelist:
                 line.removeline()
+        #self.linelist = []
 
         self.notify()
-        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
-        self.parent.Destroy()
+
+        self.parent.Hide()
 
     def on_floatspin(self,event):
         evt_obj = event.GetEventObject()
@@ -268,22 +318,30 @@ class SlopeExPanel(Subject,wx.Panel):
             self.draw_line()
 
     def on_click(self,event):
-        if event.inaxes!=self.currentline.axes: return
+        if event.inaxes!=self.plotpanel.axes: return
+
+        #import pdb;pdb.set_trace()
 
         if event.button == 1:
             self.x1 = event.xdata
             self.y1 = event.ydata
+            self.evenodd += 1
         if event.button == 3:
             self.x2 = event.xdata
             self.y2 = event.ydata
-
-        if self.x1 and self.x2:
+            self.evenodd += 1
+            
+        if self.x1 and not self.evenodd % 2:
             self.update_spinctrl()
             self.draw_line()
 
 
     def draw_line(self):
-        self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
+        if hasattr(self,'currentline'):
+            self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
+        else:
+            self.currentline = MyLine(self.plotpanel.axes,self.x1,self.x2, self.y1,self.y2)
+
         #self.currentline.figure.tight_layout()
         #self.currentline.figure.canvas.draw()
         #self.parent.parent.PlotFrame.PlotPanel.fig.tight_layout()
