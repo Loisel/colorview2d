@@ -27,18 +27,20 @@ Installation and Usage:
  configuration file ("default.config") are present in the same directory. 
 
 * Linux:
- You can download a binary package, compressed as a 7z archive. 
+ You can download a tarball from
+ 
+   https://pypi.python.org/pypi/colorview2d/
+ 
  Uncompress and execute 
 
- ./colorview2d
+   python setup.py install
 
- If you have numpy, scipy, the wxPython toolkit and matplotlib installed, 
- just download the source code via
+ or
 
- git clone git://git.code.sf.net/p/colorview2d/code colorview2d-code
+   git clone git://git.code.sf.net/p/colorview2d/code colorview2d-code
 
  and execute
 
- python colorview2d.py
+   python -m colorview2d
 
-15.1.2015 Alois Dirnaichner
+19.1.2015 Alois Dirnaichner

@@ -33,8 +33,5 @@ class Colorview2d(wx.App):
         self.frame.Layout()
         return True
     
-if __name__ == '__main__':
-    app = Colorview2d()
-    app.MainLoop()
 
 

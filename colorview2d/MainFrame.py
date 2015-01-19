@@ -28,6 +28,8 @@ from LabelticksFrame import LabelticksFrame
 
 from FloatValidator import FloatValidator
 
+package_directory = os.path.dirname(os.path.abspath(__file__))
+
 class MainFrame(wx.Frame):
     """
     Central class of the application.
@@ -37,7 +39,7 @@ class MainFrame(wx.Frame):
     """
 
     title = 'colorplot utility: '
-    default_config = 'default.config'
+    default_config = os.path.join(package_directory, 'default.config')
 
     def __init__(self,parent):
         """
@@ -78,7 +80,9 @@ class MainFrame(wx.Frame):
 
         self.LabelticksFrame = LabelticksFrame(self)
 
-        self.view = View(gpfile.gpfile(self.config['datafilename'],(0,1,2)))
+        data_file = os.path.join(package_directory, self.config['datafilename'])
+
+        self.view = View(gpfile.gpfile(data_file,(0,1,2)))
         self.view.attach(self.PlotFrame.PlotPanel)
         self.view.attach(self.MainPanel)
 
