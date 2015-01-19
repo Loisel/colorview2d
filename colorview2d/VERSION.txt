@@ -1,0 +1,14 @@
+--- Version BETA 0.4
+
+- Introduced version numbers.
+- A lot of bug fixes.
+- Core features should now be o.k.:
+    - load, save, plot files
+    - derive, smooth and scale data
+    - extract line trace series
+    - extract slopes
+    - show line traces
+
+--- Version BETA 0.3
+
+This is the original version.
