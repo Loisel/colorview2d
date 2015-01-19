@@ -28,7 +28,16 @@ from LabelticksFrame import LabelticksFrame
 
 from FloatValidator import FloatValidator
 
-package_directory = os.path.dirname(os.path.abspath(__file__))
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 class MainFrame(wx.Frame):
     """
@@ -39,7 +48,7 @@ class MainFrame(wx.Frame):
     """
 
     title = 'colorplot utility: '
-    default_config = os.path.join(package_directory, 'default.config')
+    default_config = resource_path('default.config')
 
     def __init__(self,parent):
         """
@@ -80,7 +89,7 @@ class MainFrame(wx.Frame):
 
         self.LabelticksFrame = LabelticksFrame(self)
 
-        data_file = os.path.join(package_directory, self.config['datafilename'])
+        data_file = resource_path(self.config['datafilename'])
 
         self.view = View(gpfile.gpfile(data_file,(0,1,2)))
         self.view.attach(self.PlotFrame.PlotPanel)
