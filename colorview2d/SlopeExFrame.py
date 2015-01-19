@@ -220,10 +220,10 @@ class SlopeExPanel(Subject,wx.Panel):
         """
 
         if event.GetShow():
-            print "Showing"
 
-            self.plotpanel.draw_plot()
-
+            #self.plotpanel.draw_plot()
+            self.notify()
+            
             self.plotpanel.axes.autoscale(False)
 
             self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
@@ -234,7 +234,7 @@ class SlopeExPanel(Subject,wx.Panel):
             self.notify()
             
         else:
-            print "Hiding"
+
             self.plotpanel.axes.autoscale(True)
             self.cid = self.plotpanel.canvas.mpl_disconnect(self.cid)
 

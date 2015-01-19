@@ -90,13 +90,14 @@ class LineoutPanel(wx.Panel,Subject):
             self.canvas.draw()
 
 
-            self.plotpanel.draw_plot()
-
+            #self.plotpanel.draw_plot()
+            self.notify()
+            
             self.plotpanel.axes.autoscale(False)
 
             self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
+            
         else:
-            print "Hiding"
             self.plotpanel.axes.autoscale(True)
             self.cid = self.plotpanel.canvas.mpl_disconnect(self.cid)
         
