@@ -95,9 +95,9 @@ class PlotPanel(wx.Panel):
             self.plot.set_cmap(self.config['Colormap'])
             self.plot.set_clim(cbar_min,cbar_max)
 
-        elif isinstance(subject,LineoutPanel):
-            self.axes.relim()
-            self.axes.autoscale_view(True,True,True)
+        #elif isinstance(subject,LineoutPanel):
+            #self.axes.relim()
+            #self.axes.autoscale_view(True,True,True)
             #import pdb;pdb.set_trace()
 
         self.plot.changed()
@@ -135,7 +135,7 @@ class PlotPanel(wx.Panel):
             interpolation="nearest")
   
         self.plot.set_cmap(self.config['Colormap'])
-        self.colorbar = plt.colorbar(self.plot)
+        self.colorbar = self.fig.colorbar(self.plot)
 
         self.set_labels()
 

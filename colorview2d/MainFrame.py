@@ -88,6 +88,7 @@ class MainFrame(wx.Frame):
         self.PlotFrame.PlotPanel.draw_plot()
         self.LinecutFrame = LinecutFrame(self)
         self.LineoutFrame = LineoutFrame(self)
+        self.SlopeExFrame = SlopeExFrame(self)
 
         # BinaryFitFrame and the MainPanel creation require a view to exist
         self.MainPanel.create_panel()
@@ -204,11 +205,10 @@ class MainFrame(wx.Frame):
 
     def on_lineout(self,event):
         """
-        Creates and shows the Frame to extract linecuts.
+        Shows the Frame to extract linecuts.
         
-        The frame is destroyed on close.
         """
-        self.PlotFrame.PlotPanel.axes.autoscale(False)
+        #self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LineoutFrame.Show()
 
     def on_binaryfit(self,event):
@@ -222,18 +222,19 @@ class MainFrame(wx.Frame):
 
     def on_linecut(self,event):
         """
-        Creates and shows the frame to extract linecut series.
+        Shows the frame to extract linecut series.
+
         """
         self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LinecutFrame.Show()
 
     def on_slopex(self,event):
         """
-        Creates and shows the Frame to extract slopes.
+        Shows the Frame to extract slopes.
+
         """
-        self.SlopeExFrame = SlopeExFrame(self)
         self.SlopeExFrame.Show()
-        self.SlopeExFrame.Layout()
+        # self.SlopeExFrame.Layout()
 
 
 
@@ -370,7 +371,8 @@ class MainFrame(wx.Frame):
             self.config['datafilename'] = os.path.basename(path)
 
             self.SetTitle(self.title+self.view.datafile.filename)
-
+            self.SlopeExFrame.SlopeExPanel.update()
+            
 class MainPanel(Subject,wx.Panel):
     """
     Panel with colorbar controls and checkboxes for the plot modifications.

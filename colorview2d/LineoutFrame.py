@@ -40,6 +40,8 @@ class LineoutPanel(wx.Panel,Subject):
         self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
         self.toolbar = NavigationToolbar(self.canvas)
 
+        self.plotpanel = self.parent.parent.PlotFrame.PlotPanel
+
         self.mainbox = wx.BoxSizer(wx.VERTICAL)
         self.mainbox.Add(self.toolbar,0)
 
@@ -61,6 +63,8 @@ class LineoutPanel(wx.Panel,Subject):
 
         self.mainbox.Add(self.hbox,0)
 
+        self.evenodd = 0
+
         self.SetSizer(self.mainbox)
         self.mainbox.Fit(self)
 
@@ -68,56 +72,73 @@ class LineoutPanel(wx.Panel,Subject):
 
         
     def on_show(self,event):
-        print "Show called {}".format(event.GetShow())
+        """
+        Called on frame show and hide. Used to prepare the line plot panel,
+        adjust the axes, prevent the autoscale of the plotpanel and
+        connect the mouse click to the on_click routine.
+
+        Attributes:
+          event (EVT_SHOW): a hide/show event object
+        
+        """
+        
         if event.GetShow():
             print "Showing"
             self.axes.cla()            
             self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
-            self.x1 = 0.
-            self.x2 = 0.
-            self.y1 = 0.
-            self.y2 = 0.
-            
+            self.fig.tight_layout()
             self.canvas.draw()
-            
-            self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
-            self.cid = self.parent.parent.PlotFrame.PlotPanel.canvas.mpl_connect('button_press_event',self.on_click)
+
+
+            self.plotpanel.draw_plot()
+
+            self.plotpanel.axes.autoscale(False)
+
+            self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
         else:
             print "Hiding"
-            self.cid = self.parent.parent.PlotFrame.PlotPanel.canvas.mpl_disconnect(self.cid)
+            self.plotpanel.axes.autoscale(True)
+            self.cid = self.plotpanel.canvas.mpl_disconnect(self.cid)
         
     def on_plot(self,event):
         self.draw_linetrace()
 
     def on_close(self,event):
-        self.currentline.removeline()
+        if hasattr(self,'currentline'):
+            self.currentline.removeline()
+            delattr(self,'currentline')
         if self.linelist:
             for line in self.linelist:
                 line.removeline()
         self.linelist = []
-        #self.currentline = None
 
         self.notify()
-        self.parent.parent.PlotFrame.PlotPanel.axes.autoscale(True)
         self.parent.Hide()
 
     def on_click(self,event):
-        if event.inaxes!=self.currentline.axes: return
+
+        if event.inaxes!=self.plotpanel.axes: return
 
         if event.button == 1:
             self.x1 = event.xdata
             self.y1 = event.ydata
+            self.evenodd += 1
         if event.button == 3:
             self.x2 = event.xdata
             self.y2 = event.ydata
-        if self.x1 and self.x2:
+            self.evenodd += 1
+        if self.x1 and not self.evenodd % 2:
             self.draw_line()
 
 
     def draw_line(self):
         #import pdb;pdb.set_trace()
 
-        self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
+        if not hasattr(self, 'currentline'):
+            self.currentline = MyLine(self.plotpanel.axes,self.x1,self.x2, self.y1,self.y2)
+        else:
+            self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
+
         self.notify()
 
         #self.parent.parent.PlotFrame.PlotPanel.canvas.draw()

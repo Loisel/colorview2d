@@ -14,7 +14,7 @@ class MyLine():
       line (matplotlib line): The lineplot associated with the axes object.
       commenttext (matplotlib text): The commenttext plotted in the axes object.
     """
-    def __init__(self,axes,x1 = 0, y1 = 0, x2 = 0, y2 = 0, comment=""):
+    def __init__(self,axes,x1 = 0, x2 = 0, y1 = 0, y2 = 0, comment=""):
         self.x1 = x1
         self.y1 = y1
         self.y2 = y2
@@ -25,7 +25,13 @@ class MyLine():
         self.line, = self.axes.plot([self.x1,self.x2],[self.y1,self.y2])
         self.commenttext = self.axes.text(self.x1,self.y1-0.5,self.comment)
 
+        self.dx = self.x2-self.x1
+        self.dy = self.y2-self.y1
 
+    def addline(self,axes):
+        self.axes = axes
+        self.commenttext = self.axes.text(self.x1,self.y1-0.5,self.comment)
+        self.line, = self.axes.plot([self.x1,self.x2],[self.y1,self.y2])
 
     def removeline(self):
         self.commenttext.remove()
