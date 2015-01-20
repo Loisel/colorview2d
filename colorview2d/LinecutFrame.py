@@ -2,7 +2,7 @@ import wx
 import os
 import numpy as np
 from floatspin import FloatSpin,EVT_FLOATSPIN
-from Compat import resource_path
+from Utils import resource_path
 
 class LinecutFrame(wx.Frame):
     def __init__(self,parent):

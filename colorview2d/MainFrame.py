@@ -3,12 +3,8 @@ import gpfile
 import numpy as np
 import re
 import os
-import warnings
-import yaml
 
-import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
-from matplotlib.font_manager import FontProperties,findfont
 from floatspin import FloatSpin,EVT_FLOATSPIN
 from floatslider import FloatSlider
 
@@ -28,7 +24,7 @@ from SlopeExFrame import SlopeExFrame
 from LabelticksFrame import LabelticksFrame
 
 from FloatValidator import FloatValidator
-from Compat import resource_path
+import Utils
 
 
 class MainFrame(wx.Frame):
@@ -40,9 +36,8 @@ class MainFrame(wx.Frame):
     """
 
     title = 'colorplot utility: '
-    default_config = resource_path('default.config')
 
-    def __init__(self,parent):
+    def __init__(self,parent,config):
         """
         Initialize the frame, create subframes and load a default 
         datafile object.
@@ -52,20 +47,8 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, size=(440,330),style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.parent = parent
 
-        with open(self.default_config) as file:
-            self.config = yaml.load(file)
-
-        if self.config['Font'] == 'default':
-            for font in plt.rcParams['font.sans-serif']:
-                with warnings.catch_warnings(record=True) as w:
-                    warnings.simplefilter("always")
-                    findfont(FontProperties(family=font))
-                    if len(w):
-                        continue
-                    else:
-                        self.config['Font'] = font
-                        break
-
+        self.config = config
+        
         self.SetTitle(self.title+self.config['datafilename'])
         self.alignToBottomRight()
 
@@ -81,9 +64,9 @@ class MainFrame(wx.Frame):
 
         self.LabelticksFrame = LabelticksFrame(self)
 
-        data_file = resource_path(self.config['datafilename'])
+        data_file = Utils.resource_path(self.config['datafilename'])
 
-        self.view = View(gpfile.gpfile(data_file,(0,1,2)))
+        self.view = View(gpfile.gpfile(data_file,self.config['datafilecolumns']))
         self.view.attach(self.PlotFrame.PlotPanel)
         self.view.attach(self.MainPanel)
 
@@ -322,18 +305,6 @@ class MainFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def read_columns(self,string):
-        """
-        Utility function to read columns in the python format (a,b,c) out of a string.
-        """
-        p = re.compile('(\d+),(\d+),(\d+)')
-        m = p.match(string)
-
-        if m:
-            column = (int(m.groups()[0]),int(m.groups()[1]),int(m.groups()[2]))
-            return column
-        else:
-            raise InputError('Not a valid column string: {}'.format(string))
 
     def on_load_plot(self,event):
         """
@@ -365,7 +336,7 @@ class MainFrame(wx.Frame):
             dlg = wx.TextEntryDialog(self, 'Enter the column numbers for the 3d data in the form (a,b,c)','Columns:')
             dlg.SetValue("{},{},{}".format(columns[0],columns[1],columns[2]))
             if dlg.ShowModal() == wx.ID_OK:
-                columns = self.read_columns(dlg.GetValue())
+                columns = Utils.read_columns(dlg.GetValue())
                 dlg.Destroy()
 
             # We set the new datafile in the view
