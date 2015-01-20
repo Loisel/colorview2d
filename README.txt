@@ -35,12 +35,10 @@ Installation and Usage:
 
    python setup.py install
 
- or
+ If everything works out nicely, you can start the program via
 
-   git clone git://git.code.sf.net/p/colorview2d/code colorview2d-code
+   colorview2d [-f filename] [-c columns]
 
- and execute
+ where you can specify the filename of the datafile and which columns you want to read in.
 
-   python -m colorview2d
-
-19.1.2015 Alois Dirnaichner
+20.1.2015 Alois Dirnaichner
