@@ -1,3 +1,15 @@
+--- Version BETA 0.43
+
+- Command line arguments are accepted:
+    - --log to print standart DEBUG, INFO, WARNING, ERROR or CRITICAL messages
+    - -f or --file to select a file to load the data.
+    - -c or --columns to specify the columns in the file to read from.
+
+- Fixed the annoying "plot jump" bug which was caused by successive line drawings in the
+  plot area.
+
+- Adjusted dependencies, lmfit is no longer required.
+
 --- Version BETA 0.4
 
 - Introduced version numbers.
