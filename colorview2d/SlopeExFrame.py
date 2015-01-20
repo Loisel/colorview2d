@@ -28,7 +28,6 @@ class SlopeExPanel(Subject,wx.Panel):
 
         self.linelist = []
         self.lineindex = -1
-        self.evenodd = 0
 
         # the line spin-control widgets
 
@@ -229,6 +228,8 @@ class SlopeExPanel(Subject,wx.Panel):
             #import pdb;pdb.set_trace()
             
             self.plotpanel.axes.autoscale(False)
+            self.left = False
+            self.right = False
 
             if self.linelist:
                 for line in self.linelist:
@@ -331,15 +332,17 @@ class SlopeExPanel(Subject,wx.Panel):
         if event.button == 1:
             self.x1 = event.xdata
             self.y1 = event.ydata
-            self.evenodd += 1
+            self.left = True
         if event.button == 3:
             self.x2 = event.xdata
             self.y2 = event.ydata
-            self.evenodd += 1
+            self.right = True
             
-        if self.x1 and not self.evenodd % 2:
+        if self.left and self.right:
             self.update_spinctrl()
             self.draw_line()
+            self.left = False
+            self.right = False
 
 
     def draw_line(self):

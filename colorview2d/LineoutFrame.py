@@ -63,8 +63,6 @@ class LineoutPanel(wx.Panel,Subject):
 
         self.mainbox.Add(self.hbox,0)
 
-        self.evenodd = 0
-
         self.SetSizer(self.mainbox)
         self.mainbox.Fit(self)
 
@@ -83,12 +81,14 @@ class LineoutPanel(wx.Panel,Subject):
         """
         
         if event.GetShow():
-            print "Showing"
+
             self.axes.cla()            
             self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
             self.fig.tight_layout()
             self.canvas.draw()
 
+            self.left = False
+            self.right = False
 
             #self.plotpanel.draw_plot()
             self.notify()
@@ -123,13 +123,15 @@ class LineoutPanel(wx.Panel,Subject):
         if event.button == 1:
             self.x1 = event.xdata
             self.y1 = event.ydata
-            self.evenodd += 1
+            self.left = True
         if event.button == 3:
             self.x2 = event.xdata
             self.y2 = event.ydata
-            self.evenodd += 1
-        if self.x1 and not self.evenodd % 2:
+            self.right = True
+        if self.left and self.right:
             self.draw_line()
+            self.right = False
+            self.left = False
 
 
     def draw_line(self):
@@ -178,7 +180,7 @@ class LineoutPanel(wx.Panel,Subject):
         self.canvas.draw()
 
         self.linelist.append(self.currentline)
-        self.currentline = MyLine(self.parent.parent.PlotFrame.PlotPanel.axes)
+        delattr(self,'currentline')
 
 
 
