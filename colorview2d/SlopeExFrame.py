@@ -108,6 +108,9 @@ class SlopeExPanel(Subject,wx.Panel):
 
     def update(self):
         self.linelist = []
+        self.lineindex = -1
+        self.evenodd = 0
+        self.linelistbox.DeleteAllItems()
         max_xval = self.parent.parent.view.datafile.Xmax
         min_xval = self.parent.parent.view.datafile.Xmin
         max_yval = self.parent.parent.view.datafile.Ymax
@@ -122,6 +125,8 @@ class SlopeExPanel(Subject,wx.Panel):
         self.y1spin.SetIncrement(incr_y)
         self.y2spin.SetRange(min_yval,max_yval)
         self.y1spin.SetIncrement(incr_y)
+
+        
 
     def create_pointwidgets(self):
 
@@ -221,17 +226,18 @@ class SlopeExPanel(Subject,wx.Panel):
 
         if event.GetShow():
 
-            #self.plotpanel.draw_plot()
-            self.notify()
+            #import pdb;pdb.set_trace()
             
             self.plotpanel.axes.autoscale(False)
-
-            self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
 
             if self.linelist:
                 for line in self.linelist:
                     line.addline(self.plotpanel.axes)
+
             self.notify()
+
+            self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
+
             
         else:
 

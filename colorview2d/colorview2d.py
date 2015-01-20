@@ -7,8 +7,7 @@ colorview2d
 
 A GUI driven application to visualize and analyze 3D
 datasets. Available tools include linear slope extraction,
-linecut series extraction and fitting of (almost) arbitrary 2d
-functions to prominent features in the 3d dataset.
+linecut series extraction and a linetrace viewer.
 
 :copyright: 2014 by Alois Dirnaichner, see AUTHORS for more details
 :license: GPLv3, see LICENSE for more details

@@ -185,6 +185,15 @@ class LinecutPanel(wx.Panel):
 
 
     def on_save(self, event):
+        """
+        Save the linecut series to files specified by the string in
+        filenamebox. Curly brackets {} serve as a placeholder for the
+        running variable.
+
+        Arguments:
+          event (wx.EVT_BUTTON): mouse click event emitted by the save button
+
+        """
 
         fname = self.filenamebox.GetValue()
 
@@ -194,7 +203,7 @@ class LinecutPanel(wx.Panel):
             path = dialog.GetPath()
             fname = os.path.join(path,fname)
         else:
-            fname = resource_path(fname)
+            return
 
             
         #print "Total zdata shape {}".format(self.datafile.Zdata.shape)
