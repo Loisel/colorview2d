@@ -9,7 +9,7 @@ def main(args=None):
         args = sys.argv[1:]
 
     parser = OptionParser()
-    parser.add_option("--log", dest="loglevel",
+    parser.add_option("--log", dest="loglevel", default='WARN',
                   help="Specify log level")
     
 

@@ -23,7 +23,8 @@ from LineoutFrame import LineoutFrame
 from LinecutFrame import LinecutFrame
 from CropFrame import CropFrame
 from SlopeExFrame import SlopeExFrame
-from BinaryFitFrame import BinaryFitFrame
+# Experimental feature
+# from BinaryFitFrame import BinaryFitFrame
 from LabelticksFrame import LabelticksFrame
 
 from FloatValidator import FloatValidator
@@ -221,8 +222,8 @@ class MainFrame(wx.Frame):
 
         The frame is modal. A previously created fit is redrawn.
         """
-        self.BinaryFitFrame = BinaryFitFrame(self)
-        self.BinaryFitFrame.Show()
+        #self.BinaryFitFrame = BinaryFitFrame(self)
+        #self.BinaryFitFrame.Show()
 
     def on_linecut(self,event):
         """
