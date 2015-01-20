@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='colorview2d',
-      version='beta0.43',
+      version='beta0.44',
       description='2d color plotting tool',
       author='Alois Dirnaichner',
       author_email='alo.dir@gmail.com',
@@ -13,9 +13,9 @@ setup(name='colorview2d',
       packages=['colorview2d'],
       package_data={'':['demo.dat','default.config'],},
       include_package_data=True,
-      requires=['wx',
+      install_requires=['wxpython',
                 'matplotlib',
                 'scipy',
                 'numpy',
-                'yaml'])
+                'pyyaml'])
 
