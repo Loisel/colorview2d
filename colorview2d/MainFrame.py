@@ -44,7 +44,7 @@ class MainFrame(wx.Frame):
         
         Create Menu, MainPanel and PlotFrame.
         """
-        wx.Frame.__init__(self, None, wx.ID_ANY, size=(430,330),style=wx.DEFAULT_FRAME_STYLE)
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(430,360),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
 
         self.config = config
@@ -486,30 +486,6 @@ class MainPanel(Subject,wx.Panel):
         self.Bind(EVT_FLOATSPIN, self.on_floatspin)
 
 
-        self.chk_deriv = wx.CheckBox(self, wx.ID_ANY, 'Derive')
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_deriv,self.chk_deriv)
-
-
-        self.chk_lowpass =  wx.CheckBox(self, wx.ID_ANY, 'Lowpass')
-        self.num_lowpass_xwidth = NumCtrl(self,
-                                          fractionWidth = 1,
-                                          allowNegative = False)
-        self.num_lowpass_ywidth = NumCtrl(self,
-                                          fractionWidth = 1,
-                                          allowNegative = False)
-
-        self.chk_scale =  wx.CheckBox(self, wx.ID_ANY, 'Scale')
-        self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator('1e0'))
-        self.auto_scale_button = wx.Button(self,wx.ID_ANY,'dI/dV')
-        
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_scale,self.chk_scale)
-        self.Bind(wx.EVT_BUTTON,self.on_auto_scale_button,self.auto_scale_button)
-
-
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_lowpass,self.chk_lowpass)
-        self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_ywidth)
-        self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_xwidth)
-
         #
         # Layout with box sizers
         #
@@ -531,7 +507,7 @@ class MainPanel(Subject,wx.Panel):
 
 
         self.gridflags = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND
-        flags = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
+        self.flags = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
 
         self.ColorGridSizer = wx.GridBagSizer(hgap=5, vgap=10)
 
@@ -554,38 +530,18 @@ class MainPanel(Subject,wx.Panel):
 
         self.middlevbox.Add(self.ColorGridSizer, 0, flag = wx.ALIGN_CENTER | wx.TOP)
 
-        # The box with smooth
         self.ModBox = wx.StaticBox(self, wx.ID_ANY, 'Image Modification')
         self.ModBoxSizer = wx.StaticBoxSizer(self.ModBox, wx.VERTICAL)
-
-        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.hbox3.Add(self.chk_lowpass,0,flags,border=10)
-        self.hbox3.Add(self.num_lowpass_xwidth,0,flags,border=10)
-        self.hbox3.Add(self.num_lowpass_ywidth,0,flags,border=10)
-
-        # The box with derive
-
-        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.hbox4.Add(self.chk_deriv,0,flags,border=10)
-
-        # The box with scale
-        
-        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.hbox5.Add(self.chk_scale,0,flags,border=10)
-        self.hbox5.Add(self.num_scale,0,flags,border=10)
-        self.hbox5.Add(self.auto_scale_button,0,flags,border=10)
-
         
 
         self.middlevbox.AddSpacer(10)
-        self.ModBoxSizer.Add(self.hbox3, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.ModBoxSizer.Add(self.lowpass_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.ModBoxSizer.AddSpacer(10)
-        self.ModBoxSizer.Add(self.hbox4, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.ModBoxSizer.Add(self.median_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.ModBoxSizer.AddSpacer(10)
-        self.ModBoxSizer.Add(self.hbox5, 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.ModBoxSizer.Add(self.derive_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.ModBoxSizer.AddSpacer(10)
+        self.ModBoxSizer.Add(self.scale_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
 
         self.middlevbox.Add(self.ModBoxSizer,0)
 
@@ -601,6 +557,78 @@ class MainPanel(Subject,wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self)
 
+    def derive_widget(self):
+        # The box with derive
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.chk_deriv = wx.CheckBox(self, wx.ID_ANY, 'Derive')
+        hbox.Add(self.chk_deriv,0,self.flags,border=10)
+
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_deriv,self.chk_deriv)        
+
+        return hbox
+
+    def scale_widget(self):
+        # The box with scale
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.chk_scale =  wx.CheckBox(self, wx.ID_ANY, 'Scale')
+        self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator('1e0'))
+        self.auto_scale_button = wx.Button(self,wx.ID_ANY,'dI/dV')        
+
+        hbox.Add(self.chk_scale,0,self.flags,border=10)
+        hbox.Add(self.num_scale,0,self.flags,border=10)
+        hbox.Add(self.auto_scale_button,0,self.flags,border=10)
+
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_scale,self.chk_scale)
+        self.Bind(wx.EVT_BUTTON,self.on_auto_scale_button,self.auto_scale_button)
+
+        return hbox
+        
+    def lowpass_widget(self):
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.chk_lowpass =  wx.CheckBox(self, wx.ID_ANY, 'Lowpass')
+        self.num_lowpass_xwidth = NumCtrl(self,
+                                          fractionWidth = 1,
+                                          allowNegative = False)
+        self.num_lowpass_ywidth = NumCtrl(self,
+                                          fractionWidth = 1,
+                                          allowNegative = False)
+
+        hbox.Add(self.chk_lowpass,0,self.flags,border=10)
+        hbox.Add(self.num_lowpass_xwidth,0,self.flags,border=10)
+        hbox.Add(self.num_lowpass_ywidth,0,self.flags,border=10)
+
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_lowpass,self.chk_lowpass)
+        self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_ywidth)
+        self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_xwidth)
+
+        return hbox
+
+    def median_widget(self):
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.chk_median =  wx.CheckBox(self, wx.ID_ANY, 'Median')
+        self.num_median_xwidth = NumCtrl(self,
+                                          fractionWidth = 1,
+                                          allowNegative = False)
+        self.num_median_ywidth = NumCtrl(self,
+                                          fractionWidth = 1,
+                                          allowNegative = False)
+
+        hbox.Add(self.chk_median,0,self.flags,border=10)
+        hbox.Add(self.num_median_xwidth,0,self.flags,border=10)
+        hbox.Add(self.num_median_ywidth,0,self.flags,border=10)
+
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_median,self.chk_median)
+        self.Bind(EVT_NUM,self.on_num_median,self.num_median_ywidth)
+        self.Bind(EVT_NUM,self.on_num_median,self.num_median_xwidth)
+
+        return hbox
+        
     def update(self,subject):
         """
         Initialize the controls for the colorbar according to the datafile.
@@ -757,6 +785,27 @@ class MainPanel(Subject,wx.Panel):
         if self.chk_lowpass.GetValue():
             self.parent.view.remMod("lowpass")
             self.parent.view.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
+
+    def on_chk_median(self,event):
+        """
+        Applies a median filter to the data in the datafile (z-axis).
+
+        Bound to the median checkbox. The parameters for the filtering are
+        provided by the num_median controls.
+        """
+        if self.chk_median.GetValue():
+            self.parent.view.addMod(tb.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
+        else:
+            self.parent.view.remMod("median")
+
+
+    def on_num_median(self,event):
+        """
+        Applies a median filter with new parameters given the median box is checked.
+        """
+        if self.chk_median.GetValue():
+            self.parent.view.remMod("median")
+            self.parent.view.addMod(tb.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
 
 
 

@@ -3,6 +3,7 @@
 import scipy as sp
 
 from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage.filters import median_filter
 
 from scipy import optimize
 
@@ -64,6 +65,15 @@ class adaptive_threshold(modification):
 
         datafile.set_Zdata(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))
 
+class median(modification):
+    title = "median"
+
+    def __init__(self,sizex,sizey):
+        self.size = (sizex,sizey)
+
+    def apply_mod(self,datafile):
+        datafile.set_Zdata(median_filter(datafile.Zdata,size=self.size))
+        
 class scale(modification):
     title = "scale"
 
