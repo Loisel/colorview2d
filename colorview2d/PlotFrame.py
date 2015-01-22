@@ -1,6 +1,7 @@
 import wx
 import numpy as np
 import yaml
+import logging
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from View import View
@@ -165,7 +166,7 @@ class PlotPanel(wx.Panel):
         # import pdb; pdb.set_trace()
         # Apply plt.rcParams
 
-        print "Font now {}".format(self.config['Font'])
+        logging.info("Font now {}".format(self.config['Font']))
         plt.rcParams['font.family'] = self.config['Font']
         plt.rcParams['font.size'] = self.config['Fontsize']
         plt.rcParams['xtick.major.size'] = self.config['Xticklength']

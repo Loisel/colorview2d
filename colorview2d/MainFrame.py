@@ -44,7 +44,7 @@ class MainFrame(wx.Frame):
         
         Create Menu, MainPanel and PlotFrame.
         """
-        wx.Frame.__init__(self, None, wx.ID_ANY, size=(440,330),style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(430,330),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
 
         self.config = config
