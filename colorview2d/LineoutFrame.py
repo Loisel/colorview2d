@@ -130,8 +130,6 @@ class LineoutPanel(wx.Panel,Subject):
             self.right = True
         if self.left and self.right:
             self.draw_line()
-            self.right = False
-            self.left = False
 
 
     def draw_line(self):
@@ -181,6 +179,8 @@ class LineoutPanel(wx.Panel,Subject):
 
         self.linelist.append(self.currentline)
         delattr(self,'currentline')
+        self.right = False
+        self.left = False
 
 
 
