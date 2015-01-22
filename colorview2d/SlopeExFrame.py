@@ -259,6 +259,8 @@ class SlopeExPanel(Subject,wx.Panel):
             self.linelistbox.SetStringItem(self.lineindex,2,self.linelist[self.lineindex].get_comment())
 
             delattr(self,'currentline')
+            self.left = False
+            self.right = False
 
             self.notify()
 
@@ -341,8 +343,6 @@ class SlopeExPanel(Subject,wx.Panel):
         if self.left and self.right:
             self.update_spinctrl()
             self.draw_line()
-            self.left = False
-            self.right = False
 
 
     def draw_line(self):
