@@ -1,3 +1,11 @@
+--- Version BETA 0.46
+
+- Added a median filter tool.
+- Improved the lineout aliasing.
+- Added an euclidean distance measure for the x-axis of the lineout
+  line plotting frame.
+
+
 --- Version BETA 0.43
 
 - Command line arguments are accepted:
