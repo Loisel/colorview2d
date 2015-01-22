@@ -31,6 +31,8 @@ class LineoutPanel(wx.Panel,Subject):
         self.y1 = None
         self.y2 = None
 
+        self.resolution = 6.
+
         self.linelist = []
 
         self.fig = plt.figure()
@@ -84,6 +86,7 @@ class LineoutPanel(wx.Panel,Subject):
 
             self.axes.cla()            
             self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
+            self.axes.set_xlabel(r'$\sqrt{\Delta_x^2+\Delta_y^2}$')
             self.fig.tight_layout()
             self.canvas.draw()
 
@@ -157,24 +160,31 @@ class LineoutPanel(wx.Panel,Subject):
 
         
         if idx1 == idx2:
-            x_range = [idx1]
-            y_range = range(idy1,idy2+1,np.sign(idy2-idy1))
+            x_range_int = [idx1]
+            y_range_int = range(idy1,idy2+1,np.sign(idy2-idy1))
         elif idy1 == idy2:
-            x_range = range(idx1,idx2+1,np.sign(idx2-idx1))
-            y_range = [idy1]            
+            x_range_int = range(idx1,idx2+1,np.sign(idx2-idx1))
+            y_range_int = [idy1]            
         elif np.abs(idx2 - idx1) > np.abs(idy2 - idy1):
-            x_range = range(idx1,idx2+1,np.sign(idx2-idx1))
-            # x_range = np.linspace(idx1,idx2,int(np.absolute(idx2-idx1)+1)).astype(int)
-            y_range = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.Yrange) for xval in datafile.Xrange[x_range]])
-
+            # x_range = range(idx1,idx2+1,np.sign(idx2-idx1))
+            # y_range = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.Yrange) for xval in datafile.Xrange[x_range]])
+            x_range = np.linspace(datafile.Xrange[idx1],datafile.Xrange[idx2],abs(idx2-idx1)*self.resolution)
+            y_range_int = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.Yrange) for xval in x_range])
+            x_range_int = [self.closest_idx(x_val,datafile.Xrange) for x_val in x_range]
+            
         else:
-            y_range = range(idy1,idy2,np.sign(idy2-idy1))
-            x_range = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.Xrange) for yval in datafile.Yrange[y_range]])
+            # y_range = range(idy1,idy2,np.sign(idy2-idy1))
+            # x_range = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.Xrange) for yval in datafile.Yrange[y_range]])
+            y_range = np.linspace(datafile.Yrange[idy1],datafile.Yrange[idy2],abs(idy2-idy1)*self.resolution)
+            x_range_int = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.Xrange) for yval in y_range])
+            y_range_int = [self.closest_idx(y_val,datafile.Yrange) for y_val in y_range]
 
 
-        dataview = datafile.Zdata[y_range,x_range]
+        dataview = datafile.Zdata[y_range_int,x_range_int]
 
-        self.axes.plot(dataview)
+        distance = np.linspace(0,np.sqrt(((y_range_int[-1]-y_range_int[0])*datafile.dY)**2+((x_range_int[-1]-x_range_int[0])*datafile.dX)**2),dataview.shape[0])
+
+        self.axes.plot(distance,dataview)
         self.canvas.draw()
 
         self.linelist.append(self.currentline)
