@@ -4,22 +4,23 @@ import scipy as sp
 
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import median_filter
-
+import yaml
 from scipy import optimize
 
 
-class modification:
-    title = ""
+class modification(yaml.YAMLObject):
     removeOnLoadFile = False
-    def __eq__(self, other):
-        return self.title == other.title
 
+    def __repr__(self):
+        return "{}{}".format(self.title(),self.__dict__)
 
+    def title(self):
+        return self.__class__.__name__
+
+    
 class smooth(modification):
     """ blurs the image by convolving with a 2D gaussian kernel of size sizex * sizey.
     """
-
-    title = "lowpass"
 
     def __init__(self,sizex,sizey):
 
@@ -34,9 +35,6 @@ class smooth(modification):
 
 class deriv(modification):
 
-    title = "deriv"
-
-
     def apply_mod(self,datafile):
 
         dy = datafile.dY
@@ -48,9 +46,9 @@ class deriv(modification):
 
         datafile.set_Zdata(datafile.Zdata)
 
-class adaptive_threshold(modification):
 
-    title = "adaptive-threshold"
+
+class adaptive_threshold(modification):
 
     def __init__(self,blocksize,offset):
 
@@ -66,7 +64,6 @@ class adaptive_threshold(modification):
         datafile.set_Zdata(img_as_float(threshold_adaptive(datafile.Zdata,self.blocksize,method='mean',offset=self.offset)))
 
 class median(modification):
-    title = "median"
 
     def __init__(self,sizex,sizey):
         self.size = (sizex,sizey)
@@ -75,18 +72,20 @@ class median(modification):
         datafile.set_Zdata(median_filter(datafile.Zdata,size=self.size))
         
 class scale(modification):
-    title = "scale"
 
     def __init__(self,zscale):
 
         self.zscale = zscale
+
+    def __repr__(self):
+        return "{}(zscale={})".format(self.title(),self.zscale)
 
     def apply_mod(self,datafile):
 
         datafile.set_Zdata(datafile.Zdata*self.zscale)
 
 class crop(modification):
-    title = "crop"
+
     removeOnLoadFile = True
 
     def __init__(self,xleft,xright,ybottom,ytop):

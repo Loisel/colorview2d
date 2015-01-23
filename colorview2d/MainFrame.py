@@ -1,8 +1,8 @@
 import wx
-import gpfile
 import numpy as np
 import re
 import os
+import gpfile
 
 from matplotlib.pyplot import cm
 from floatspin import FloatSpin,EVT_FLOATSPIN
@@ -25,6 +25,8 @@ from LabelticksFrame import LabelticksFrame
 
 from FloatValidator import FloatValidator
 import Utils
+import yaml
+        
 
 
 class MainFrame(wx.Frame):
@@ -37,7 +39,7 @@ class MainFrame(wx.Frame):
 
     title = 'colorplot utility: '
 
-    def __init__(self,parent,config):
+    def __init__(self,parent,config,view):
         """
         Initialize the frame, create subframes and load a default 
         datafile object.
@@ -48,6 +50,7 @@ class MainFrame(wx.Frame):
         self.parent = parent
 
         self.config = config
+        self.view = view
         
         self.SetTitle(self.title+self.config['datafilename'])
         self.alignToBottomRight()
@@ -64,9 +67,6 @@ class MainFrame(wx.Frame):
 
         self.LabelticksFrame = LabelticksFrame(self)
 
-        data_file = Utils.resource_path(self.config['datafilename'])
-
-        self.view = View(gpfile.gpfile(data_file,self.config['datafilecolumns']))
         self.view.attach(self.PlotFrame.PlotPanel)
         self.view.attach(self.MainPanel)
 
@@ -107,11 +107,15 @@ class MainFrame(wx.Frame):
 
         m_load = menu_file.Append(wx.ID_ANY, "&Load Data\tCtrl-L", "Load data from file")
         self.Bind(wx.EVT_MENU, self.on_load_plot, m_load)
-        m_expt = menu_file.Append(wx.ID_ANY, "&Save Data\tCtrl-S", "Save data to file")
-        self.Bind(wx.EVT_MENU, self.on_save_datafile, m_expt)
+        m_loadcv2d = menu_file.Append(wx.ID_ANY, "Load &Config\tCtrl-C", "Load cv2d config file")
+        self.Bind(wx.EVT_MENU, self.on_load_cv2d, m_loadcv2d)
+        m_svdt = menu_file.Append(wx.ID_ANY, "&Save Data\tCtrl-S", "Save data to file")
+        self.Bind(wx.EVT_MENU, self.on_save_datafile, m_svdt)
         menu_file.AppendSeparator()
-        m_expt = menu_file.Append(wx.ID_ANY, "Save &Pdf\tCtrl-P", "Save to pdf file")
-        self.Bind(wx.EVT_MENU, self.on_save_pdf, m_expt)
+        m_svpdf = menu_file.Append(wx.ID_ANY, "Save &Pdf\tCtrl-P", "Save to pdf file")
+        self.Bind(wx.EVT_MENU, self.on_save_pdf, m_svpdf)
+        m_svcfg = menu_file.Append(wx.ID_ANY, "Save &Config\tCtrl-C", "Save cv2d config file")
+        self.Bind(wx.EVT_MENU, self.on_save_cv2d, m_svcfg)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(wx.ID_ANY, "E&xit\tCtrl-X", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -236,7 +240,7 @@ class MainFrame(wx.Frame):
         """
         file_choices = "DAT (*.dat)|*.dat"
 
-        modlist = ', '.join([mod.title for mod in self.view.modlist])
+        modlist = ', '.join([mod.title() for mod in self.view.modlist])
 
 
         comment = """\
@@ -280,6 +284,31 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
             plt.savefig(path)
 
+    def on_save_cv2d(self, event):
+        """
+        Saves the plot in cv2d config format.
+
+        """
+        file_choices = "CV2D (*.cv2d)|*.cv2d"
+        defaultfilename = os.path.splitext(self.config['datafilename'])[0]+'.cv2d'
+
+        dlg = wx.FileDialog(
+            self,
+            message="Save config as...",
+            defaultDir=os.getcwd(),
+            defaultFile=defaultfilename,
+            wildcard=file_choices,
+            style=wx.SAVE)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            with open(path,'w') as stream:
+
+                yaml.dump(self.config,stream,explicit_start=True)
+
+                stream.write(self.view.dump_list())
+                
+
     def on_exit(self, event):
         """
         Exits the program.
@@ -306,6 +335,30 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
 
 
+    def on_load_cv2d(self,event):
+        
+        file_choices = "CV2D (*.cv2d)|*.cv2d"
+
+        dlg = wx.FileDialog(self,
+            message="Load cv2d config file...",
+            defaultDir=os.getcwd(),
+            wildcard=file_choices,
+            style=wx.OPEN)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            with open(path) as stream:
+                doclist = yaml.load_all(stream)
+                self.config = doclist.next()
+                #import pdb;pdb.set_trace()
+                self.view.set_datafile(gpfile.gpfile(self.config['datafilename'],self.config['datafilecolumns']))
+                self.view.set_list([mod for mod in doclist])
+
+            self.SetTitle(self.title+self.view.datafile.filename)
+            self.SlopeExFrame.SlopeExPanel.update()
+            self.MainPanel.update_ctrls()
+                
+        
     def on_load_plot(self,event):
         """
         Shows a dialog to load datafile from gnuplot-style file on disk.
@@ -535,7 +588,7 @@ class MainPanel(Subject,wx.Panel):
         
 
         self.middlevbox.AddSpacer(10)
-        self.ModBoxSizer.Add(self.lowpass_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
+        self.ModBoxSizer.Add(self.smooth_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.ModBoxSizer.AddSpacer(10)
         self.ModBoxSizer.Add(self.median_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
         self.ModBoxSizer.AddSpacer(10)
@@ -587,24 +640,24 @@ class MainPanel(Subject,wx.Panel):
 
         return hbox
         
-    def lowpass_widget(self):
+    def smooth_widget(self):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.chk_lowpass =  wx.CheckBox(self, wx.ID_ANY, 'Lowpass')
-        self.num_lowpass_xwidth = NumCtrl(self,
+        self.chk_smooth =  wx.CheckBox(self, wx.ID_ANY, 'Smooth')
+        self.num_smooth_xwidth = NumCtrl(self,
                                           fractionWidth = 1,
                                           allowNegative = False)
-        self.num_lowpass_ywidth = NumCtrl(self,
+        self.num_smooth_ywidth = NumCtrl(self,
                                           fractionWidth = 1,
                                           allowNegative = False)
 
-        hbox.Add(self.chk_lowpass,0,self.flags,border=10)
-        hbox.Add(self.num_lowpass_xwidth,0,self.flags,border=10)
-        hbox.Add(self.num_lowpass_ywidth,0,self.flags,border=10)
+        hbox.Add(self.chk_smooth,0,self.flags,border=10)
+        hbox.Add(self.num_smooth_xwidth,0,self.flags,border=10)
+        hbox.Add(self.num_smooth_ywidth,0,self.flags,border=10)
 
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_lowpass,self.chk_lowpass)
-        self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_ywidth)
-        self.Bind(EVT_NUM,self.on_num_lowpass,self.num_lowpass_xwidth)
+        self.Bind(wx.EVT_CHECKBOX,self.on_chk_smooth,self.chk_smooth)
+        self.Bind(EVT_NUM,self.on_num_smooth,self.num_smooth_ywidth)
+        self.Bind(EVT_NUM,self.on_num_smooth,self.num_smooth_xwidth)
 
         return hbox
 
@@ -695,12 +748,10 @@ class MainPanel(Subject,wx.Panel):
 
         # Tell plot panel to update plot
 
-        if not subject.hasMod('deriv'):
-            self.chk_deriv.SetValue(False)
-        if not subject.hasMod('scale'):
-            self.chk_scale.SetValue(False)
-        if not subject.hasMod('lowpass'):
-            self.chk_lowpass.SetValue(False)
+        self.chk_deriv.SetValue(subject.hasMod('deriv'))
+        self.chk_scale.SetValue(subject.hasMod('scale'))
+        self.chk_smooth.SetValue(subject.hasMod('smooth'))
+        self.chk_median.SetValue(subject.hasMod('median'))
 
         self.notify()
 
@@ -765,26 +816,26 @@ class MainPanel(Subject,wx.Panel):
             self.parent.view.remMod("deriv")
 
 
-    def on_chk_lowpass(self,event):
+    def on_chk_smooth(self,event):
         """
         Applies a lowpass filter to the data in the datafile (z-axis).
 
         Bound to the lowpass checkbox. The parameters for the filtering are
-        provided by the num_lowpass controls.
+        provided by the num_smooth controls.
         """
-        if self.chk_lowpass.GetValue():
-            self.parent.view.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
+        if self.chk_smooth.GetValue():
+            self.parent.view.addMod(tb.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
         else:
-            self.parent.view.remMod("lowpass")
+            self.parent.view.remMod("smooth")
 
 
-    def on_num_lowpass(self,event):
+    def on_num_smooth(self,event):
         """
         Applies a lowpass filter with new parameters given the lowpass box is checked.
         """
-        if self.chk_lowpass.GetValue():
-            self.parent.view.remMod("lowpass")
-            self.parent.view.addMod(tb.smooth(self.num_lowpass_xwidth.GetValue(),self.num_lowpass_ywidth.GetValue()))
+        if self.chk_smooth.GetValue():
+            self.parent.view.remMod("smooth")
+            self.parent.view.addMod(tb.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
 
     def on_chk_median(self,event):
         """

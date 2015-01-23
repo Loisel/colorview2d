@@ -1,9 +1,13 @@
 # Config file for colorview2d (YAML)
+---
 # Filename of default view
 datafilename: demo.dat
-datafilecolumns: 0,1,2
+# The columns that are read from the file.
+datafilecolumns: !!python/tuple [0, 1, 2]
+
 # Default colormap
 Colormap: jet
+
 # Default labels
 Xlabel: x-axis
 Ylabel: y-axis
@@ -12,14 +16,17 @@ Cblabel: colorscale
 Xtickformat: auto
 Ytickformat: auto
 Cbtickformat: auto
+
 # Fontstyle and size
 Font:  default
 Fontsize: 12
+
 # Ticksize
 Xticklength: 4
 Yticklength: 4
 # Linewidth of lines that are drawn in the plot
 Linewidth: 1
+
 # Default Size of the plot and dpi
 Width: 8
 Height: 6

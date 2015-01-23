@@ -15,6 +15,11 @@ def read_columns(string):
     else:
         raise InputError('Not a valid column string: {}'.format(string))
 
+
+def write_columns(tup):
+    return "{},{},{}".format(tup[0],tup[1],tup[2])
+
+        
 def resource_path(relative_path):
     """ Get absolute path to  """
     if getattr(sys, 'frozen', False):

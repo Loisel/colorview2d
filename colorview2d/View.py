@@ -1,11 +1,18 @@
 from Subject import Subject
+import yaml
 
 class View(Subject):
-    def __init__(self,datafile):
+    def __init__(self,datafile,modlist=[]):
         Subject.__init__(self)
-        self.modlist = []
+        self.modlist = list(modlist)
         self.set_datafile(datafile)
 
+    def dump_list(self):
+        return yaml.dump_all(self.modlist, explicit_start=True)
+
+    def set_list(self,modlist):
+        self.modlist = modlist
+        self.apply()
     
     def addMod(self,mod):
         """
@@ -16,7 +23,7 @@ class View(Subject):
         """
 
         for mymod in self.modlist:
-            if mymod.title == mod.title:
+            if mymod.title() == mod.title():
                 self.modlist.remove(mod)
         
         self.modlist.append(mod)
@@ -33,7 +40,7 @@ class View(Subject):
         """
         
         for mod in self.modlist:
-            if mod.title == title:
+            if mod.title() == title:
                 self.modlist.remove(mod)
 
         self.apply()
@@ -46,7 +53,7 @@ class View(Subject):
           title (string): string specifying the modification
         """
         for mod in self.modlist:
-            if mod.title == title:
+            if mod.title() == title:
                 return True
 
         return False
@@ -64,7 +71,7 @@ class View(Subject):
         self.datafile = self.original_datafile.deep_copy()
 
         for mod in self.modlist:
-#            print "Applying mod {}".format(mod.title)
+#            print "Applying mod {}".format(mod.title())
             mod.apply_mod(self.datafile)
         
         self.notify()

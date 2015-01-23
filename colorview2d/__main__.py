@@ -25,7 +25,7 @@ def main(args=None):
     logging.basicConfig(level=getattr(logging,options.loglevel.upper()))
 
     if options.columns and not options.filename:
-        print "Option -c or --column requires option -f or --file."
+        print "Option -c or --columns requires option -f or --file."
         parser.print_help()
         exit(-1)
 
