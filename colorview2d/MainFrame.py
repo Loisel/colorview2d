@@ -4,6 +4,11 @@ import re
 import os
 import gpfile
 
+import matplotlib
+matplotlib.use('WXAgg')
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties,findfont
+
 from matplotlib.pyplot import cm
 from floatspin import FloatSpin,EVT_FLOATSPIN
 from floatslider import FloatSlider
@@ -26,7 +31,8 @@ from LabelticksFrame import LabelticksFrame
 from FloatValidator import FloatValidator
 import Utils
 import yaml
-        
+import logging
+import warnings
 
 
 class MainFrame(wx.Frame):
@@ -39,7 +45,7 @@ class MainFrame(wx.Frame):
 
     title = 'colorplot utility: '
 
-    def __init__(self,parent,config,view):
+    def __init__(self,parent,cv2dpath=None,datafilename=None,columns=None):
         """
         Initialize the frame, create subframes and load a default 
         datafile object.
@@ -49,38 +55,88 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, size=(430,360),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
 
-        self.config = config
-        self.view = view
+        # The name of the default config file is hard coded.
+        # We first initialize the cv2dpath to point to the correct config file
         
+        if cv2dpath:
+            import pdb;pdb.set_trace()
+            cfgpath = os.path.join(os.getcwd(),cv2dpath)
+            datafilename = None
+            columns = None
+        else:
+            cfgpath = Utils.resource_path('default.cv2d')
+            
+        # The config file is parsed, modlist is a local variable that then given to the view
+            
+        self.config,modlist = self.parse_config(cfgpath)
+
+        # If a datafilename is specified, we use this instead of the default
+        # Same for the the columns
+        
+        if datafilename:
+            self.config['datafilename'] = datafilename
+            if self.columns:
+                self.config['datafilecolumns'] = Utils.read_columns(columns)
+
+        # The path to the datafile, either in the cwd or in the lib (default)
+    
+        data_filepath = os.path.join(os.path.dirname(cfgpath),self.config['datafilename'])
+
+        # We select the default matplotlib font
+        
+        if self.config['Font'] == 'default':
+            for font in plt.rcParams['font.sans-serif']:
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always")
+                    findfont(FontProperties(family=font))
+                    if len(w):
+                        continue
+                    else:
+                        self.config['Font'] = font
+                        break
+
+        # Set title for the frame and align
+                        
         self.SetTitle(self.title+self.config['datafilename'])
         self.alignToBottomRight()
 
-        #self.datafile.report()
-
+        # Create menu and status bar
         self.create_menu()
         self.create_status_bar()
 
+        # The plot frame is created first with a dummy plot
         self.PlotFrame = PlotFrame(self)
 
+        # The MainPanel contains all the colorbar controls
+        # The PlotPanel listens to the MainPanel for changes (e.g. to the colorbar)
         self.MainPanel = MainPanel(self)
         self.MainPanel.attach(self.PlotFrame.PlotPanel)
 
+        # The frame with the settings (font, ticks, labels, etc)
         self.LabelticksFrame = LabelticksFrame(self)
 
+        # The view is created and signals the PlotPanel and the MainPanel
+        # upon changes to the modlist and the datafile
+        self.view = View(gpfile.gpfile(data_filepath,self.config['datafilecolumns']))
         self.view.attach(self.PlotFrame.PlotPanel)
         self.view.attach(self.MainPanel)
 
-        # The first view is drawn manually (without invoking view.notify()) to
-        # avoid race conditions
-
+        # We have to draw the plot first before we can apply the modlist
         self.PlotFrame.PlotPanel.draw_plot()
+
+        # The other tools are intialized
         self.LinecutFrame = LinecutFrame(self)
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
 
         # BinaryFitFrame and the MainPanel creation require a view to exist
         self.MainPanel.create_panel()
-        self.view.apply()
+
+        # We apply the modlist to the view. We can not do that earlier, because all the
+        # plot infrastructure has to be there.
+        # set_list notifies the PlotPanel
+
+        self.view.set_list(modlist)
 
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
@@ -96,6 +152,25 @@ class MainFrame(wx.Frame):
         y = dh-2*h
         self.SetPosition((x, y))
 
+    def parse_config(self,cfgpath):
+        """
+        Load the configuration and the modlist from the config file
+        specified in the YAML format.
+
+        Returns:
+          config (dict): A configuration dict.
+          modlist (list): A list of modification objects from the toolbox
+                          module
+        """
+        import toolbox
+        
+        with open(cfgpath) as file:
+            doclist = yaml.load_all(file)
+            config = doclist.next()
+            modlist = [mod for mod in doclist]
+            logging.info('Modlist found: {}'.format(modlist))
+
+            return config,modlist
 
     def create_menu(self):
         """
@@ -115,7 +190,7 @@ class MainFrame(wx.Frame):
         menu_file.AppendSeparator()
         m_svpdf = menu_file.Append(wx.ID_ANY, "Save &Pdf\tCtrl-P", "Save to pdf file")
         self.Bind(wx.EVT_MENU, self.on_save_pdf, m_svpdf)
-        m_svcfg = menu_file.Append(wx.ID_ANY, "Save &Config\tCtrl-C", "Save cv2d config file")
+        m_svcfg = menu_file.Append(wx.ID_ANY, "Save Config", "Save cv2d config file")
         self.Bind(wx.EVT_MENU, self.on_save_cv2d, m_svcfg)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(wx.ID_ANY, "E&xit\tCtrl-X", "Exit")
@@ -355,8 +430,9 @@ class MainFrame(wx.Frame):
                 #import pdb;pdb.set_trace()
                 
                 self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
+                self.PlotFrame.PlotPanel.draw_plot()
                 self.view.set_list([mod for mod in doclist])
-                self.view.apply()
+
 
             self.SetTitle(self.title+self.view.datafile.filename)
             self.SlopeExFrame.SlopeExPanel.update()

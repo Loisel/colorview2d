@@ -13,7 +13,7 @@ class View(Subject):
 
     def set_list(self,modlist):
         self.modlist = modlist
-        #self.apply()
+        self.apply()
     
     def addMod(self,mod):
         """
