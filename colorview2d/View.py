@@ -6,13 +6,14 @@ class View(Subject):
         Subject.__init__(self)
         self.modlist = list(modlist)
         self.set_datafile(datafile)
+        #self.config = {}
 
     def dump_list(self):
         return yaml.dump_all(self.modlist, explicit_start=True)
 
     def set_list(self,modlist):
         self.modlist = modlist
-        self.apply()
+        #self.apply()
     
     def addMod(self,mod):
         """

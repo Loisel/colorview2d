@@ -80,6 +80,7 @@ class MainFrame(wx.Frame):
 
         # BinaryFitFrame and the MainPanel creation require a view to exist
         self.MainPanel.create_panel()
+        self.view.apply()
 
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
@@ -347,16 +348,18 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+            dirname = os.path.dirname(path)
             with open(path) as stream:
                 doclist = yaml.load_all(stream)
                 self.config = doclist.next()
                 #import pdb;pdb.set_trace()
-                self.view.set_datafile(gpfile.gpfile(self.config['datafilename'],self.config['datafilecolumns']))
+                
+                self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
                 self.view.set_list([mod for mod in doclist])
+                self.view.apply()
 
             self.SetTitle(self.title+self.view.datafile.filename)
             self.SlopeExFrame.SlopeExPanel.update()
-            self.MainPanel.update_ctrls()
                 
         
     def on_load_plot(self,event):

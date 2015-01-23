@@ -24,6 +24,7 @@ import warnings
 import logging
 from View import View
 import gpfile
+import os
 
 from MainFrame import MainFrame
 
@@ -35,15 +36,22 @@ class Colorview2d(wx.App):
     and create the first View object.
     """
     
-    def __init__(self, redirect = False, filename = None, datafilename = None, columns = None):
+    def __init__(self, redirect = False, cv2dpath = None, filename = None, datafilename = None, columns = None):
         self.datafilename = datafilename
         self.columns = columns
 
         # The name of the default config file is hard coded.
-        
-        self.default_config = Utils.resource_path('default.cv2d')
+
+        if cv2dpath:
+            import pdb;pdb.set_trace()
+            self.configfile = os.path.join(os.getcwd(),cv2dpath)
+        else:
+            self.configfile = Utils.resource_path('default.cv2d')
+            
 
         self.config,self.modlist = self.parse_config()
+        
+        self.data_file = os.path.join(os.path.dirname(self.configfile),self.config['datafilename'])
 
         if self.config['Font'] == 'default':
             for font in plt.rcParams['font.sans-serif']:
@@ -62,9 +70,9 @@ class Colorview2d(wx.App):
                 self.config['datafilecolumns'] = Utils.read_columns(self.columns)
 
 
-        data_file = Utils.resource_path(self.config['datafilename'])
 
-        self.view = View(gpfile.gpfile(data_file,self.config['datafilecolumns']))
+        self.view = View(gpfile.gpfile(self.data_file,self.config['datafilecolumns']))
+        self.view.set_list(self.modlist)
 
         wx.App.__init__(self, redirect, filename)
 
@@ -80,7 +88,7 @@ class Colorview2d(wx.App):
         """
         import toolbox
         
-        with open(self.default_config) as file:
+        with open(self.configfile) as file:
             doclist = yaml.load_all(file)
             config = doclist.next()
             modlist = [mod for mod in doclist]
