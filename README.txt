@@ -14,8 +14,12 @@ Features of the beta:
 * Plot line traces of arbitrary orientations by point and click in the 2d colorplot. 
 * Mass extract linetraces (to depict feature evolution). 
 * Extract linear slopes in units of the datafile axis by point and click. 
-* Convolute the dataset with a gaussian window ("smoothing"). 
-* Scale and derive data. 
+* Convolute the dataset with a gaussian window ("smoothing").
+* Apply a median filter to the data. 
+* Scale and derive data.
+* Save cv2d config files to recover the state of the data file
+  including axis labels and plotting pipeline. 
+
 
 ---
 
@@ -38,8 +42,9 @@ Installation and Usage:
 
  If everything works out nicely, you can start the program via
 
-   colorview2d [-f | --file filename] [-c | --columns columns]
+   colorview2d [-f | --file filename] [--columns columns] [-c | --cv2d config_file]
 
- where you can specify the filename of the datafile and which columns you want to read in.
+ where you can specify the filename of the datafile and which columns you want to read in, or, 
+ alternatively, a cv2d config file.
 
-20.1.2015 Alois Dirnaichner
+23.1.2015 Alois Dirnaichner

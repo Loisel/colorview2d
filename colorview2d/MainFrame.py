@@ -59,7 +59,6 @@ class MainFrame(wx.Frame):
         # We first initialize the cv2dpath to point to the correct config file
         
         if cv2dpath:
-            import pdb;pdb.set_trace()
             cfgpath = os.path.join(os.getcwd(),cv2dpath)
             datafilename = None
             columns = None
@@ -829,6 +828,7 @@ class MainPanel(Subject,wx.Panel):
 
         self.chk_deriv.SetValue(subject.hasMod('deriv'))
         self.chk_scale.SetValue(subject.hasMod('scale'))
+            
         self.chk_smooth.SetValue(subject.hasMod('smooth'))
         self.chk_median.SetValue(subject.hasMod('median'))
 

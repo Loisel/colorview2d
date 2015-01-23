@@ -12,11 +12,6 @@ linecut series extraction and a linetrace viewer.
 :copyright: 2014 by Alois Dirnaichner, see AUTHORS for more details
 :license: GPLv3, see LICENSE for more details
 """
-import matplotlib
-matplotlib.use('WXAgg')
-import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties,findfont
-
 import wx
 
 from MainFrame import MainFrame

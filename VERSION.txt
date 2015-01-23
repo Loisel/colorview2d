@@ -1,3 +1,11 @@
+--- Version BETA 0.47
+
+- Added a configuration file interface.
+- .cv2d files can be saved and read from the menu (File)
+  and the command line (option -c or --cv2d)
+- Axis configuration and plotting pipeline is included in the cv2d file.
+
+
 --- Version BETA 0.46
 
 - Added a median filter tool.
