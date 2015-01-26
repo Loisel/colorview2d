@@ -74,7 +74,7 @@ class MainFrame(wx.Frame):
         
         if datafilename:
             self.config['datafilename'] = datafilename
-            if self.columns:
+            if columns:
                 self.config['datafilecolumns'] = Utils.read_columns(columns)
 
         # The path to the datafile, either in the cwd or in the lib (default)
