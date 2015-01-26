@@ -15,7 +15,7 @@ from floatslider import FloatSlider
 
 from wx.lib.masked import NumCtrl,EVT_NUM
 
-import toolbox as tb
+import toolbox
 from View import View
 from Subject import Subject
 
@@ -843,7 +843,7 @@ class MainPanel(Subject,wx.Panel):
         """
         if self.chk_scale.GetValue():
             self.Validate()
-            self.parent.view.addMod(tb.scale(float(self.num_scale.GetValue())))
+            self.parent.view.addMod(toolbox.scale(float(self.num_scale.GetValue())))
         else:
             self.parent.view.remMod("scale")
 
@@ -889,7 +889,7 @@ class MainPanel(Subject,wx.Panel):
         Bound to the deriv checkbox.
         """
         if self.chk_deriv.GetValue():
-            self.parent.view.addMod(tb.deriv())
+            self.parent.view.addMod(toolbox.deriv())
 
         else:
             self.parent.view.remMod("deriv")
@@ -903,7 +903,7 @@ class MainPanel(Subject,wx.Panel):
         provided by the num_smooth controls.
         """
         if self.chk_smooth.GetValue():
-            self.parent.view.addMod(tb.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
+            self.parent.view.addMod(toolbox.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
         else:
             self.parent.view.remMod("smooth")
 
@@ -914,7 +914,7 @@ class MainPanel(Subject,wx.Panel):
         """
         if self.chk_smooth.GetValue():
             self.parent.view.remMod("smooth")
-            self.parent.view.addMod(tb.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
+            self.parent.view.addMod(toolbox.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
 
     def on_chk_median(self,event):
         """
@@ -924,7 +924,7 @@ class MainPanel(Subject,wx.Panel):
         provided by the num_median controls.
         """
         if self.chk_median.GetValue():
-            self.parent.view.addMod(tb.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
+            self.parent.view.addMod(toolbox.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
         else:
             self.parent.view.remMod("median")
 
@@ -935,7 +935,7 @@ class MainPanel(Subject,wx.Panel):
         """
         if self.chk_median.GetValue():
             self.parent.view.remMod("median")
-            self.parent.view.addMod(tb.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
+            self.parent.view.addMod(toolbox.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
 
 
 
