@@ -856,7 +856,7 @@ class MainPanel(Subject,wx.Panel):
         Applies a colormap selected in the dropdown menu.
         """
         
-        self.parent.config['Colormap'] = self.colormapselect.GetValue()
+        self.parent.config['Colormap'] = str(self.colormapselect.GetValue())
         self.notify()
 
     def on_scroll(self,event):

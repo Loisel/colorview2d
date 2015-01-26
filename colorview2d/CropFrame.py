@@ -1,6 +1,6 @@
 import wx
 from floatspin import FloatSpin,EVT_FLOATSPIN
-import toolbox as tb
+import toolbox
 
 class CropFrame(wx.Frame):
     def __init__(self,parent):
@@ -104,7 +104,7 @@ class CropPanel(wx.Panel):
 
 
         self.parent.parent.view.remMod("crop")
-        self.parent.parent.view.addMod(tb.crop(xleft,xright,ybottom,ytop))
+        self.parent.parent.view.addMod(toolbox.crop(xleft,xright,ybottom,ytop))
 
     def on_revert(self,event):
         self.parent.parent.view.remMod("crop")
