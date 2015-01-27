@@ -34,31 +34,35 @@ class gpfile():
 
             self.filename = args[0]
             data = sp.loadtxt(self.filename,usecols = args[1])
+            nlines = data.shape[0]
 
-        elif isinstance(args[0],numpy.ndarray):
-            data = args[0]
+            self.Bnum = 0
+
+            for i in range(1,data.shape[0]):
+                if data[i,0] != data[i-1,0]:
+                    self.Bsize = i
+                    break
+            self.set_xyrange(data[self.Bsize-1::self.Bsize,0],data[:self.Bsize,1])
+            
+            self.Bnum = nlines/self.Bsize
+            self.Lnum = self.Bsize*self.Bnum
+            # Store the data
+
+            self.Zdata = (sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
+
+        elif isinstance(args[0],sp.ndarray):
+            self.Zdata = args[0]
             self.filename = "defaultfilename.dat"
+            self.Bsize = self.Zdata.shape[0]
+            self.Bnum = self.Zdata.shape[1]
+            self.Lnum = self.Bnum*self.Bsize
+            self.set_xyrange(sp.arange(self.Bnum),sp.arange(self.Lnum))
         else:
             raise ValueError("Received {}. gpfile has to be initiated by filename or array.".format(args))
             
-        nlines = data.shape[0]
-
-        self.Bnum = 0
-
-        for i in range(1,data.shape[0]):
-            if data[i,0] != data[i-1,0]:
-                self.Bsize = i
-                break
-
-        self.set_xyrange(data[self.Bsize-1::self.Bsize,0],data[:self.Bsize,1])
-
-        self.Bnum = nlines/self.Bsize
-        self.Lnum = self.Bsize*self.Bnum
 
 
-        # Store the data
 
-        self.Zdata = (sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
         self.Zmax = sp.amax(self.Zdata)
         self.Zmin = sp.amin(self.Zdata)
         #self.Zdata_Original = sp.copy(self.Zdata)

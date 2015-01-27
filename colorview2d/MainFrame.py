@@ -74,13 +74,15 @@ class MainFrame(wx.Frame):
         
         if datafilename:
             self.config['datafilename'] = datafilename
+            data_filepath = os.path.join(os.getcwd(),self.config['datafilename'])
             if columns:
                 self.config['datafilecolumns'] = Utils.read_columns(columns)
+        else:
+            # The path to the datafile, either in the cwd or in the lib (default)
+            data_filepath = os.path.join(os.path.dirname(cfgpath),self.config['datafilename'])
 
-        # The path to the datafile, either in the cwd or in the lib (default)
-    
-        data_filepath = os.path.join(os.path.dirname(cfgpath),self.config['datafilename'])
 
+            
         # We select the default matplotlib font
         
         if self.config['Font'] == 'default':
@@ -357,7 +359,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            plt.savefig(path)
+            self.PlotFrame.PlotPanel.fig.savefig(path)
 
     def on_save_cv2d(self, event):
         """
@@ -809,8 +811,7 @@ class MainPanel(Subject,wx.Panel):
         self.widthspin.SetRange(0,maxval-minval+spin_increment)
         self.minspin.SetRange(minval,maxval)
         self.maxspin.SetRange(minval,maxval)
-
-
+        
         self.centrespin.SetValue((maxval+minval)/2.)
         self.widthspin.SetValue(maxval-minval)
         self.maxspin.SetValue(maxval)
