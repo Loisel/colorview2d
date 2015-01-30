@@ -1,0 +1,8 @@
+[Core]
+Name = Crop
+Module = Crop
+   
+[Documentation]
+Description = Crop the dataset
+Author = Alois Dirnaichner
+Version = 1.0
