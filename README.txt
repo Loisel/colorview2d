@@ -19,7 +19,7 @@ Features of the beta:
 * Scale and derive data.
 * Save cv2d config files to recover the state of the data file
   including axis labels and plotting pipeline. 
-
+* Extensible plot manipulation toolbox using yapsy plugin framework.
 
 ---
 

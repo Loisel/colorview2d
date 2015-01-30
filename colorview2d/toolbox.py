@@ -1,5 +1,6 @@
 #!/bin/python
 
+import wx
 import scipy as sp
 
 from scipy.ndimage.filters import gaussian_filter
@@ -7,10 +8,11 @@ from scipy.ndimage.filters import median_filter
 import yaml
 from scipy import optimize
 
+from Mods import *
 
 class modification(yaml.YAMLObject):
     removeOnLoadFile = False
-
+    
     def __repr__(self):
         return "{}{}".format(self.title(),self.__dict__)
 
@@ -22,8 +24,8 @@ class smooth(modification):
     """ blurs the image by convolving with a 2D gaussian kernel of size sizex * sizey.
     """
 
-    def __init__(self,sizex,sizey):
-
+    def __init__(self,widget,sizex,sizey):
+        self.widget = widget
         self.sizex = sizex
         self.sizey = sizey
 
@@ -50,8 +52,9 @@ class deriv(modification):
 
 class adaptive_threshold(modification):
 
-    def __init__(self,blocksize,offset):
+    def __init__(self,widget,blocksize,offset):
 
+        self.widget = widget
         self.blocksize = blocksize
         self.offset = offset
 
@@ -65,7 +68,7 @@ class adaptive_threshold(modification):
 
 class median(modification):
 
-    def __init__(self,sizex,sizey):
+    def __init__(self,widget,sizex,sizey):
         self.size = (sizex,sizey)
 
     def apply_mod(self,datafile):
@@ -73,8 +76,9 @@ class median(modification):
         
 class scale(modification):
 
-    def __init__(self,zscale):
+    def __init__(self,widget,zscale):
 
+        self.widget = widget
         self.zscale = zscale
 
     def __repr__(self):
@@ -88,8 +92,9 @@ class crop(modification):
 
     removeOnLoadFile = True
 
-    def __init__(self,xleft,xright,ybottom,ytop):
+    def __init__(self,widget,xleft,xright,ybottom,ytop):
 
+        self.widget = widget
         self.xleft = xleft
         self.xright = xright
         self.ybottom = ybottom

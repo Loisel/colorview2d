@@ -1,3 +1,10 @@
+--- Version BETA 0.48
+
+- Added a yapsy plugin framework for the plot modification toolbox.
+- Moved the cropping facility to the main panel.
+- The values on the panel are now synced with the mods when a config file is loaded.
+
+
 --- Version BETA 0.47
 
 - Added a configuration file interface.

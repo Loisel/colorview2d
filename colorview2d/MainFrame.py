@@ -28,11 +28,11 @@ from SlopeExFrame import SlopeExFrame
 # from BinaryFitFrame import BinaryFitFrame
 from LabelticksFrame import LabelticksFrame
 
-from FloatValidator import FloatValidator
 import Utils
 import yaml
 import logging
 import warnings
+
 
 
 class MainFrame(wx.Frame):
@@ -52,7 +52,7 @@ class MainFrame(wx.Frame):
         
         Create Menu, MainPanel and PlotFrame.
         """
-        wx.Frame.__init__(self, None, wx.ID_ANY, size=(430,360),style=wx.DEFAULT_FRAME_STYLE)
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(600,500),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
 
         # The name of the default config file is hard coded.
@@ -163,12 +163,14 @@ class MainFrame(wx.Frame):
           modlist (list): A list of modification objects from the toolbox
                           module
         """
-        import toolbox
         
         with open(cfgpath) as file:
             doclist = yaml.load_all(file)
             config = doclist.next()
-            modlist = [mod for mod in doclist]
+            try:
+                modlist = doclist.next()
+            except StopIteration:
+                modlist = []
             logging.info('Modlist found: {}'.format(modlist))
 
             return config,modlist
@@ -205,8 +207,8 @@ class MainFrame(wx.Frame):
         m_rotateccw = menu_axes.Append(wx.ID_ANY, "Rotate ccw", "Permutate the axes counter-clockwise: y to x")
         self.Bind(wx.EVT_MENU, self.on_rotateccw, m_rotateccw)
 
-        m_cropaxes = menu_axes.Append(wx.ID_ANY, "Crop", "Crop x/y axes")
-        self.Bind(wx.EVT_MENU, self.on_cropaxes, m_cropaxes)
+        # m_cropaxes = menu_axes.Append(wx.ID_ANY, "Crop", "Crop x/y axes")
+        # self.Bind(wx.EVT_MENU, self.on_cropaxes, m_cropaxes)
 
         m_linecut = menu_tools.Append(wx.ID_ANY,  "Linecut &Extraction\tCtrl-E", "Extract linecut series")
         self.Bind(wx.EVT_MENU, self.on_linecut, m_linecut)
@@ -262,15 +264,6 @@ class MainFrame(wx.Frame):
         #self.view.reset()
         self.view.rotate_ccw()
         #self.view.notify()
-
-    def on_cropaxes(self,event):
-        """
-        Creates and shows the Crop Frame.
-
-        This frame thus only lives as long as it is shown.
-        """
-        self.CropFrame = CropFrame(self)
-        self.CropFrame.Show()
 
     def on_lineout(self,event):
         """
@@ -383,7 +376,7 @@ class MainFrame(wx.Frame):
 
                 yaml.dump(self.config,stream,explicit_start=True)
 
-                stream.write(self.view.dump_list())
+                yaml.dump(self.view.dump_list(),stream,explicit_start=True)
                 
 
     def on_exit(self, event):
@@ -425,14 +418,10 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             dirname = os.path.dirname(path)
-            with open(path) as stream:
-                doclist = yaml.load_all(stream)
-                self.config = doclist.next()
-                #import pdb;pdb.set_trace()
-                
-                self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
-                self.PlotFrame.PlotPanel.draw_plot()
-                self.view.set_list([mod for mod in doclist])
+            self.config, modliststring = self.parse_config(path)
+            self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
+            self.PlotFrame.PlotPanel.draw_plot()
+            self.view.set_list(modliststring)
 
 
             self.SetTitle(self.title+self.view.datafile.filename)
@@ -661,20 +650,11 @@ class MainPanel(Subject,wx.Panel):
         self.ColorGridSizer.AddGrowableCol(1,3)
 
 
-        self.middlevbox.Add(self.ColorGridSizer, 0, flag = wx.ALIGN_CENTER | wx.TOP)
+        self.middlevbox.Add(self.ColorGridSizer, 0, flag = wx.ALIGN_RIGHT | wx.TOP)
 
         self.ModBox = wx.StaticBox(self, wx.ID_ANY, 'Image Modification')
         self.ModBoxSizer = wx.StaticBoxSizer(self.ModBox, wx.VERTICAL)
-        
 
-        self.middlevbox.AddSpacer(10)
-        self.ModBoxSizer.Add(self.smooth_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
-        self.ModBoxSizer.AddSpacer(10)
-        self.ModBoxSizer.Add(self.median_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
-        self.ModBoxSizer.AddSpacer(10)
-        self.ModBoxSizer.Add(self.derive_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
-        self.ModBoxSizer.AddSpacer(10)
-        self.ModBoxSizer.Add(self.scale_widget(), 0, flag = wx.ALIGN_LEFT | wx.TOP)
 
         self.middlevbox.Add(self.ModBoxSizer,0)
 
@@ -690,77 +670,14 @@ class MainPanel(Subject,wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self)
 
-    def derive_widget(self):
-        # The box with derive
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.chk_deriv = wx.CheckBox(self, wx.ID_ANY, 'Derive')
-        hbox.Add(self.chk_deriv,0,self.flags,border=10)
-
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_deriv,self.chk_deriv)        
-
-        return hbox
-
-    def scale_widget(self):
-        # The box with scale
+        # And finally we add all the modification plugins
         
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.chk_scale =  wx.CheckBox(self, wx.ID_ANY, 'Scale')
-        self.num_scale = wx.TextCtrl(self,-1,"",validator = FloatValidator('1e0'))
-        self.auto_scale_button = wx.Button(self,wx.ID_ANY,'dI/dV')        
+        for mod in self.parent.view.modlist[:-1]:
+            self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
+            self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
+        self.ModBoxSizer.Add(self.parent.view.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
 
-        hbox.Add(self.chk_scale,0,self.flags,border=10)
-        hbox.Add(self.num_scale,0,self.flags,border=10)
-        hbox.Add(self.auto_scale_button,0,self.flags,border=10)
 
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_scale,self.chk_scale)
-        self.Bind(wx.EVT_BUTTON,self.on_auto_scale_button,self.auto_scale_button)
-
-        return hbox
-        
-    def smooth_widget(self):
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.chk_smooth =  wx.CheckBox(self, wx.ID_ANY, 'Smooth')
-        self.num_smooth_xwidth = NumCtrl(self,
-                                          fractionWidth = 1,
-                                          allowNegative = False)
-        self.num_smooth_ywidth = NumCtrl(self,
-                                          fractionWidth = 1,
-                                          allowNegative = False)
-
-        hbox.Add(self.chk_smooth,0,self.flags,border=10)
-        hbox.Add(self.num_smooth_xwidth,0,self.flags,border=10)
-        hbox.Add(self.num_smooth_ywidth,0,self.flags,border=10)
-
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_smooth,self.chk_smooth)
-        self.Bind(EVT_NUM,self.on_num_smooth,self.num_smooth_ywidth)
-        self.Bind(EVT_NUM,self.on_num_smooth,self.num_smooth_xwidth)
-
-        return hbox
-
-    def median_widget(self):
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.chk_median =  wx.CheckBox(self, wx.ID_ANY, 'Median')
-        self.num_median_xwidth = NumCtrl(self,
-                                          fractionWidth = 1,
-                                          allowNegative = False)
-        self.num_median_ywidth = NumCtrl(self,
-                                          fractionWidth = 1,
-                                          allowNegative = False)
-
-        hbox.Add(self.chk_median,0,self.flags,border=10)
-        hbox.Add(self.num_median_xwidth,0,self.flags,border=10)
-        hbox.Add(self.num_median_ywidth,0,self.flags,border=10)
-
-        self.Bind(wx.EVT_CHECKBOX,self.on_chk_median,self.chk_median)
-        self.Bind(EVT_NUM,self.on_num_median,self.num_median_ywidth)
-        self.Bind(EVT_NUM,self.on_num_median,self.num_median_xwidth)
-
-        return hbox
         
     def update(self,subject):
         """
@@ -825,31 +742,10 @@ class MainPanel(Subject,wx.Panel):
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
-        # Tell plot panel to update plot
-
-        self.chk_deriv.SetValue(subject.hasMod('deriv'))
-        self.chk_scale.SetValue(subject.hasMod('scale'))
-            
-        self.chk_smooth.SetValue(subject.hasMod('smooth'))
-        self.chk_median.SetValue(subject.hasMod('median'))
-
         self.notify()
 
 
-    def on_chk_scale(self,event):
-        """
-        Scales the datafile's z-axis.
-
-        Bound to the scale checkbox. The value is provided by a text ctrl.
-        """
-        if self.chk_scale.GetValue():
-            self.Validate()
-            self.parent.view.addMod(toolbox.scale(float(self.num_scale.GetValue())))
-        else:
-            self.parent.view.remMod("scale")
-
-    def on_auto_scale_button(self,event):
-        self.num_scale.SetValue(str(2.5812e4/self.parent.view.datafile.dY))        
+        
 
 
     def on_colormapselect(self,event):
@@ -883,60 +779,6 @@ class MainPanel(Subject,wx.Panel):
 
 
 
-    def on_chk_deriv(self,event):
-        """
-        Derives the datafile (z-axis) with respect to the y-axis.
-
-        Bound to the deriv checkbox.
-        """
-        if self.chk_deriv.GetValue():
-            self.parent.view.addMod(toolbox.deriv())
-
-        else:
-            self.parent.view.remMod("deriv")
-
-
-    def on_chk_smooth(self,event):
-        """
-        Applies a lowpass filter to the data in the datafile (z-axis).
-
-        Bound to the lowpass checkbox. The parameters for the filtering are
-        provided by the num_smooth controls.
-        """
-        if self.chk_smooth.GetValue():
-            self.parent.view.addMod(toolbox.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
-        else:
-            self.parent.view.remMod("smooth")
-
-
-    def on_num_smooth(self,event):
-        """
-        Applies a lowpass filter with new parameters given the lowpass box is checked.
-        """
-        if self.chk_smooth.GetValue():
-            self.parent.view.remMod("smooth")
-            self.parent.view.addMod(toolbox.smooth(self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
-
-    def on_chk_median(self,event):
-        """
-        Applies a median filter to the data in the datafile (z-axis).
-
-        Bound to the median checkbox. The parameters for the filtering are
-        provided by the num_median controls.
-        """
-        if self.chk_median.GetValue():
-            self.parent.view.addMod(toolbox.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
-        else:
-            self.parent.view.remMod("median")
-
-
-    def on_num_median(self,event):
-        """
-        Applies a median filter with new parameters given the median box is checked.
-        """
-        if self.chk_median.GetValue():
-            self.parent.view.remMod("median")
-            self.parent.view.addMod(toolbox.median(self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
 
 
 
@@ -955,17 +797,6 @@ class MainPanel(Subject,wx.Panel):
         minval = self.minspin.GetValue()
         maxval = self.maxspin.GetValue()
 
-
-        ## if evt_obj.GetName() == 'width':
-        ##     if centre-width/2. < minval:
-        ##         centre = minval + width/2.
-        ##     if centre+width/2. > maxval:
-        ##         centre = maxval - width/2.
-        ## if evt_obj.GetName() == 'centre':
-        ##     if centre-width/2. < minval:
-        ##         width = (centre - minval)*2.
-        ##     if centre+width/2. > maxval:
-        ##         width = (maxval - centre)*2.
 
         minval = centre-width/2.
         maxval = centre+width/2.
