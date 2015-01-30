@@ -2,6 +2,7 @@ from Subject import Subject
 import logging
 import yaml
 import Mods
+import Utils
 
 class View(Subject):
     def __init__(self,datafile,modlist=[]):
@@ -13,7 +14,8 @@ class View(Subject):
     def create_modlist(self):
         from yapsy.PluginManager import PluginManager
         self.modman = PluginManager()
-        self.modman.setPluginPlaces(['Mods'])
+        modpath = Utils.resource_path('Mods')
+        self.modman.setPluginPlaces([modpath])
 
         self.modman.collectPlugins()
 

@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='colorview2d',
-      version='beta0.47',
+      version='beta0.48',
       description='2d color plotting tool',
       author='Alois Dirnaichner',
       author_email='alo.dir@gmail.com',

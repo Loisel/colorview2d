@@ -1,3 +1,4 @@
 include *.txt
+include colorview2d/Mods/*.yapsy-plugin
 include colorview2d/default.cv2d
 include colorview2d/demo.dat

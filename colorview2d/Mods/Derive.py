@@ -7,7 +7,6 @@ from Mods import IMod
 class Derive(IMod.IMod):
 
     def __init__(self):
-        print "Init called, derive"
         IMod.IMod.__init__(self)
         
     def apply(self):
