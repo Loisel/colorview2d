@@ -5,6 +5,19 @@ from Mods.ModWidget import ModWidget
 from FloatValidator import FloatValidator
 import wx
 
+"""
+A mod to scale the data. 
+A text control with a custom validator is applied so that 
+exponential notation can be used.
+
+ScaleWidget(ModWidget): 
+    The Widget that controls the mod. 
+    Hosts a TextCtrl with a custom validator.
+
+Scale(IMod):
+    The mod class.
+"""
+
 class ScaleWidget(ModWidget):
     def __init__(self,mod,panel):
         ModWidget.__init__(self,mod,panel)

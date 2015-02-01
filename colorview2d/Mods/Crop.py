@@ -8,6 +8,19 @@ import wx
 from floatspin import FloatSpin,EVT_FLOATSPIN
 
 
+"""
+A mod to crop the datafile. The widget provides four FloatSpin controls
+to specify the window (xleft, xright, ybottom, ytop).
+A button can be used to specify set the original size in the controls.
+
+CropWidget(ModWidget):
+    The widget hosting the FloatSpin controls and the labels 
+    as well as the "Auto" update button.
+
+Crop(IMod):
+    The mod class.
+"""
+
 class CropWidget(ModWidget):
     def __init__(self,mod,panel):
         ModWidget.__init__(self,mod,panel)

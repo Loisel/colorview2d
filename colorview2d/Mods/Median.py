@@ -3,10 +3,25 @@ from Mods import IMod
 
 from Mods.ModWidget import ModWidget
 
-import wx
 from wx.lib.masked import NumCtrl,EVT_NUM
 
 from scipy.ndimage.filters import median_filter
+
+"""
+This mod performs a median filter on the data. The window size for the
+filter is specified by wx.lib.masked.NumCtrl widgets.
+
+MedianWidget(ModWidget): 
+    A widget to control the filter.
+
+Median(IMod):
+    The modification class. Applies a median filter of size
+    
+    args = (xsize, ysize)
+
+    to the datafile.
+"""
+
 
 class MedianWidget(ModWidget):
     def __init__(self,mod,panel):

@@ -1,8 +1,11 @@
-import wx
 import numpy as np
 
 from Mods import IMod
-#from yapsy.IPlugin import IPlugin
+
+"""
+This mod performs a derivation of the datafile with respect to the y-axis.
+"""
+
 
 class Derive(IMod.IMod):
 
@@ -12,11 +15,10 @@ class Derive(IMod.IMod):
     def apply(self):
 
         datafile = self.view.datafile
-        dy = datafile.dY
 
-        dydata = np.diff(datafile.Zdata,axis=0)
+        dydata= datafile.Zdata
+        dydata[:-1] = np.diff(datafile.Zdata,axis=0)
 
-        datafile.Zdata[:-1] = dydata
-        datafile.Zdata[-1] = datafile.Zdata[-2]
+        dydata[-1] = dydata[-2]
 
-        datafile.set_Zdata(datafile.Zdata)
+        datafile.set_Zdata(dydata)

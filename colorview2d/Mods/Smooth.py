@@ -3,10 +3,22 @@ from Mods import IMod
 
 from Mods.ModWidget import ModWidget
 
-import wx
 from wx.lib.masked import NumCtrl,EVT_NUM
 
 from scipy.ndimage.filters import gaussian_filter
+
+"""
+This mod performs a gaussian filter on the data. The window size for the
+filter is specified by wx.lib.masked.NumCtrl widgets.
+
+SmoothWidget(ModWidget): 
+    A widget to control the filter.
+
+Smooth(IMod):
+    The modification class. Covolutes the datafile array with a window of size
+    
+    args = (xsize, ysize)
+"""
 
 class SmoothWidget(ModWidget):
     def __init__(self,mod,panel):
