@@ -10,20 +10,15 @@ from scipy.ndimage.filters import median_filter
 """
 This mod performs a median filter on the data. The window size for the
 filter is specified by wx.lib.masked.NumCtrl widgets.
-
-MedianWidget(ModWidget): 
-    A widget to control the filter.
-
-Median(IMod):
-    The modification class. Applies a median filter of size
-    
-    args = (xsize, ysize)
-
-    to the datafile.
 """
 
 
 class MedianWidget(ModWidget):
+    """
+    A widget to control the filter.
+    Hosts two wx.lib.masked.NumCtrl widgets to specify the size of the
+    filter window.
+    """
     def __init__(self,mod,panel):
         ModWidget.__init__(self,mod,panel)
         self.num_median_xwidth = NumCtrl(self.panel,
@@ -60,6 +55,13 @@ class MedianWidget(ModWidget):
 
 
 class Median(IMod.IMod):
+    """
+    The modification class. Applies a median filter of size
+    
+    args = (xsize, ysize)
+
+    to the datafile.
+    """
     def __init__(self):
         IMod.IMod.__init__(self)
         self.args = (0.,0.)

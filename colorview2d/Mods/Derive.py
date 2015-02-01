@@ -8,6 +8,10 @@ This mod performs a derivation of the datafile with respect to the y-axis.
 
 
 class Derive(IMod.IMod):
+    """
+    The mod class to apply the derivative of the datafiel array with respect
+    to the y-axis.
+    """
 
     def __init__(self):
         IMod.IMod.__init__(self)

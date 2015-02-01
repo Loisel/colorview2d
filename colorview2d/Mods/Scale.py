@@ -9,16 +9,13 @@ import wx
 A mod to scale the data. 
 A text control with a custom validator is applied so that 
 exponential notation can be used.
-
-ScaleWidget(ModWidget): 
-    The Widget that controls the mod. 
-    Hosts a TextCtrl with a custom validator.
-
-Scale(IMod):
-    The mod class.
 """
 
 class ScaleWidget(ModWidget):
+    """
+    The Widget that controls the mod. 
+    Hosts a TextCtrl with a custom validator.
+    """
     def __init__(self,mod,panel):
         ModWidget.__init__(self,mod,panel)
         self.num_scale = wx.TextCtrl(self.panel,-1,"",validator = FloatValidator('1e0'))
@@ -46,6 +43,12 @@ class ScaleWidget(ModWidget):
     
 
 class Scale(IMod.IMod):
+    """
+    The mod class to scale the values in the 2d datafile array
+    according to the value entered in the widget:
+
+    args (float): The float that is multiplied with the datafile array.
+    """
     def __init__(self):
         IMod.IMod.__init__(self)
         self.args = 1.

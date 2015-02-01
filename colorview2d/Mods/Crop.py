@@ -12,16 +12,13 @@ from floatspin import FloatSpin,EVT_FLOATSPIN
 A mod to crop the datafile. The widget provides four FloatSpin controls
 to specify the window (xleft, xright, ybottom, ytop).
 A button can be used to specify set the original size in the controls.
-
-CropWidget(ModWidget):
-    The widget hosting the FloatSpin controls and the labels 
-    as well as the "Auto" update button.
-
-Crop(IMod):
-    The mod class.
 """
 
 class CropWidget(ModWidget):
+    """
+    The widget hosting the FloatSpin controls and the labels 
+    as well as the "Auto" update button.
+    """
     def __init__(self,mod,panel):
         ModWidget.__init__(self,mod,panel)
 
@@ -101,6 +98,12 @@ class CropWidget(ModWidget):
             
 
 class Crop(IMod.IMod):
+    """
+    The mod class. The apply routine contains the logic for cropping
+    the datafile array to the new size
+    
+    args = (xleft, xright, ybottom, ytop).
+    """
     def __init__(self):
         IMod.IMod.__init__(self)
         self.args = (0.,0.,0.,0.)
