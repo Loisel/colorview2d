@@ -79,6 +79,7 @@ class CropWidget(ModWidget):
             self.mod.deactivate()
 
     def update(self):
+        ModWidget.update(self)
         self.xrange_left_spin.SetValue(self.mod.args[0])
         self.xrange_right_spin.SetValue(self.mod.args[1])
         self.yrange_bottom_spin.SetValue(self.mod.args[2])

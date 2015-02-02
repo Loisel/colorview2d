@@ -8,6 +8,7 @@ class View(Subject):
     def __init__(self,datafile,modlist=[]):
         Subject.__init__(self)
         self.create_modlist()
+        self.pipeline = []
         self.set_datafile(datafile)
         #self.config = {}
 
@@ -28,34 +29,14 @@ class View(Subject):
         #import pdb;pdb.set_trace()
         self.modlist = [pInfo.plugin_object for pInfo in self.modman.getAllPlugins()]
         
-    def dump_list(self):
+    def dump_pipeline_string(self):
         # return yaml.dump_all(self.modlist, explicit_start=True)
-        modstringlist = []
-        for mod in self.modlist:
-            if mod.active:
-                modstringlist.append("{},{}".format(mod.title,mod.args))
-        return modstringlist
-                            
+        return "{}".format(self.pipeline)
 
-    def set_list(self,modstringlist):
+    def load_pipeline_string(self,pipeline):
         from ast import literal_eval
-        #print "Im called with {}".format(modstringlist)
-
-        for modstring in modstringlist:
-            # create mod
-
-            modtitle = modstring.split(',',1)[0]
-            modargs = modstring.split(',',1)[1]
-
-            mod = self.find_mod(modtitle)
-            if mod:
-                mod.set_args(literal_eval(modargs))
-                mod.update_widget()
-                mod.activate()
-            else:
-                logging.warning('Found mod {} in config that has no plugin candidate.'.format(modtitle))
-            
-        self.apply()
+        self.pipeline = literal_eval(pipeline)
+        self.apply_pipeline()
 
     def find_mod(self,string):
         for mod in self.modlist:
@@ -63,11 +44,23 @@ class View(Subject):
                 return mod
                 
         return None
-    
 
-    def apply(self):
+    def add_mod_to_pipeline(self,modstring,args):
+        self.pipeline.append((modstring,args))
+        self.apply_pipeline()
+
+    def remove_mod_from_pipeline(self,modstring):
+        print self.pipeline
+        for modtuple in self.pipeline:
+            if modtuple[0] == modstring:
+                self.pipeline.remove(modtuple)
+
+        self.apply_pipeline()
+
+        
+    def apply_pipeline(self):
         """
-        Applies the modlist to the datafile in the parent frame.
+        Applies the pipeline to the datafile in the parent frame.
         
         The datafile is first reverted to its original state,
         then mods are applied in the order they were added.
@@ -75,21 +68,25 @@ class View(Subject):
         """
 
         self.datafile = self.original_datafile.deep_copy()
-
-        for mod in self.modlist:
-#            print "Applying mod {}".format(mod.title())
-            if mod.active:
+        
+        for modtuple in self.pipeline:
+            mod = self.find_mod(modtuple[0])
+            if mod:
+                mod.set_args(modtuple[1])
+                mod.update_widget()
                 mod.apply()
+            else:
+                logging.warning('No mod candidate found for {}.'.format(modtuple[0]))
         
         self.notify()
 
     def reset(self):
         """
-        Resets the datafile object by emptying the modlist.
+        Resets the datafile object by emptying the pipeline.
         """
 
-        self.modlist = []
-        self.apply()
+        self.pipeline = []
+        self.apply_pipeline()
         
     def get_data(self):
         """
@@ -108,7 +105,7 @@ class View(Subject):
         """
         self.datafile = datafile
         self.original_datafile = datafile.deep_copy()
-        self.apply()
+        self.apply_pipeline()
 
     def rotate_cw(self):
         """

@@ -15,7 +15,7 @@ class ModWidget(wx.BoxSizer):
         self.panel.Bind(wx.EVT_CHECKBOX,self.on_chk,self.chk)
 
     def update(self):
-        pass
+        self.chk.SetValue(self.mod.active)
 
     def on_chk(self,event):
         if self.chk.GetValue():

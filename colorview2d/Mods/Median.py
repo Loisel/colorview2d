@@ -43,8 +43,11 @@ class MedianWidget(ModWidget):
             self.mod.deactivate()
 
     def update(self):
-        self.num_median_xwidth.SetValue(self.mod.args[0])
-        self.num_median_ywidth.SetValue(self.mod.args[1])
+        ModWidget.update(self)
+        # Note that we call ChangeValue instead of SetValue to not trigger a
+        # EVT_NUM event
+        self.num_median_xwidth.ChangeValue(self.mod.args[0])
+        self.num_median_ywidth.ChangeValue(self.mod.args[1])
 
     def on_num_median(self,event):
         if self.mod.active:

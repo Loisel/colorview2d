@@ -38,6 +38,7 @@ class ScaleWidget(ModWidget):
         self.num_scale.SetValue(str(2.5812e4/self.mod.view.datafile.dY))        
 
     def update(self):
+        ModWidget.update(self)
         self.num_scale.SetValue(str(self.mod.args))
 
     

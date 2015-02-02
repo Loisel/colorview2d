@@ -48,8 +48,11 @@ class SmoothWidget(ModWidget):
             self.mod.activate()            
 
     def update(self):
-        self.num_smooth_xwidth.SetValue(self.mod.args[0])
-        self.num_smooth_ywidth.SetValue(self.mod.args[1])
+        ModWidget.update(self)
+        # Note that we call ChangeValue instead of SetValue to not trigger a
+        # EVT_NUM event
+        self.num_smooth_xwidth.ChangeValue(self.mod.args[0])
+        self.num_smooth_ywidth.ChangeValue(self.mod.args[1])
         
 
 

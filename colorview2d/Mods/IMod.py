@@ -21,7 +21,7 @@ class IMod(IPlugin):
         self.active = True
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(True)
-        self.view.apply()
+        self.view.add_mod_to_pipeline(self.title,self.args)
         
     def deactivate(self):
         IPlugin.deactivate(self)
@@ -29,7 +29,7 @@ class IMod(IPlugin):
         self.active = False
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(False)
-        self.view.apply()
+        self.view.remove_mod_from_pipeline(self.title)
         
     def get_args(self):
         return self.args
@@ -38,6 +38,7 @@ class IMod(IPlugin):
         self.view = view
 
     def update_widget(self):
+        self.active = True
         if hasattr(self,'widget'):
             self.widget.update()
         else:

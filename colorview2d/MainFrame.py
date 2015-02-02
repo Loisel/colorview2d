@@ -137,7 +137,7 @@ class MainFrame(wx.Frame):
         # plot infrastructure has to be there.
         # set_list notifies the PlotPanel
 
-        self.view.set_list(modlist)
+        self.view.load_pipeline_string(modlist)
 
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
@@ -170,7 +170,7 @@ class MainFrame(wx.Frame):
             try:
                 modlist = doclist.next()
             except StopIteration:
-                modlist = []
+                modlist = '[]'
             logging.info('Modlist found: {}'.format(modlist))
 
             return config,modlist
@@ -376,7 +376,7 @@ class MainFrame(wx.Frame):
 
                 yaml.dump(self.config,stream,explicit_start=True)
 
-                yaml.dump(self.view.dump_list(),stream,explicit_start=True)
+                yaml.dump(self.view.dump_pipeline(),stream,explicit_start=True)
                 
 
     def on_exit(self, event):
@@ -421,7 +421,7 @@ class MainFrame(wx.Frame):
             self.config, modliststring = self.parse_config(path)
             self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
             self.PlotFrame.PlotPanel.draw_plot()
-            self.view.set_list(modliststring)
+            self.view.load_pipeline_string(modliststring)
 
 
             self.SetTitle(self.title+self.view.datafile.filename)
