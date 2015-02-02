@@ -38,6 +38,10 @@ class IMod(IPlugin):
         self.view = view
 
     def update_widget(self):
+        """
+        Update the widget from the mod data.
+        The mod is activated by the update.
+        """
         self.active = True
         if hasattr(self,'widget'):
             self.widget.update()

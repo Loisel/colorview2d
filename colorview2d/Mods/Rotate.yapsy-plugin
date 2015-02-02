@@ -1,0 +1,8 @@
+[Core]
+Name = Rotate
+Module = Rotate
+   
+[Documentation]
+Description = Rotate the dataset clocwise or anti-clockwise
+Author = Alois Dirnaichner
+Version = 1.0

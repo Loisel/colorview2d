@@ -107,24 +107,3 @@ class View(Subject):
         self.original_datafile = datafile.deep_copy()
         self.apply_pipeline()
 
-    def rotate_cw(self):
-        """
-        Resets the datafile and rotates it clockwise.
-        """
-
-        # datafile.rotate returns a rotated version of self.
-        # That is why set_datafile is used.
-
-        self.reset()
-        self.set_datafile(self.datafile.rotate_cw())
-
-    def rotate_ccw(self):
-        """
-        Resets the datafile and rotates it anti-clockwise.
-        """
-
-        # datafile.rotate returns a rotated version of self.
-        # That is why set_datafile is used.
-
-        self.reset()
-        self.set_datafile(self.datafile.rotate_ccw())

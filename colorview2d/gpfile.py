@@ -160,13 +160,11 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         self.set_xyrange(self.Yrange,self.Xrange[::-1])
         self.set_Zdata(sp.rot90(self.Zdata,k=3))
 
-        return self
 
     def rotate_ccw(self):
         self.set_xyrange(self.Yrange[::-1],self.Xrange)
         self.set_Zdata(sp.rot90(self.Zdata,k=1))
 
-        return self
 
     def get_region(self,xleft,xright,ybottom,ytop):
         try:
