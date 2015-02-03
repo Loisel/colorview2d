@@ -29,7 +29,7 @@ Installation and Usage:
  Download and extract the files from the archive into a single folder. 
  Execute colorview2d.exe, 
  whilst the default plotting file ("demo.dat") and the 
- configuration file ("default.config") are present in the same directory. 
+ configuration file ("default.cv2d") are present in the same directory. 
 
 * Linux:
  You can download a tarball from

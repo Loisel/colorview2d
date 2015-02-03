@@ -673,11 +673,14 @@ class MainPanel(Subject,wx.Panel):
         self.mainbox.Fit(self)
 
         # And finally we add all the modification plugins
-        
-        for mod in self.parent.view.modlist[:-1]:
-            self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
-            self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
-        self.ModBoxSizer.Add(self.parent.view.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
+
+        try:
+            for mod in self.parent.view.modlist[:-1]:
+                self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
+                self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
+            self.ModBoxSizer.Add(self.parent.view.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
+        except IndexError:
+            logging.warning('No plugins found!')
 
 
         
