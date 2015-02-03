@@ -161,8 +161,8 @@ class MainFrame(wx.Frame):
         """
         dw, dh = wx.DisplaySize()
         w, h = self.GetSize()
-        x = dw - w
-        y = dh-2*h
+        x = dw -w
+        y = dh-1.5*h
         self.SetPosition((x, y))
 
     def parse_config(self,cfgpath):
