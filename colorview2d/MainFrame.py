@@ -434,7 +434,7 @@ class MainFrame(wx.Frame):
         """
         file_choices = "DAT (*.dat)|*.dat"
 
-        dlg = dlg = wx.FileDialog(self,
+        dlg = wx.FileDialog(self,
             message="Load data file...",
             defaultDir=os.getcwd(),
             wildcard=file_choices,
@@ -446,17 +446,28 @@ class MainFrame(wx.Frame):
 
             columns = (0,1,2)
             # A checkbox is needed "Reset Config" or aequivalent
-            dlg = wx.TextEntryDialog(self, 'Enter the column numbers for the 3d data in the form (a,b,c)','Columns:')
-            dlg.SetValue("{},{},{}".format(columns[0],columns[1],columns[2]))
+            # dlg = wx.TextEntryDialog(self, 'Enter the column numbers for the 3d data in the form (a,b,c)','Columns:')
+            
+            # dlg.SetValue("{},{},{}".format(columns[0],columns[1],columns[2]))
+
+            dlg = Utils.SettingsDialog(self)
             if dlg.ShowModal() == wx.ID_OK:
-                columns = Utils.read_columns(dlg.GetValue())
+                columns = dlg.GetColumns()
+                reset_settings = dlg.GetSettingChk()
                 dlg.Destroy()
 
             # We set the new datafile in the view
             # By changing the datafile, the view notifies its observers
             # and the plot is updated
             self.view.set_datafile(gpfile.gpfile(path,columns))
+            self.PlotFrame.PlotPanel.draw_plot()
 
+            if reset_settings:
+                cfgpath = Utils.resource_path('default.cv2d')
+                self.config,pipelinestring = self.parse_config(cfgpath)
+                self.view.reset()
+
+                
             self.config['datafilename'] = os.path.basename(path)
 
             self.SetTitle(self.title+self.view.datafile.filename)

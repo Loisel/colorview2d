@@ -1,3 +1,9 @@
+--- Version BETA 0.49
+
+- Added rotate and flip plugins.
+- If a data file is loaded we can now choose to reset the config.
+- Minor bugfixes.
+
 --- Version BETA 0.48
 
 - Added a yapsy plugin framework for the plot modification toolbox.

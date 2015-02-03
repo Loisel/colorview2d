@@ -45,11 +45,16 @@ class View(Subject):
         return None
 
     def add_mod_to_pipeline(self,modstring,args):
+        """
+        Adds a mod to the pipeline by its title string and its arguments.
+        """
         self.pipeline.append((modstring,args))
         self.apply_pipeline()
 
     def remove_mod_from_pipeline(self,modstring):
-        print self.pipeline
+        """
+        Removes a mod from the pipeline by its title string.
+        """
         for modtuple in self.pipeline:
             if modtuple[0] == modstring:
                 self.pipeline.remove(modtuple)
@@ -81,10 +86,13 @@ class View(Subject):
 
     def reset(self):
         """
-        Resets the datafile object by emptying the pipeline.
+        Resets the datafile object by emptying the pipeline and
+        deactivating all mods.
         """
 
         self.pipeline = []
+        for mod in self.modlist:
+            mod.deactivate()
         self.apply_pipeline()
         
     def get_data(self):
