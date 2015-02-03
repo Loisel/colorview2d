@@ -23,7 +23,6 @@ class View(Subject):
         # Activate
         for pluginInfo in self.modman.getAllPlugins():
             #self.modman.activatePluginByName(pluginInfo.name)
-            logging.info("Found mod {}".format(pluginInfo.name))
             pluginInfo.plugin_object.register(self)
 
         #import pdb;pdb.set_trace()

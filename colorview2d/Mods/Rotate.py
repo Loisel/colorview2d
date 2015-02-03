@@ -39,7 +39,10 @@ class RotateWidget(ModWidget):
 
     def update(self):
         ModWidget.update(self)
-        self.radio_cw.SetValue(self.mod.args)
+        if self.mod.args:
+            self.radio_cw.SetValue(True)
+        else:
+            self.radio_ccw.SetValue(True)
 
     def on_radio(self,event):
         if self.mod.active:

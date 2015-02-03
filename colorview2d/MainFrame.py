@@ -34,6 +34,12 @@ import logging
 import warnings
 
 
+"""
+The MainFrame module hostst the MainFrame class and the MainPanel class.
+In the MainFrame.__init__ the view object is intialized and all other frames 
+are created.
+The MainPanel hosts the colorbar controls and the mod plugin widgets.
+"""
 
 class MainFrame(wx.Frame):
     """
@@ -50,28 +56,35 @@ class MainFrame(wx.Frame):
         Initialize the frame, create subframes and load a default 
         datafile object.
         
-        Create Menu, MainPanel and PlotFrame.
+        Create Menu, MainPanel, PlotFrame, LineoutFrame, LinecutFrame and
+        SlopeExFrame. All utility frames are created beforehand and viewed
+        on demand.
         """
-        wx.Frame.__init__(self, None, wx.ID_ANY, size=(600,500),style=wx.DEFAULT_FRAME_STYLE)
+        # find a way to autosize the frame!
+        # this is annoying, especially with respect to the plugins
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,550),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
 
-        # The name of the default config file is hard coded.
-        # We first initialize the cv2dpath to point to the correct config file
         
         if cv2dpath:
+            # If a config file is provided, we load that one.
+            # All other parameters are ignored.
             cfgpath = os.path.join(os.getcwd(),cv2dpath)
             datafilename = None
             columns = None
         else:
+            # The name of the default config file is hard coded.
+            # Utils.resource_path adds the path to the 
+            # library in win and linux
             cfgpath = Utils.resource_path('default.cv2d')
             
-        # The config file is parsed, modlist is a local variable that then given to the view
-            
+        # The config file is parsed, 
+        # modlist is a string variable that is given to the view
+        # to create the mod pipeline
         self.config,modlist = self.parse_config(cfgpath)
 
         # If a datafilename is specified, we use this instead of the default
-        # Same for the the columns
-        
+        # Same for the the columns        
         if datafilename:
             self.config['datafilename'] = datafilename
             data_filepath = os.path.join(os.getcwd(),self.config['datafilename'])
@@ -79,12 +92,12 @@ class MainFrame(wx.Frame):
                 self.config['datafilecolumns'] = Utils.read_columns(columns)
         else:
             # The path to the datafile, either in the cwd or in the lib (default)
+            # We assume that the datafile is in the same dir as the cv2d dile
             data_filepath = os.path.join(os.path.dirname(cfgpath),self.config['datafilename'])
-
 
             
         # We select the default matplotlib font
-        
+        # To that end we catch the warning -- not particularly elegant
         if self.config['Font'] == 'default':
             for font in plt.rcParams['font.sans-serif']:
                 with warnings.catch_warnings(record=True) as w:
@@ -97,7 +110,6 @@ class MainFrame(wx.Frame):
                         break
 
         # Set title for the frame and align
-                        
         self.SetTitle(self.title+self.config['datafilename'])
         self.alignToBottomRight()
 
@@ -166,12 +178,14 @@ class MainFrame(wx.Frame):
         
         with open(cfgpath) as file:
             doclist = yaml.load_all(file)
+            # The config dict is the first yaml document
             config = doclist.next()
+            # The pipeline string is the second. It is optional.
             try:
                 modlist = doclist.next()
             except StopIteration:
                 modlist = '[]'
-            logging.info('Modlist found: {}'.format(modlist))
+            logging.info('Pipeline string found: {}'.format(modlist))
 
             return config,modlist
 
@@ -202,13 +216,6 @@ class MainFrame(wx.Frame):
         m_labelticks = menu_axes.Append(wx.ID_ANY, "&Configure Plot\tCtrl-C", "Set axes labels and tick label format")
         self.Bind(wx.EVT_MENU,self.on_labelticks,m_labelticks)
 
-        m_rotatecw = menu_axes.Append(wx.ID_ANY, "Rotate cw", "Permutate the axes clockwise: x to y")
-        self.Bind(wx.EVT_MENU, self.on_rotatecw, m_rotatecw)
-        m_rotateccw = menu_axes.Append(wx.ID_ANY, "Rotate ccw", "Permutate the axes counter-clockwise: y to x")
-        self.Bind(wx.EVT_MENU, self.on_rotateccw, m_rotateccw)
-
-        # m_cropaxes = menu_axes.Append(wx.ID_ANY, "Crop", "Crop x/y axes")
-        # self.Bind(wx.EVT_MENU, self.on_cropaxes, m_cropaxes)
 
         m_linecut = menu_tools.Append(wx.ID_ANY,  "Linecut &Extraction\tCtrl-E", "Extract linecut series")
         self.Bind(wx.EVT_MENU, self.on_linecut, m_linecut)
@@ -224,7 +231,7 @@ class MainFrame(wx.Frame):
 
 
         menu_help = wx.Menu()
-        m_about = menu_help.Append(wx.ID_ANY, "&About\tF1", "About the demo")
+        m_about = menu_help.Append(wx.ID_ANY, "&About\tF1", "About colorview2d.")
         self.Bind(wx.EVT_MENU, self.on_about, m_about)
 
         self.menubar.Append(menu_file, "&File")
@@ -243,34 +250,11 @@ class MainFrame(wx.Frame):
         """
         self.LabelticksFrame.Show()
 
-    def on_rotatecw(self,event):
-        """
-        Rotate the datafile and the connected plot clockwise by 90 degrees.
-        
-        The original datafile is also replaced.
-        To restore the original datafile, the file has to be rotated counter clockwise
-        or reloaded.
-        """
-        
-        #self.view.reset()
-        self.view.rotate_cw()
-        #self.view.notify()
-
-    def on_rotateccw(self,event):
-        """
-        Rotate the datafile counter clockwise.
-        """
-
-        #self.view.reset()
-        self.view.rotate_ccw()
-        #self.view.notify()
-
     def on_lineout(self,event):
         """
         Shows the Frame to extract linecuts.
         
         """
-        #self.PlotFrame.PlotPanel.axes.autoscale(False)
         self.LineoutFrame.Show()
 
     def on_binaryfit(self,event):
@@ -296,8 +280,6 @@ class MainFrame(wx.Frame):
 
         """
         self.SlopeExFrame.Show()
-        # self.SlopeExFrame.Layout()
-
 
 
     def on_save_datafile(self, event):
@@ -306,11 +288,8 @@ class MainFrame(wx.Frame):
 
         The datafile is saved with information
         on the currently applied modifications and their parameters.
-        There is no information on cropping or rotating saved.
         """
         file_choices = "DAT (*.dat)|*.dat"
-
-        modlist = ', '.join([mod.title() for mod in self.view.modlist])
 
 
         comment = """\
@@ -319,7 +298,7 @@ class MainFrame(wx.Frame):
 # data modifications: {}
 #
 # axes: {} | {} | {}
-""".format(self.config['datafilename'],modlist,self.Xlabel,self.Ylabel,self.Cblabel)
+""".format(self.config['datafilename'],self.view.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
@@ -356,7 +335,7 @@ class MainFrame(wx.Frame):
 
     def on_save_cv2d(self, event):
         """
-        Saves the plot in cv2d config format.
+        Saves a cv2d config file.
 
         """
         file_choices = "CV2D (*.cv2d)|*.cv2d"
@@ -373,10 +352,10 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             with open(path,'w') as stream:
-
+                # We write first the config dict
                 yaml.dump(self.config,stream,explicit_start=True)
-
-                yaml.dump(self.view.dump_pipeline(),stream,explicit_start=True)
+                # ... and second the pipeline string
+                yaml.dump(self.view.dump_pipeline_string(),stream,explicit_start=True)
                 
 
     def on_exit(self, event):
@@ -395,10 +374,11 @@ class MainFrame(wx.Frame):
          * Automatically adjust axes and colorbar.
          * Change center, width and min or max of the colorbar live!
          * Open and save gnuplot style data files.
-         * Save png files.
+         * Save png and pdf files.
          * Extract series of linetraces.
          * Extract linear slopes by drawing lines in the plot.
-         * Apply derivation or lowpass filtering to your data.
+         * Apply various modifications to the plot (e.g., median or gaussian filter)
+         * Design your own modification plugins.
         """
         dlg = wx.MessageDialog(self, msg, "About", wx.OK)
         dlg.ShowModal()
@@ -406,6 +386,10 @@ class MainFrame(wx.Frame):
 
 
     def on_load_cv2d(self,event):
+        """
+        Shows a file dialog to select a coloview2d config file (*.cv2d)
+        The file is loaded and the pipeline is applied to the view.
+        """
         
         file_choices = "CV2D (*.cv2d)|*.cv2d"
 
@@ -418,13 +402,18 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             dirname = os.path.dirname(path)
+            # The config is overwritten
             self.config, modliststring = self.parse_config(path)
+            # The datafile is replaced
             self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
             self.PlotFrame.PlotPanel.draw_plot()
+            # ... and the pipeline is applied
             self.view.load_pipeline_string(modliststring)
 
-
+            # We make sure the title is correct
             self.SetTitle(self.title+self.view.datafile.filename)
+            # The slope extraction utility has to know about the correct dimensions
+            # of the datafile (the FloatSpin tools need the x/y range)
             self.SlopeExFrame.SlopeExPanel.update()
                 
         
@@ -445,16 +434,18 @@ class MainFrame(wx.Frame):
         """
         file_choices = "DAT (*.dat)|*.dat"
 
-        dlg = wx.FileDialog(self,
+        dlg = dlg = wx.FileDialog(self,
             message="Load data file...",
             defaultDir=os.getcwd(),
             wildcard=file_choices,
             style=wx.OPEN)
 
+
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
 
             columns = (0,1,2)
+            # A checkbox is needed "Reset Config" or aequivalent
             dlg = wx.TextEntryDialog(self, 'Enter the column numbers for the 3d data in the form (a,b,c)','Columns:')
             dlg.SetValue("{},{},{}".format(columns[0],columns[1],columns[2]))
             if dlg.ShowModal() == wx.ID_OK:
@@ -479,11 +470,11 @@ class MainPanel(Subject,wx.Panel):
         Subject.__init__(self)
         wx.Panel.__init__(self, parent)
         self.parent = parent
-
+        
+        # Magic numbers for the "fine-graindedness" of the FloatSpin and FloatSlider objects
         self.spin_divider = 10000
         self.slide_divider = 1000
         
-        # self.create_panel()
 
     def create_panel(self):
         """
@@ -741,6 +732,8 @@ class MainPanel(Subject,wx.Panel):
         self.widthspin.SetIncrement(spin_increment)
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
+
+        self.colormapselect.SetStringSelection(self.parent.config['Colormap'])
 
         self.notify()
 

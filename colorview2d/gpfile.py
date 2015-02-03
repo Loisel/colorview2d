@@ -158,12 +158,20 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
 
     def rotate_cw(self):
         self.set_xyrange(self.Yrange,self.Xrange[::-1])
-        self.set_Zdata(sp.rot90(self.Zdata,k=3))
+        self.set_Zdata(sp.rot90(self.Zdata,k=1))
 
 
     def rotate_ccw(self):
         self.set_xyrange(self.Yrange[::-1],self.Xrange)
-        self.set_Zdata(sp.rot90(self.Zdata,k=1))
+        self.set_Zdata(sp.rot90(self.Zdata,k=3))
+
+    def flip_lr(self):
+        self.set_xyrange(self.Xrange[::-1],self.Yrange)
+        self.set_Zdata(sp.fliplr(self.Zdata))
+
+    def flip_ud(self):
+        self.set_xyrange(self.Xrange,self.Yrange[::-1])
+        self.set_Zdata(sp.flipud(self.Zdata))
 
 
     def get_region(self,xleft,xright,ybottom,ytop):

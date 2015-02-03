@@ -40,13 +40,13 @@ class PlotPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.parent = parent
 
-        self.config = self.parent.parent.config
+        # self.config = self.parent.parent.config
 
         # Create the mpl Figure and FigCanvas objects.
         # We add a toolbar to the canvas and add everything 
         # to a sizer
 
-        self.fig = plt.figure(1,dpi=self.config['Dpi'])
+        self.fig = plt.figure(1,dpi=self.parent.parent.config['Dpi'])
         self.axes = self.fig.add_subplot(111)
         self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
 
@@ -92,8 +92,8 @@ class PlotPanel(wx.Panel):
 
             cbar_min = centre - width/2.
             cbar_max = centre + width/2.
-
-            self.plot.set_cmap(self.config['Colormap'])
+            # import pdb; pdb.set_trace()
+            self.plot.set_cmap(self.parent.parent.config['Colormap'])
             self.plot.set_clim(cbar_min,cbar_max)
 
         #elif isinstance(subject,LineoutPanel):
@@ -120,7 +120,7 @@ class PlotPanel(wx.Panel):
 
         self.fig.clear()
 
-        self.fig.set_size_inches((self.config['Width'],self.config['Height']))
+        self.fig.set_size_inches((self.parent.parent.config['Width'],self.parent.parent.config['Height']))
 
         self.apply_config()
 
@@ -135,7 +135,7 @@ class PlotPanel(wx.Panel):
             origin='lower',
             interpolation="nearest")
   
-        self.plot.set_cmap(self.config['Colormap'])
+        self.plot.set_cmap(self.parent.parent.config['Colormap'])
         self.colorbar = self.fig.colorbar(self.plot)
 
         self.set_labels()
@@ -146,16 +146,16 @@ class PlotPanel(wx.Panel):
         self.Layout()
 
     def set_labels(self):
-        self.axes.set_ylabel(self.config['Ylabel'])
-        self.axes.set_xlabel(self.config['Xlabel'])
+        self.axes.set_ylabel(self.parent.parent.config['Ylabel'])
+        self.axes.set_xlabel(self.parent.parent.config['Xlabel'])
 
-        self.colorbar.set_label(self.config['Cblabel'])
-        if not self.config['Xtickformat'] == 'auto':
-            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.config['Xtickformat']))
-        if not self.config['Ytickformat'] == 'auto':
-            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.config['Ytickformat']))
-        if not self.config['Cbtickformat'] == 'auto':
-            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(self.config['Cbtickformat']))
+        self.colorbar.set_label(self.parent.parent.config['Cblabel'])
+        if not self.parent.parent.config['Xtickformat'] == 'auto':
+            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.config['Xtickformat']))
+        if not self.parent.parent.config['Ytickformat'] == 'auto':
+            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.config['Ytickformat']))
+        if not self.parent.parent.config['Cbtickformat'] == 'auto':
+            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.config['Cbtickformat']))
             self.colorbar.update_ticks()
 
 
@@ -166,11 +166,11 @@ class PlotPanel(wx.Panel):
         # import pdb; pdb.set_trace()
         # Apply plt.rcParams
 
-        logging.info("Font now {}".format(self.config['Font']))
-        plt.rcParams['font.family'] = self.config['Font']
-        plt.rcParams['font.size'] = self.config['Fontsize']
-        plt.rcParams['xtick.major.size'] = self.config['Xticklength']
-        plt.rcParams['ytick.major.size'] = self.config['Yticklength']
+        logging.info("Font now {}".format(self.parent.parent.config['Font']))
+        plt.rcParams['font.family'] = self.parent.parent.config['Font']
+        plt.rcParams['font.size'] = self.parent.parent.config['Fontsize']
+        plt.rcParams['xtick.major.size'] = self.parent.parent.config['Xticklength']
+        plt.rcParams['ytick.major.size'] = self.parent.parent.config['Yticklength']
 
 
 

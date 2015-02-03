@@ -1,6 +1,9 @@
 import os
 import sys
 import re
+import wx
+import wx.lib.customtreectrl as customtreectrl
+
 
 def read_columns(string):
     """
@@ -30,3 +33,9 @@ def resource_path(relative_path):
     return os.path.join(application_path, relative_path)
 
 
+class LoadFileDialog(customtreectrl.CustomTreeCtrl):
+    FOLDER,ERROR,FILE = range(3)
+
+    def __init__(self, parent, *args, **kwargs):
+
+        super(LoadFileDialog,self).__init__(parent, *args, **kwargs)
