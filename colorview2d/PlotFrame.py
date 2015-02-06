@@ -7,6 +7,9 @@ import matplotlib as mpl
 from View import View
 from LineoutFrame import LineoutPanel
 
+from pydispatch import dispatcher
+import Signal
+
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
     NavigationToolbar2WxAgg as NavigationToolbar
@@ -65,9 +68,34 @@ class PlotPanel(wx.Panel):
         # Call all sizing routines
         self.Layout()
 
-    def update(self,subject=None):
-        from View import View
-        from MainFrame import MainPanel
+        # Connect all events related to the plot to the respective handlers
+        dispatcher.connect(self.handle_update_color, signal = Signal.PLOT_UPDATE_COLOR, sender=dispatcher.Any)
+        dispatcher.connect(self.handle_change_colormap, signal = Signal.PLOT_CHANGE_COLORMAP, sender=dispatcher.Any)
+        dispatcher.connect(self.handle_update_datafile, signal = Signal.PLOT_UPDATE_DATAFILE, sender=dispatcher.Any)
+        dispatcher.connect(self.handle_draw_plot_anew, signal = Signal.PLOT_DRAW_ANEW, sender=self.parent.parent)
+        dispatcher.connect(self.handle_update_canvas, signal = Signal.PLOT_UPDATE_CANVAS, sender=dispatcher.Any)
+        dispatcher.connect(self.handle_config_changed, signal = Signal.PLOT_CHANGE_CONFIG, sender=dispatcher.Any)
+
+    def handle_change_colormap(self,sender,colormap = None):
+        self.plot.set_cmap(colormap)
+        self.update()
+        
+    def handle_update_color(self,sender,minval = None,maxval = None):
+        # import pdb; pdb.set_trace()
+        self.plot.set_clim(minval,maxval)
+        self.update()
+
+    def handle_update_datafile(self,sender,datafile = None):
+        self.plot.set_data(datafile.Zdata)
+        self.plot.set_extent([datafile.Xleft,datafile.Xright,datafile.Ybottom,datafile.Ytop])
+        self.axes.set_xlim(datafile.Xleft,datafile.Xright)
+        self.axes.set_ylim(datafile.Ybottom,datafile.Ytop)
+        self.update()
+
+    def handle_update_canvas(self):
+        self.update()
+        
+    def update(self):
         """
         The call-back function of the Plotpanel. It observes the MainPanel and the View object.
         The reaction to a notification event is specific to the caller.
@@ -79,34 +107,12 @@ class PlotPanel(wx.Panel):
      
         """
         
-        if isinstance(subject,View):
-            self.plot.set_data(subject.get_data())
-            self.plot.set_extent([subject.datafile.Xleft,subject.datafile.Xright,subject.datafile.Ybottom,subject.datafile.Ytop])
-
-            self.axes.set_xlim(subject.datafile.Xleft,subject.datafile.Xright)
-            self.axes.set_ylim(subject.datafile.Ybottom,subject.datafile.Ytop)
-            
-        elif isinstance(subject,MainPanel):
-            width = subject.widthspin.GetValue()
-            centre = subject.centrespin.GetValue()
-
-            cbar_min = centre - width/2.
-            cbar_max = centre + width/2.
-            # import pdb; pdb.set_trace()
-            self.plot.set_cmap(self.parent.parent.config['Colormap'])
-            self.plot.set_clim(cbar_min,cbar_max)
-
-        #elif isinstance(subject,LineoutPanel):
-            #self.axes.relim()
-            #self.axes.autoscale_view(True,True,True)
-            #import pdb;pdb.set_trace()
-
         self.plot.changed()
         self.canvas.draw()
 
 
 
-    def draw_plot(self):
+    def handle_draw_plot_anew(self,sender,view = None, config = None):
         """
         Draws a plot of the datafile object in the MainFrame.
 
@@ -120,14 +126,9 @@ class PlotPanel(wx.Panel):
 
         self.fig.clear()
 
-        self.fig.set_size_inches((self.parent.parent.config['Width'],self.parent.parent.config['Height']))
-
-        self.apply_config()
+        self.apply_config_pre_plot(config)
 
         self.axes = self.fig.add_subplot(111)
-
-
-        view = self.parent.parent.view
 
         self.plot = self.axes.imshow(view.get_data(),
             extent=[view.datafile.Xleft,view.datafile.Xright,view.datafile.Ybottom,view.datafile.Ytop],
@@ -135,42 +136,47 @@ class PlotPanel(wx.Panel):
             origin='lower',
             interpolation="nearest")
   
-        self.plot.set_cmap(self.parent.parent.config['Colormap'])
         self.colorbar = self.fig.colorbar(self.plot)
 
-        self.set_labels()
+        self.apply_config_post_plot(config)
 
         self.fig.tight_layout()
 
         self.canvas.draw()
         self.Layout()
 
-    def set_labels(self):
-        self.axes.set_ylabel(self.parent.parent.config['Ylabel'])
-        self.axes.set_xlabel(self.parent.parent.config['Xlabel'])
+    def apply_config_post_plot(self,config):
+        self.axes.set_ylabel(config['Ylabel'])
+        self.axes.set_xlabel(config['Xlabel'])
 
-        self.colorbar.set_label(self.parent.parent.config['Cblabel'])
-        if not self.parent.parent.config['Xtickformat'] == 'auto':
-            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.config['Xtickformat']))
-        if not self.parent.parent.config['Ytickformat'] == 'auto':
-            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.config['Ytickformat']))
-        if not self.parent.parent.config['Cbtickformat'] == 'auto':
-            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(self.parent.parent.config['Cbtickformat']))
+        self.colorbar.set_label(config['Cblabel'])
+        if not config['Xtickformat'] == 'auto':
+            self.axes.xaxis.set_major_formatter(FormatStrFormatter(config['Xtickformat']))
+        if not config['Ytickformat'] == 'auto':
+            self.axes.yaxis.set_major_formatter(FormatStrFormatter(config['Ytickformat']))
+        if not config['Cbtickformat'] == 'auto':
+            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(config['Cbtickformat']))
             self.colorbar.update_ticks()
+        # import pdb; pdb.set_trace()
+        self.plot.set_cmap(config['Colormap'])
 
 
-    def apply_config(self):
+    def apply_config_pre_plot(self,config):
         """
         Applies the ticks and labels stored in the MainFrame.
         """
         # import pdb; pdb.set_trace()
         # Apply plt.rcParams
 
-        logging.info("Font now {}".format(self.parent.parent.config['Font']))
-        plt.rcParams['font.family'] = self.parent.parent.config['Font']
-        plt.rcParams['font.size'] = self.parent.parent.config['Fontsize']
-        plt.rcParams['xtick.major.size'] = self.parent.parent.config['Xticklength']
-        plt.rcParams['ytick.major.size'] = self.parent.parent.config['Yticklength']
+        logging.info("Font now {}".format(config['Font']))
+        plt.rcParams['font.family'] = config['Font']
+        plt.rcParams['font.size'] = config['Fontsize']
+        plt.rcParams['xtick.major.size'] = config['Xticklength']
+        plt.rcParams['ytick.major.size'] = config['Yticklength']
+        self.fig.set_size_inches((config['Width'],config['Height']))
 
 
 
+
+    def handle_config_changed(self, sender, config = None):
+        self.handle_draw_plot_anew(self,config = config, view = self.parent.parent.view)

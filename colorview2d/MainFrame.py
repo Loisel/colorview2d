@@ -17,7 +17,6 @@ from wx.lib.masked import NumCtrl,EVT_NUM
 
 import toolbox
 from View import View
-from Subject import Subject
 
 from PlotFrame import PlotFrame
 from LineoutFrame import LineoutFrame
@@ -27,6 +26,9 @@ from SlopeExFrame import SlopeExFrame
 # Experimental feature
 # from BinaryFitFrame import BinaryFitFrame
 from LabelticksFrame import LabelticksFrame
+
+from pydispatch import dispatcher
+import Signal
 
 import Utils
 import yaml
@@ -123,7 +125,7 @@ class MainFrame(wx.Frame):
         # The MainPanel contains all the colorbar controls
         # The PlotPanel listens to the MainPanel for changes (e.g. to the colorbar)
         self.MainPanel = MainPanel(self)
-        self.MainPanel.attach(self.PlotFrame.PlotPanel)
+        # self.MainPanel.attach(self.PlotFrame.PlotPanel)
 
         # The frame with the settings (font, ticks, labels, etc)
         self.LabelticksFrame = LabelticksFrame(self)
@@ -131,19 +133,16 @@ class MainFrame(wx.Frame):
         # The view is created and signals the PlotPanel and the MainPanel
         # upon changes to the modlist and the datafile
         self.view = View(gpfile.gpfile(data_filepath,self.config['datafilecolumns']))
-        self.view.attach(self.PlotFrame.PlotPanel)
-        self.view.attach(self.MainPanel)
+        #self.view.attach(self.PlotFrame.PlotPanel)
+        #self.view.attach(self.MainPanel)
 
         # We have to draw the plot first before we can apply the modlist
-        self.PlotFrame.PlotPanel.draw_plot()
+        dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
 
         # The other tools are intialized
         self.LinecutFrame = LinecutFrame(self)
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
-
-        # BinaryFitFrame and the MainPanel creation require a view to exist
-        self.MainPanel.create_panel()
 
         # We apply the modlist to the view. We can not do that earlier, because all the
         # plot infrastructure has to be there.
@@ -406,7 +405,7 @@ class MainFrame(wx.Frame):
             self.config, modliststring = self.parse_config(path)
             # The datafile is replaced
             self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
-            self.PlotFrame.PlotPanel.draw_plot()
+            dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
             # ... and the pipeline is applied
             self.view.load_pipeline_string(modliststring)
 
@@ -414,7 +413,7 @@ class MainFrame(wx.Frame):
             self.SetTitle(self.title+self.view.datafile.filename)
             # The slope extraction utility has to know about the correct dimensions
             # of the datafile (the FloatSpin tools need the x/y range)
-            self.SlopeExFrame.SlopeExPanel.update()
+            # self.SlopeExFrame.SlopeExPanel.update()
                 
         
     def on_load_plot(self,event):
@@ -460,7 +459,7 @@ class MainFrame(wx.Frame):
             # By changing the datafile, the view notifies its observers
             # and the plot is updated
             self.view.set_datafile(gpfile.gpfile(path,columns))
-            self.PlotFrame.PlotPanel.draw_plot()
+            dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
 
             if reset_settings:
                 cfgpath = Utils.resource_path('default.cv2d')
@@ -473,12 +472,11 @@ class MainFrame(wx.Frame):
             self.SetTitle(self.title+self.view.datafile.filename)
             self.SlopeExFrame.SlopeExPanel.update()
             
-class MainPanel(Subject,wx.Panel):
+class MainPanel(wx.Panel):
     """
     Panel with colorbar controls and checkboxes for the plot modifications.
     """
     def __init__(self, parent):
-        Subject.__init__(self)
         wx.Panel.__init__(self, parent)
         self.parent = parent
         
@@ -486,7 +484,10 @@ class MainPanel(Subject,wx.Panel):
         self.spin_divider = 10000
         self.slide_divider = 1000
         
-
+        dispatcher.connect(self.handle_update_colorctrl, signal = Signal.UPDATE_COLORCTRL, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_add_modwidgets, signal = Signal.ADD_MODWIDGETS, sender = dispatcher.Any)
+        self.create_panel()
+        
     def create_panel(self):
         """
         Create, show and layout all widgets in the panel.
@@ -494,10 +495,8 @@ class MainPanel(Subject,wx.Panel):
         
         self.colorwidgetlist = []
 
-        view  = self.parent.view
-        
-        maxval = view.datafile.Zmax
-        minval = view.datafile.Zmin
+        maxval = 1.
+        minval = -1.
 
         spin_incr = np.absolute(maxval-minval)/self.spin_divider
         slide_incr = np.absolute(maxval-minval)/self.slide_divider
@@ -669,28 +668,29 @@ class MainPanel(Subject,wx.Panel):
 
 #        self.parent.PlotFrame.PlotPanel.draw_plot()
 
-        self.SetSizerAndFit(self.mainbox)
-        self.mainbox.Fit(self)
 
+
+    def handle_add_modwidgets(self,sender,modlist = None):
         # And finally we add all the modification plugins
 
         try:
-            for mod in self.parent.view.modlist[:-1]:
+            for mod in modlist[:-1]:
                 self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
                 self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
-            self.ModBoxSizer.Add(self.parent.view.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
+            self.ModBoxSizer.Add(modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
         except IndexError:
             logging.warning('No plugins found!')
 
+        self.SetSizerAndFit(self.mainbox)
+        self.mainbox.Fit(self)
+
 
         
-    def update(self,subject):
+    def handle_update_colorctrl(self, sender, minval = None, maxval = None):
         """
         Initialize the controls for the colorbar according to the datafile.
         """
         
-        maxval = subject.datafile.get_Zmax()
-        minval = subject.datafile.get_Zmin()
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
 
@@ -749,9 +749,7 @@ class MainPanel(Subject,wx.Panel):
 
         self.colormapselect.SetStringSelection(self.parent.config['Colormap'])
 
-        self.notify()
-
-
+        dispatcher.send(Signal.PLOT_UPDATE_COLOR,self, minval = minval, maxval = maxval)
         
 
 
@@ -760,8 +758,10 @@ class MainPanel(Subject,wx.Panel):
         Applies a colormap selected in the dropdown menu.
         """
         
-        self.parent.config['Colormap'] = str(self.colormapselect.GetValue())
-        self.notify()
+        colormap = str(self.colormapselect.GetValue())
+        self.parent.config['Colormap'] = colormap
+
+        dispatcher.send(Signal.PLOT_CHANGE_COLORMAP,self,colormap = colormap)
 
     def on_scroll(self,event):
         """
@@ -782,10 +782,6 @@ class MainPanel(Subject,wx.Panel):
             self.centrespin.SetValue(centre)
             event.SetEventObject(self.centrespin)
             self.on_floatspin(event)
-
-
-
-
 
 
 
@@ -825,5 +821,5 @@ class MainPanel(Subject,wx.Panel):
         self.centreslider.SetValue(centre)
         self.widthslider.SetValue(width)
 
-        self.notify()
+        dispatcher.send(Signal.PLOT_UPDATE_COLOR, minval = minval, maxval = maxval)
 

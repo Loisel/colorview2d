@@ -4,6 +4,9 @@ import matplotlib.font_manager as fm
 from wx.lib.masked import NumCtrl,EVT_NUM
 from FloatValidator import FloatValidator
 
+import Signal
+from pydispatch import dispatcher
+
 class LabelticksFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Axes and tick labels")
@@ -226,7 +229,7 @@ class LabelticksPanel(wx.Panel):
         self.config['Width'] = self.WidthBox.GetValue()
         self.config['Height'] = self.HeightBox.GetValue()
         self.config['Dpi'] = self.DpiBox.GetValue()
-        self.parent.parent.PlotFrame.PlotPanel.draw_plot()
+        dispatcher.send(Signal.PLOT_CHANGE_CONFIG, self, config = self.config)
 
     def on_cancel(self,event):
         self.parent.Hide()

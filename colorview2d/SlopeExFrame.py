@@ -1,11 +1,14 @@
 import wx
 import os
-from Subject import Subject
+
 import numpy as np
 import wx.lib.mixins.listctrl as listmix
 from floatspin import FloatSpin,EVT_FLOATSPIN
 
 from MyLine import MyLine
+
+import Signal
+from pydispatch import dispatcher
 
 class SlopeExFrame(wx.Frame):
     def __init__(self,parent):
@@ -16,13 +19,11 @@ class SlopeExFrame(wx.Frame):
         self.Bind(wx.EVT_SHOW,self.SlopeExPanel.on_show)
 
 
-class SlopeExPanel(Subject,wx.Panel):
+class SlopeExPanel(wx.Panel):
     def __init__(self,parent):
         wx.Panel.__init__(self,parent)
-        Subject.__init__(self)
-        self.parent = parent
 
-        self.attach(self.parent.parent.PlotFrame.PlotPanel)
+        self.parent = parent
 
         self.plotpanel = self.parent.parent.PlotFrame.PlotPanel
 
@@ -105,7 +106,9 @@ class SlopeExPanel(Subject,wx.Panel):
 
         self.SetSizerAndFit(self.mainbox)
 
-    def update(self):
+        dispatcher.connect(self.handle_new_plot, Signal.PLOT_DRAW_ANEW, sender = dispatcher.Any)
+        
+    def handle_new_plot(self):
         self.linelist = []
         self.lineindex = -1
         self.evenodd = 0
@@ -235,7 +238,7 @@ class SlopeExPanel(Subject,wx.Panel):
                 for line in self.linelist:
                     line.addline(self.plotpanel.axes)
 
-            self.notify()
+            dispatcher.send(Signal.UPDATE_CANVAS,self)
 
             self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
 
@@ -262,7 +265,7 @@ class SlopeExPanel(Subject,wx.Panel):
             self.left = False
             self.right = False
 
-            self.notify()
+            dispatcher.send(Signal.UPDATE_CANVAS,self)
 
 
     def on_removeline(self,event):
@@ -273,7 +276,7 @@ class SlopeExPanel(Subject,wx.Panel):
 
             self.linelist.pop().removeline()
 
-            self.notify()
+            dispatcher.send(Signal.UPDATE_CANVAS,self)
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
@@ -307,7 +310,7 @@ class SlopeExPanel(Subject,wx.Panel):
                 line.removeline()
         #self.linelist = []
 
-        self.notify()
+        dispatcher.send(Signal.UPDATE_CANVAS,self)
 
         self.parent.Hide()
 
@@ -354,7 +357,7 @@ class SlopeExPanel(Subject,wx.Panel):
         #self.currentline.figure.tight_layout()
         #self.currentline.figure.canvas.draw()
         #self.parent.parent.PlotFrame.PlotPanel.fig.tight_layout()
-        self.notify()
+        dispatcher.send(Signal.UPDATE_CANVAS,self)
         #self.parent.Layout()
 
     def update_spinctrl(self):

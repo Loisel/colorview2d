@@ -13,7 +13,8 @@ linecut series extraction and a linetrace viewer.
 :license: GPLv3, see LICENSE for more details
 """
 import wx
-
+import logging
+from pydispatch import dispatcher
 from MainFrame import MainFrame
 
 
@@ -28,8 +29,11 @@ class Colorview2d(wx.App):
         self.datafilename = datafilename
         self.columns = columns
         self.cv2dpath = cv2dpath
+        dispatcher.connect(self.handle_print_events)
         wx.App.__init__(self, redirect, filename)
 
+    def handle_print_events(self,sender,signal):
+        logging.debug('{} sent signal: {}'.format(sender,signal))
         
     def OnInit(self):
         # create frame here

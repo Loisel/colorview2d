@@ -1,5 +1,5 @@
 import wx
-from Subject import Subject
+
 import numpy as np
 import matplotlib.pyplot as plt
 from MyLine import MyLine
@@ -8,6 +8,8 @@ from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
     NavigationToolbar2WxAgg as NavigationToolbar
 
+import Signal
+from pydispatch import dispatcher
 
 class LineoutFrame(wx.Frame):
     def __init__(self,parent):
@@ -18,13 +20,11 @@ class LineoutFrame(wx.Frame):
         self.Bind(wx.EVT_SHOW,self.LineoutPanel.on_show)
 
 
-class LineoutPanel(wx.Panel,Subject):
+class LineoutPanel(wx.Panel):
     def __init__(self,parent):
         wx.Panel.__init__(self,parent)
-        Subject.__init__(self)
 
         self.parent = parent
-        self.attach(self.parent.parent.PlotFrame.PlotPanel)
 
         self.x1 = None
         self.x2 = None
@@ -94,7 +94,7 @@ class LineoutPanel(wx.Panel,Subject):
             self.right = False
 
             #self.plotpanel.draw_plot()
-            self.notify()
+            dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
             
             self.plotpanel.axes.autoscale(False)
 
@@ -116,7 +116,7 @@ class LineoutPanel(wx.Panel,Subject):
                 line.removeline()
         self.linelist = []
 
-        self.notify()
+        dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
         self.parent.Hide()
 
     def on_click(self,event):
@@ -143,7 +143,7 @@ class LineoutPanel(wx.Panel,Subject):
         else:
             self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
 
-        self.notify()
+        dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
 
         #self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
 

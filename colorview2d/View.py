@@ -1,12 +1,13 @@
-from Subject import Subject
 import logging
 import yaml
 import Mods
 import Utils
 
-class View(Subject):
+from pydispatch import dispatcher
+import Signal
+
+class View:
     def __init__(self,datafile,modlist=[]):
-        Subject.__init__(self)
         self.create_modlist()
         self.pipeline = []
         self.set_datafile(datafile)
@@ -27,6 +28,8 @@ class View(Subject):
 
         #import pdb;pdb.set_trace()
         self.modlist = [pInfo.plugin_object for pInfo in self.modman.getAllPlugins()]
+        dispatcher.send(Signal.ADD_MODWIDGETS,self,modlist=self.modlist)
+    
         
     def dump_pipeline_string(self):
         # return yaml.dump_all(self.modlist, explicit_start=True)
@@ -82,7 +85,8 @@ class View(Subject):
             else:
                 logging.warning('No mod candidate found for {}.'.format(modtuple[0]))
         
-        self.notify()
+        dispatcher.send(Signal.PLOT_UPDATE_DATAFILE, datafile = self.datafile)
+        dispatcher.send(Signal.UPDATE_COLORCTRL, minval = self.datafile.Zmin, maxval = self.datafile.Zmax)
 
     def reset(self):
         """
