@@ -179,4 +179,14 @@ class PlotPanel(wx.Panel):
 
 
     def handle_config_changed(self, sender, config = None):
+        """
+        Respond to a 'PLOT_UPDATE_CONFIG' event.
+        Updates the plot with the settings in the config file.
+
+        Note:
+        The view object has to be passed to handle_draw_plot_anew which is not nice.
+        Unfortunately it is not easy to update the font.family property of mpl without
+        redrawing the whole thing.
+
+        """
         self.handle_draw_plot_anew(self,config = config, view = self.parent.parent.view)
