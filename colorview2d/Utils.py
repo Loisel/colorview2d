@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import wx
+import logging
 import wx.lib.customtreectrl as customtreectrl
 
 
@@ -27,11 +28,22 @@ def resource_path(relative_path):
     """ Get absolute path to  """
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
+        logging.info("I'm packed to an exe, application path: {}".format(application_path))
     elif __file__:
         application_path = os.path.dirname(__file__)
-
+		
     return os.path.join(application_path, relative_path)
 
+def mod_path(relative_path):
+
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+        logging.info("The mods are supposed to be in {}.".format(base_path))
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)	
 
 class SettingsDialog(wx.Dialog):
     def __init__(self,parent,*args,**kwargs):
