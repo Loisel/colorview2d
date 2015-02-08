@@ -1,11 +1,11 @@
-import numpy as np
-from Mods import IMod
+from colorview2d.Mods import IMod
+from colorview2d.Mods.ModWidget import ModWidget
+from colorview2d.floatspin import FloatSpin,EVT_FLOATSPIN
 
-from Mods.ModWidget import ModWidget
+import numpy as np
 
 import wx
 
-from floatspin import FloatSpin,EVT_FLOATSPIN
 
 
 """

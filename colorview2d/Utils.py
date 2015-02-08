@@ -25,12 +25,13 @@ def write_columns(tup):
 
         
 def resource_path(relative_path):
-    """ Get absolute path to  """
+    """Return the absolute path to a resource"""
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
         logging.info("I'm packed to an exe, application path: {}".format(application_path))
-    elif __file__:
+    else:
         application_path = os.path.dirname(__file__)
+        logging.info("Resource path: {}".format(application_path))
 		
     return os.path.join(application_path, relative_path)
 

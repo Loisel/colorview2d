@@ -1,5 +1,5 @@
-#import Mods
-from Mods.ModWidget import ModWidget
+from colorview2d.Mods.ModWidget import ModWidget
+
 import logging
 from yapsy.IPlugin import IPlugin
 import abc

@@ -1,8 +1,9 @@
+from colorview2d.Mods import IMod
+from colorview2d.Mods.ModWidget import ModWidget
+
 import numpy as np
 import wx
 
-from Mods import IMod
-from Mods.ModWidget import ModWidget
 
 """
 This mod flips the the datafile along x or y direction.

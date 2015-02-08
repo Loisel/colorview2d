@@ -1,8 +1,8 @@
-import numpy as np
-from Mods import IMod
+from colorview2d.Mods import IMod
+from colorview2d.Mods.ModWidget import ModWidget
+from colorview2d.FloatValidator import FloatValidator
 
-from Mods.ModWidget import ModWidget
-from FloatValidator import FloatValidator
+import numpy as np
 import wx
 
 """

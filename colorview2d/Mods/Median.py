@@ -1,7 +1,7 @@
-import numpy as np
-from Mods import IMod
+from colorview2d.Mods import IMod
+from colorview2d.Mods.ModWidget import ModWidget
 
-from Mods.ModWidget import ModWidget
+import numpy as np
 
 from wx.lib.masked import NumCtrl,EVT_NUM
 

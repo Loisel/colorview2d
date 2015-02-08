@@ -1,9 +1,9 @@
 import sys
 import logging
-import Utils
 from optparse import OptionParser
 
 from colorview2d import Colorview2d
+import Utils
 
 def main(args=None):
 

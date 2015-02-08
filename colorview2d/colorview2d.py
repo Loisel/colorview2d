@@ -12,10 +12,13 @@ linecut series extraction and a linetrace viewer.
 :copyright: 2014 by Alois Dirnaichner, see AUTHORS for more details
 :license: GPLv3, see LICENSE for more details
 """
+
+from MainFrame import MainFrame
+
 import wx
 import logging
 from pydispatch import dispatcher
-from MainFrame import MainFrame
+
 
 
 class Colorview2d(wx.App):
