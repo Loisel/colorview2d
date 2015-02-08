@@ -1,3 +1,9 @@
+--- Version BETA 0.50
+
+- Added an event bus using PyDispatcher.
+- Bugfixes. Imports in the Mods folder now work correctly.
+
+
 --- Version BETA 0.49
 
 - Added rotate and flip plugins.

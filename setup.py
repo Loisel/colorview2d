@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='colorview2d',
-      version='0.49',
+      version='0.50',
       description='2d color plotting tool',
       author='Alois Dirnaichner',
       author_email='alo.dir@gmail.com',
@@ -14,6 +14,7 @@ setup(name='colorview2d',
       package_data={'':['demo.dat','default.cv2d'],},
       include_package_data=True,
       install_requires=['wxPython',
+                'PyDispatcher',
                 'yapsy',
                 'matplotlib',
                 'scipy',
