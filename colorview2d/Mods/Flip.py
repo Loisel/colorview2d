@@ -42,7 +42,7 @@ class FlipWidget(ModWidget):
         if self.mod.args:
             self.radio_lr.SetValue(True)
         else:
-            self.radio_up.SetValue(True)
+            self.radio_ud.SetValue(True)
 
     def on_radio(self,event):
         if self.mod.active:

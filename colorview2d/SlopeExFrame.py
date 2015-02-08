@@ -238,7 +238,7 @@ class SlopeExPanel(wx.Panel):
                 for line in self.linelist:
                     line.addline(self.plotpanel.axes)
 
-            dispatcher.send(Signal.UPDATE_CANVAS,self)
+            dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
 
             self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
 
@@ -265,7 +265,7 @@ class SlopeExPanel(wx.Panel):
             self.left = False
             self.right = False
 
-            dispatcher.send(Signal.UPDATE_CANVAS,self)
+            dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
 
 
     def on_removeline(self,event):
@@ -276,7 +276,7 @@ class SlopeExPanel(wx.Panel):
 
             self.linelist.pop().removeline()
 
-            dispatcher.send(Signal.UPDATE_CANVAS,self)
+            dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
@@ -310,7 +310,7 @@ class SlopeExPanel(wx.Panel):
                 line.removeline()
         #self.linelist = []
 
-        dispatcher.send(Signal.UPDATE_CANVAS,self)
+        dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
 
         self.parent.Hide()
 
@@ -357,7 +357,7 @@ class SlopeExPanel(wx.Panel):
         #self.currentline.figure.tight_layout()
         #self.currentline.figure.canvas.draw()
         #self.parent.parent.PlotFrame.PlotPanel.fig.tight_layout()
-        dispatcher.send(Signal.UPDATE_CANVAS,self)
+        dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
         #self.parent.Layout()
 
     def update_spinctrl(self):

@@ -455,22 +455,21 @@ class MainFrame(wx.Frame):
                 reset_settings = dlg.GetSettingChk()
                 dlg.Destroy()
 
-            # We set the new datafile in the view
-            # By changing the datafile, the view notifies its observers
-            # and the plot is updated
-            self.view.set_datafile(gpfile.gpfile(path,columns))
-            dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
+                # We set the new datafile in the view
+                # By changing the datafile, the view notifies its observers
+                # and the plot is updated
+                self.view.set_datafile(gpfile.gpfile(path,columns))
+                dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
 
-            if reset_settings:
-                cfgpath = Utils.resource_path('default.cv2d')
-                self.config,pipelinestring = self.parse_config(cfgpath)
-                self.view.reset()
+                if reset_settings:
+                    cfgpath = Utils.resource_path('default.cv2d')
+                    self.config,pipelinestring = self.parse_config(cfgpath)
+                    self.view.reset()
 
                 
-            self.config['datafilename'] = os.path.basename(path)
+                self.config['datafilename'] = os.path.basename(path)
 
-            self.SetTitle(self.title+self.view.datafile.filename)
-            self.SlopeExFrame.SlopeExPanel.update()
+                self.SetTitle(self.title+self.view.datafile.filename)
             
 class MainPanel(wx.Panel):
     """
