@@ -1,6 +1,6 @@
 import numpy as np
 
-from colorview2d.Mods import IMod
+from colorview2d import IMod
 
 """
 This mod performs a derivation of the datafile with respect to the y-axis.

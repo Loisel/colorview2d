@@ -1,12 +1,12 @@
-from colorview2d.Mods.ModWidget import ModWidget
+from ModWidget import ModWidget
 from pydispatch import dispatcher
-import colorview2d.Signal as Signal
+import Signal
 
 import logging
 from yapsy.IPlugin import IPlugin
 import abc
 
-import colorview2d.View as View
+import View
 
 """
 Interface to the mod plugin class.

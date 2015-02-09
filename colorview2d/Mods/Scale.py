@@ -1,5 +1,5 @@
-from colorview2d.Mods import IMod
-from colorview2d.Mods.ModWidget import ModWidget
+from colorview2d import IMod
+from colorview2d.ModWidget import ModWidget
 from colorview2d.FloatValidator import FloatValidator
 
 import numpy as np
