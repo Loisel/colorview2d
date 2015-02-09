@@ -15,8 +15,7 @@ from floatslider import FloatSlider
 
 from wx.lib.masked import NumCtrl,EVT_NUM
 
-import toolbox
-from View import View
+import View
 
 from PlotFrame import PlotFrame
 from LineoutFrame import LineoutFrame
@@ -83,24 +82,24 @@ class MainFrame(wx.Frame):
         # The config file is parsed, 
         # modlist is a string variable that is given to the view
         # to create the mod pipeline
-        self.config,modlist = self.parse_config(cfgpath)
+        View.parse_config(cfgpath)
 
         # If a datafilename is specified, we use this instead of the default
         # Same for the the columns        
         if datafilename:
-            self.config['datafilename'] = datafilename
-            data_filepath = os.path.join(os.getcwd(),self.config['datafilename'])
+            View.State.config['datafilename'] = datafilename
+            data_filepath = os.path.join(os.getcwd(), View.State.config['datafilename'])
             if columns:
-                self.config['datafilecolumns'] = Utils.read_columns(columns)
+                View.State.config['datafilecolumns'] = Utils.read_columns(columns)
         else:
             # The path to the datafile, either in the cwd or in the lib (default)
             # We assume that the datafile is in the same dir as the cv2d dile
-            data_filepath = os.path.join(os.path.dirname(cfgpath),self.config['datafilename'])
+            data_filepath = os.path.join(os.path.dirname(cfgpath), View.State.config['datafilename'])
 
             
         # We select the default matplotlib font
         # To that end we catch the warning -- not particularly elegant
-        if self.config['Font'] == 'default':
+        if View.State.config['Font'] == 'default':
             for font in plt.rcParams['font.sans-serif']:
                 with warnings.catch_warnings(record=True) as w:
                     warnings.simplefilter("always")
@@ -108,11 +107,11 @@ class MainFrame(wx.Frame):
                     if len(w):
                         continue
                     else:
-                        self.config['Font'] = font
+                        View.State.config['Font'] = font
                         break
 
         # Set title for the frame and align
-        self.SetTitle(self.title+self.config['datafilename'])
+        self.SetTitle(self.title+View.State.config['datafilename'])
         self.alignToBottomRight()
 
         # Create menu and status bar
@@ -130,26 +129,22 @@ class MainFrame(wx.Frame):
         # The frame with the settings (font, ticks, labels, etc)
         self.LabelticksFrame = LabelticksFrame(self)
 
-        # The view is created and signals the PlotPanel and the MainPanel
-        # upon changes to the modlist and the datafile
-        self.view = View(gpfile.gpfile(data_filepath,self.config['datafilecolumns']))
-        #self.view.attach(self.PlotFrame.PlotPanel)
-        #self.view.attach(self.MainPanel)
+        # The datafile of the global view object is set
+        View.set_datafile(gpfile.gpfile(data_filepath,View.State.config['datafilecolumns']))
 
         # We have to draw the plot first before we can apply the modlist
-        dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
+        dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
 
         # The other tools are intialized
         self.LinecutFrame = LinecutFrame(self)
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
 
-        # We apply the modlist to the view. We can not do that earlier, because all the
-        # plot infrastructure has to be there.
-        # set_list notifies the PlotPanel
-
-        self.view.load_pipeline_string(modlist)
-
+        # Creating the list of plugins (modlist).
+        # Then the mod pipeline is applied (if any)
+        View.create_modlist()
+        View.apply_pipeline()
+        
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
 
@@ -164,29 +159,6 @@ class MainFrame(wx.Frame):
         y = dh-1.5*h
         self.SetPosition((x, y))
 
-    def parse_config(self,cfgpath):
-        """
-        Load the configuration and the modlist from the config file
-        specified in the YAML format.
-
-        Returns:
-          config (dict): A configuration dict.
-          modlist (list): A list of modification objects from the toolbox
-                          module
-        """
-        
-        with open(cfgpath) as file:
-            doclist = yaml.load_all(file)
-            # The config dict is the first yaml document
-            config = doclist.next()
-            # The pipeline string is the second. It is optional.
-            try:
-                modlist = doclist.next()
-            except StopIteration:
-                modlist = '[]'
-            logging.info('Pipeline string found: {}'.format(modlist))
-
-            return config,modlist
 
     def create_menu(self):
         """
@@ -297,19 +269,19 @@ class MainFrame(wx.Frame):
 # data modifications: {}
 #
 # axes: {} | {} | {}
-""".format(self.config['datafilename'],self.view.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
+""".format(View.State.config['datafilename'],View.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
             message="Save plot data as...",
             defaultDir=os.getcwd(),
-            defaultFile=self.config['datafilename'],
+            defaultFile=View.State.config['datafilename'],
             wildcard=file_choices,
             style=wx.SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.view.datafile.save(path,comment)
+            View.State.datafile.save(path,comment)
 
 
     def on_save_pdf(self, event):
@@ -318,7 +290,7 @@ class MainFrame(wx.Frame):
 
         """
         file_choices = "PDF (*.pdf)|*.pdf"
-        defaultfilename = os.path.splitext(self.config['datafilename'])[0]+'.pdf'
+        defaultfilename = os.path.splitext(View.State.config['datafilename'])[0]+'.pdf'
 
         dlg = wx.FileDialog(
             self,
@@ -338,7 +310,7 @@ class MainFrame(wx.Frame):
 
         """
         file_choices = "CV2D (*.cv2d)|*.cv2d"
-        defaultfilename = os.path.splitext(self.config['datafilename'])[0]+'.cv2d'
+        defaultfilename = os.path.splitext(View.State.config['datafilename'])[0]+'.cv2d'
 
         dlg = wx.FileDialog(
             self,
@@ -352,9 +324,9 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
             with open(path,'w') as stream:
                 # We write first the config dict
-                yaml.dump(self.config,stream,explicit_start=True)
+                yaml.dump(View.State.config,stream,explicit_start=True)
                 # ... and second the pipeline string
-                yaml.dump(self.view.dump_pipeline_string(),stream,explicit_start=True)
+                yaml.dump(View.dump_pipeline_string(),stream,explicit_start=True)
                 
 
     def on_exit(self, event):
@@ -402,15 +374,15 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
             dirname = os.path.dirname(path)
             # The config is overwritten
-            self.config, modliststring = self.parse_config(path)
+            View.parse_config(path)
             # The datafile is replaced
-            self.view.set_datafile(gpfile.gpfile(os.path.join(dirname,self.config['datafilename']),self.config['datafilecolumns']))
-            dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
+            View.set_datafile(gpfile.gpfile(os.path.join(dirname,View.State.config['datafilename']),View.State.config['datafilecolumns']))
+            dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
             # ... and the pipeline is applied
-            self.view.load_pipeline_string(modliststring)
+            View.apply_pipeline()
 
             # We make sure the title is correct
-            self.SetTitle(self.title+self.view.datafile.filename)
+            self.SetTitle(self.title+View.State.datafile.filename)
             # The slope extraction utility has to know about the correct dimensions
             # of the datafile (the FloatSpin tools need the x/y range)
             # self.SlopeExFrame.SlopeExPanel.update()
@@ -458,18 +430,18 @@ class MainFrame(wx.Frame):
                 # We set the new datafile in the view
                 # By changing the datafile, the view notifies its observers
                 # and the plot is updated
-                self.view.set_datafile(gpfile.gpfile(path,columns))
-                dispatcher.send(Signal.PLOT_DRAW_ANEW,self, view = self.view, config = self.config)
+                View.set_datafile(gpfile.gpfile(path,columns))
+                dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
 
                 if reset_settings:
                     cfgpath = Utils.resource_path('default.cv2d')
-                    self.config,pipelinestring = self.parse_config(cfgpath)
-                    self.view.reset()
+                    View.parse_config(cfgpath)
+                    View.reset()
 
                 
-                self.config['datafilename'] = os.path.basename(path)
+                View.State.config['datafilename'] = os.path.basename(path)
 
-                self.SetTitle(self.title+self.view.datafile.filename)
+                self.SetTitle(self.title+View.State.datafile.filename)
             
 class MainPanel(wx.Panel):
     """
@@ -511,7 +483,7 @@ class MainPanel(wx.Panel):
         for m in self.maps:
             self.colormapselect.Append(m)
 
-        self.colormapselect.SetStringSelection(self.parent.config['Colormap'])
+        self.colormapselect.SetStringSelection(View.State.config['Colormap'])
 
         self.Bind(wx.EVT_COMBOBOX,self.on_colormapselect,self.colormapselect)
 
@@ -669,14 +641,14 @@ class MainPanel(wx.Panel):
 
 
 
-    def handle_add_modwidgets(self,sender,modlist = None):
+    def handle_add_modwidgets(self,sender):
         # And finally we add all the modification plugins
 
         try:
-            for mod in modlist[:-1]:
+            for mod in View.State.modlist[:-1]:
                 self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
                 self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
-            self.ModBoxSizer.Add(modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
+            self.ModBoxSizer.Add(View.State.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
         except IndexError:
             logging.warning('No plugins found!')
 
@@ -685,10 +657,13 @@ class MainPanel(wx.Panel):
 
 
         
-    def handle_update_colorctrl(self, sender, minval = None, maxval = None):
+    def handle_update_colorctrl(self, sender):
         """
         Initialize the controls for the colorbar according to the datafile.
         """
+
+        minval = View.State.datafile.Zmin
+        maxval = View.State.datafile.Zmax
         
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
@@ -746,7 +721,7 @@ class MainPanel(wx.Panel):
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
-        self.colormapselect.SetStringSelection(self.parent.config['Colormap'])
+        self.colormapselect.SetStringSelection(View.State.config['Colormap'])
 
         dispatcher.send(Signal.PLOT_UPDATE_COLOR,self, minval = minval, maxval = maxval)
         
@@ -758,9 +733,9 @@ class MainPanel(wx.Panel):
         """
         
         colormap = str(self.colormapselect.GetValue())
-        self.parent.config['Colormap'] = colormap
+        View.State.config['Colormap'] = colormap
 
-        dispatcher.send(Signal.PLOT_CHANGE_COLORMAP,self,colormap = colormap)
+        dispatcher.send(Signal.PLOT_CHANGE_COLORMAP,self)
 
     def on_scroll(self,event):
         """

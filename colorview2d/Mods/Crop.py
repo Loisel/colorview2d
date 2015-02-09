@@ -4,6 +4,8 @@ from colorview2d.floatspin import FloatSpin,EVT_FLOATSPIN
 
 import numpy as np
 
+import colorview2d.View as View
+
 import wx
 
 
@@ -92,10 +94,10 @@ class CropWidget(ModWidget):
             self.mod.activate()            
 
     def on_full_range_button(self,event):
-        self.xrange_left_spin.SetValue(self.mod.view.datafile.Xleft)
-        self.xrange_right_spin.SetValue(self.mod.view.datafile.Xright)
-        self.yrange_bottom_spin.SetValue(self.mod.view.datafile.Ybottom)
-        self.yrange_top_spin.SetValue(self.mod.view.datafile.Ytop)
+        self.xrange_left_spin.SetValue(View.State.datafile.Xleft)
+        self.xrange_right_spin.SetValue(View.State.datafile.Xright)
+        self.yrange_bottom_spin.SetValue(View.State.datafile.Ybottom)
+        self.yrange_top_spin.SetValue(View.State.datafile.Ytop)
             
 
 class Crop(IMod.IMod):
@@ -110,17 +112,8 @@ class Crop(IMod.IMod):
         self.args = (0.,0.,0.,0.)
 
     def apply(self,datafile):
-        xleft_idx = datafile.get_xrange_idx(self.args[0])
-        xright_idx = datafile.get_xrange_idx(self.args[1])
-        ybottom_idx = datafile.get_yrange_idx(self.args[2])
-        ytop_idx = datafile.get_yrange_idx(self.args[3])
-
-        #print "left {} right {} bottom {} top {}".format(xleft_idx,xright_idx,ybottom_idx,ytop_idx)
-        #datafile.report()
-
-        datafile.set_xyrange(datafile.Xrange[xleft_idx:xright_idx],datafile.Yrange[ybottom_idx:ytop_idx])
-        datafile.set_Zdata(datafile.get_region(xleft_idx,xright_idx,ybottom_idx,ytop_idx))
-
+        datafile.crop(self.args[0],self.args[1],self.args[2],self.args[3])
+        
     def create_widget(self,panel):
         self.panel = panel
         self.widget = CropWidget(self,self.panel)

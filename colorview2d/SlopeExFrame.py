@@ -10,6 +10,8 @@ from MyLine import MyLine
 import Signal
 from pydispatch import dispatcher
 
+import View
+
 class SlopeExFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Linear slope extraction",size=(430,320))
@@ -113,10 +115,10 @@ class SlopeExPanel(wx.Panel):
         self.lineindex = -1
         self.evenodd = 0
         self.linelistbox.DeleteAllItems()
-        max_xval = self.parent.parent.view.datafile.Xmax
-        min_xval = self.parent.parent.view.datafile.Xmin
-        max_yval = self.parent.parent.view.datafile.Ymax
-        min_yval = self.parent.parent.view.datafile.Ymin
+        max_xval = View.State.datafile.Xmax
+        min_xval = View.State.datafile.Xmin
+        max_yval = View.State.datafile.Ymax
+        min_yval = View.State.datafile.Ymin
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
         self.x1spin.SetRange(min_xval,max_xval)
@@ -134,10 +136,10 @@ class SlopeExPanel(wx.Panel):
 
         self.pointwidgetlist = []
         
-        max_xval = self.parent.parent.view.datafile.Xmax
-        min_xval = self.parent.parent.view.datafile.Xmin
-        max_yval = self.parent.parent.view.datafile.Ymax
-        min_yval = self.parent.parent.view.datafile.Ymin
+        max_xval = View.State.datafile.Xmax
+        min_xval = View.State.datafile.Xmin
+        max_yval = View.State.datafile.Ymax
+        min_yval = View.State.datafile.Ymin
 
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000

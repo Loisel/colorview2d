@@ -26,10 +26,46 @@ import copy
 
 
 class gpfile():
-    """A gnuplot data file object"""
+    """
+    A gnuplot data file object.
+
+    Attributes:
+      Zdata (numpy.array): The two dimensional numpy arrray containing the actual data.
+      Xrange (numpy.array): A one dimensional array representing the x axis range.
+      Yrange (numpy.array): A one dimensional array representing the y axis range.
+      Xleft, Xright (float): The values on the left/right of the x axis.
+      Ytop, Ybottom (float): The values on the top/bottom of the y axis.
+      Zmin, Zmax (float): The min/max values of the 2d array.
+      Xmin, Xmax (float): The min/max values of the x axis range.
+      Ymin, Ymax (float): The min/max values of the y axis range.
+      filename (string): The filename of the ASCII file containing the data.
+
+    Functions:
+      set_xyrange(numpy.array, numpy.array): Set the ranges of the datafile.
+      set_Zdata(numpy.array): Set the array containing the data.
+      deep_copy(): Return a deep copy of the object.
+      save(string): Save the array and the axes to a file with a specified filename.
+      rotate_cw(): Rotate the datafile including the axes clockwise.
+      rotate_ccw(): Rotate the datafile including the axes counter-clockwise.
+      flip_ud(): Flip the datafile including the axes up-down.
+      flip_lr(): Flip the datafile including the axes left-right.
+      
+      
+    """
 
     def __init__(self,*args):
+        """
+        The datafile object can be initiated by the use of a filename and a column tuple.
+        Alternatively, one can provide a 2d array of data. The axes are then just given by
+        the index ranges.
 
+        Args:
+          filename (string): A gnuplot datafile to be read in.
+          columns (tuple): A tuple of three integers to specify the three columns.
+        or:
+          data (numpy.array): Alternatively, a 2d numpy array can be provided.
+        """
+        # We decide if we are called using a filename string
         if isinstance(args[0],basestring):
 
             self.filename = args[0]
@@ -42,14 +78,15 @@ class gpfile():
                 if data[i,0] != data[i-1,0]:
                     self.Bsize = i
                     break
-            self.set_xyrange(data[self.Bsize-1::self.Bsize,0],data[:self.Bsize,1])
             
             self.Bnum = nlines/self.Bsize
             self.Lnum = self.Bsize*self.Bnum
             # Store the data
 
             self.Zdata = (sp.resize(data[:self.Lnum,2],(self.Bnum,self.Bsize)).T)
+            self.set_xyrange(data[self.Bsize-1::self.Bsize,0],data[:self.Bsize,1])
 
+        # ... or by providing a numpy array.
         elif isinstance(args[0],sp.ndarray):
             self.Zdata = args[0]
             self.filename = "defaultfilename.dat"
@@ -61,18 +98,24 @@ class gpfile():
             raise ValueError("Received {}. gpfile has to be initiated by filename or array.".format(args))
             
 
-
-
         self.Zmax = sp.amax(self.Zdata)
         self.Zmin = sp.amin(self.Zdata)
-        #self.Zdata_Original = sp.copy(self.Zdata)
 
-    def set_filename(self,filename):
-        self.filename = filename
 
     def set_xyrange(self,Xrange,Yrange):
+        """
+        Specify the x and y ranges of the datafile.
+
+        Args:
+          Xrange, Yrange (numpy.array): One dimensional numpy array with the same
+                                        length as the width/height of the data.
+        """
+        if Xrange.shape[0] != self.Zdata.shape[1] or Yrange.shape[0] != self.Zdata.shape[0]:
+            raise ValueError("Provided ranges are not compatible with the datafile.")
+        
         self.Xrange = Xrange
         self.Yrange = Yrange
+
 
         self.Xleft = self.Xrange[0]
         self.Xright = self.Xrange[-1]
@@ -86,14 +129,15 @@ class gpfile():
         self.Ymin = sp.amin(self.Yrange)
         self.Ymax = sp.amax(self.Yrange)
 
-        #self.Xrange = sp.linspace(self.Xmin,self.Xmax,self.Bnum)
-        #self.Yrange = sp.linspace(self.Ymin,self.Ymax,self.Bsize)
-
         self.dX = (self.Xrange[-1] - self.Xrange[0])/(self.Xrange.size-1)
         self.dY = (self.Yrange[-1] - self.Yrange[0])/(self.Yrange.size-1)
 
 
     def set_Zdata(self,Zdata):
+        """
+        Replace the 2d array containing the data.
+        The Zmin and Zmax values are updated.
+        """
         self.Zdata = Zdata
 
         self.Zmax = sp.amax(self.Zdata)
@@ -101,6 +145,9 @@ class gpfile():
 
 
     def report(self):
+        """
+        Print a datafile report to the standart output.
+        """
 
         print "Report for file {}:\n".format(self.filename)
         print "There are {} lines containing {} blocks with {} lines each.\n".format(self.Lnum,self.Bnum,self.Bsize)
@@ -108,6 +155,12 @@ class gpfile():
 Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0],self.Yrange[-1])
 
     def deep_copy(self):
+        """
+        Deep copy the datafile object.
+
+        Returns:
+          A copy of the datafile object.
+        """
 
         tmp = copy.deepcopy(self)
         tmp.Zdata = sp.copy(self.Zdata)
@@ -119,6 +172,10 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
     def save(self,fname,comment=""):
         """
         Saves a datafile to a file with filename in the gnuplot format.
+
+        Args:
+          fname (string): The filename of the ASCII file to contain the data.
+          comment (string, optional): A comment that is added to the top of the file.
         """
 
         f = open(fname,'w')
@@ -132,7 +189,66 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
 
         f.close()
 
+
+    def rotate_cw(self):
+        """
+        Rotate the datafile clockwise. The axes are updated as well.
+        """
+        self.set_Zdata(sp.rot90(self.Zdata,k=1))
+        self.set_xyrange(self.Yrange,self.Xrange[::-1])
+
+    def rotate_ccw(self):
+        """
+        Rotate the datafile counter-clockwise. The axes are updated as well.
+        """
+        self.set_Zdata(sp.rot90(self.Zdata,k=3))
+        self.set_xyrange(self.Yrange[::-1],self.Xrange)
+
+    def flip_lr(self):
+        """
+        Flip the left and the right side of the datafile. The axes are updated as well.
+        """
+        self.set_Zdata(sp.fliplr(self.Zdata))
+        self.set_xyrange(self.Xrange[::-1],self.Yrange)
+
+    def flip_ud(self):
+        """
+        Flip the up and the down side of the datafile. The axes are updated as well.
+        """
+        self.set_Zdata(sp.flipud(self.Zdata))
+        self.set_xyrange(self.Xrange,self.Yrange[::-1])
+
+
+    def crop(self,xleft,xright,ybottom,ytop):
+        """
+        Crop the datafile to a subset of the array specifiying the corners of the subset in
+        units of the axes ranges.
+
+        Args:
+          xleft,xright,ybottom,ytop (floats): The corners of the subset
+        """
+        xleft_idx = self.get_xrange_idx(xleft)
+        xright_idx = self.get_xrange_idx(xright)
+        ybottom_idx = self.get_yrange_idx(ybottom)
+        ytop_idx = self.get_yrange_idx(ytop)
+        
+        try:
+            self.set_Zdata(self.Zdata[ybottom_idx:ytop_idx,xleft_idx:xright_idx])
+            self.set_xyrange(self.Xrange[xleft_idx:xright_idx],self.Yrange[ybottom_idx:ytop_idx])
+        except IndexError as e:
+            print "Value not in data range: ",e
+
+
     def get_xrange_idx(self,value):
+        """
+        Return the nearest index of a value within the x axis range.
+
+        Args:
+          value (float): A value in the range of the x axis
+
+        Returns:
+          index (integer): The closest index on the x axis range.
+        """
         idx = int(sp.rint(abs(value-self.Xleft)/abs(self.dX)))
 
         try:
@@ -143,6 +259,15 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
             
 
     def get_yrange_idx(self,value):
+        """
+        Return the nearest index of a value within the y axis range.
+
+        Args:
+          value (float): A value in the range of the y axis
+
+        Returns:
+          index (integer): The closest index on the y axis range.
+        """
         idx = int(sp.rint(abs(value-self.Ybottom)/abs(self.dY)))
         try:
             self.Yrange[idx]
@@ -150,32 +275,12 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
             print "Index {} deduced from value {} not within range.".format(idx,value)
         return idx
 
+    def set_filename(self,filename):
+        self.filename = filename
+
+
     def get_Zmax(self):
         return self.Zdata.max()
 
     def get_Zmin(self):
         return self.Zdata.min()
-
-    def rotate_cw(self):
-        self.set_xyrange(self.Yrange,self.Xrange[::-1])
-        self.set_Zdata(sp.rot90(self.Zdata,k=1))
-
-
-    def rotate_ccw(self):
-        self.set_xyrange(self.Yrange[::-1],self.Xrange)
-        self.set_Zdata(sp.rot90(self.Zdata,k=3))
-
-    def flip_lr(self):
-        self.set_xyrange(self.Xrange[::-1],self.Yrange)
-        self.set_Zdata(sp.fliplr(self.Zdata))
-
-    def flip_ud(self):
-        self.set_xyrange(self.Xrange,self.Yrange[::-1])
-        self.set_Zdata(sp.flipud(self.Zdata))
-
-
-    def get_region(self,xleft,xright,ybottom,ytop):
-        try:
-            return self.Zdata[ybottom:ytop,xleft:xright]
-        except IndexError as e:
-            print "Index not in data range:",e

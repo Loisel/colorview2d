@@ -11,6 +11,8 @@ from matplotlib.backends.backend_wxagg import \
 import Signal
 from pydispatch import dispatcher
 
+import View
+
 class LineoutFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Line trace tool",size=(800,600))
@@ -85,7 +87,7 @@ class LineoutPanel(wx.Panel):
         if event.GetShow():
 
             self.axes.cla()            
-            self.axes.set_ylabel(self.parent.parent.config['Cblabel'])
+            self.axes.set_ylabel(View.State.config['Cblabel'])
             self.axes.set_xlabel(r'$\sqrt{\Delta_x^2+\Delta_y^2}$')
             self.fig.tight_layout()
             self.canvas.draw()
@@ -150,7 +152,7 @@ class LineoutPanel(wx.Panel):
 
     def draw_linetrace(self):
 
-        datafile = self.parent.parent.view.datafile
+        datafile = View.State.datafile
 
         idx1 = self.closest_idx(self.x1,datafile.Xrange)
         idx2 = self.closest_idx(self.x2,datafile.Xrange)

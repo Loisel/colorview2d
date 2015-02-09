@@ -6,6 +6,8 @@ import logging
 from yapsy.IPlugin import IPlugin
 import abc
 
+import colorview2d.View as View
+
 """
 Interface to the mod plugin class.
 Specification of the minimum requirements of a plugin implementation.
@@ -55,8 +57,7 @@ class IMod(IPlugin):
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(True)
 
-        dispatcher.send(Signal.VIEW_ADD_MOD_TO_PIPELINE,self, title = self.title, args = self.args)
-        #self.view.add_mod_to_pipeline(self.title,self.args)
+        View.add_mod_to_pipeline(self.title,self.args)
         
     def deactivate(self):
         """
@@ -71,8 +72,8 @@ class IMod(IPlugin):
         self.active = False
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(False)
-        dispatcher.send(Signal.VIEW_REMOVE_MOD_FROM_PIPELINE,self, title = self.title)
-        # self.view.remove_mod_from_pipeline(self.title)
+
+        View.remove_mod_from_pipeline(self.title)
         
 
     def update_widget(self):

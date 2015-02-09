@@ -22,8 +22,3 @@ PANEL_ADD_MODWIDGETS = 'Add mod widgets to the MainPanel'
 
 # Signals for the Mod object
 MOD_WIDGET_UPDATE = 'Update the mod widgets from the information in the mod'
-
-
-# Signals for the View object
-VIEW_ADD_MOD_TO_PIPELINE = 'Add a mod to the view mod pipeline'
-VIEW_REMOVE_MOD_FROM_PIPELINE = 'Remove a mod from the view mod pipeline'

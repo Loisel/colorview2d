@@ -4,6 +4,8 @@ import numpy as np
 from floatspin import FloatSpin,EVT_FLOATSPIN
 from Utils import resource_path
 
+import View
+
 class LinecutFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Linecut series extraction")
@@ -38,20 +40,17 @@ class LinecutPanel(wx.Panel):
 
         self.mainbox.Add(self.hbox1)
 
-        self.datafile = self.parent.parent.view.datafile 
 
-        #self.parent.parent.datafile.report()
-
-        x_mininterval = np.absolute(self.datafile.dX)
-        y_mininterval = np.absolute(self.datafile.dY)
+        x_mininterval = np.absolute(View.State.datafile.dX)
+        y_mininterval = np.absolute(View.State.datafile.dY)
 
         self.x_minspin_label = wx.StaticText(self, wx.ID_ANY,
             "X range left: ")
 
         self.x_minspin = FloatSpin(self, name='x_min',
-            value=self.datafile.Xleft,
-            min_val=self.datafile.Xmin,
-            max_val=self.datafile.Xmax-x_mininterval,
+            value=View.State.datafile.Xleft,
+            min_val=View.State.datafile.Xmin,
+            max_val=View.State.datafile.Xmax-x_mininterval,
             increment = x_mininterval,
             digits = 3
             )
@@ -62,9 +61,9 @@ class LinecutPanel(wx.Panel):
             "X range right: ")
 
         self.x_maxspin = FloatSpin(self, name='x_max',
-            value=self.datafile.Xright,
-            min_val=self.datafile.Xmin+x_mininterval,
-            max_val=self.datafile.Xmax,
+            value=View.State.datafile.Xright,
+            min_val=View.State.datafile.Xmin+x_mininterval,
+            max_val=View.State.datafile.Xmax,
             increment = x_mininterval,
             digits = 3)
 
@@ -74,9 +73,9 @@ class LinecutPanel(wx.Panel):
             "Interval width (x axis): ")
 
         self.x_intervalspin = FloatSpin(self, name='x_interval',           
-                                        value=np.absolute(self.datafile.Xmax-self.datafile.Xmin)/10,
+                                        value=np.absolute(View.State.datafile.Xmax-View.State.datafile.Xmin)/10,
                                         min_val=x_mininterval,
-                                        max_val=np.absolute(self.datafile.Xmax-self.datafile.Xmin)-x_mininterval,
+                                        max_val=np.absolute(View.State.datafile.Xmax-View.State.datafile.Xmin)-x_mininterval,
                                         increment = x_mininterval,
                                         digits = 3
                                     )
@@ -90,9 +89,9 @@ class LinecutPanel(wx.Panel):
             "Y range bottom: ")
 
         self.y_minspin = FloatSpin(self, name='y_min',
-            value=self.datafile.Ybottom,
-            min_val=self.datafile.Ymin,
-            max_val=self.datafile.Ymax-y_mininterval,
+            value=View.State.datafile.Ybottom,
+            min_val=View.State.datafile.Ymin,
+            max_val=View.State.datafile.Ymax-y_mininterval,
             increment = y_mininterval,
             digits = 3
             )
@@ -103,9 +102,9 @@ class LinecutPanel(wx.Panel):
             "Y range max: ")
 
         self.y_maxspin = FloatSpin(self, name='y_max',
-            value=self.datafile.Ytop,
-            min_val=self.datafile.Ymin+y_mininterval,
-            max_val=self.datafile.Ymax,
+            value=View.State.datafile.Ytop,
+            min_val=View.State.datafile.Ymin+y_mininterval,
+            max_val=View.State.datafile.Ymax,
             increment = y_mininterval,
             digits = 3)
 
@@ -115,9 +114,9 @@ class LinecutPanel(wx.Panel):
             "Interval width (y axis): ")
 
         self.y_intervalspin = FloatSpin(self, name='y_interval',
-                                        value=np.absolute(self.datafile.Ymax-self.datafile.Ymin)/10,
+                                        value=np.absolute(View.State.datafile.Ymax-View.State.datafile.Ymin)/10,
                                         min_val=y_mininterval,
-                                        max_val=np.absolute(self.datafile.Ymax-self.datafile.Ymin)-y_mininterval,
+                                        max_val=np.absolute(View.State.datafile.Ymax-View.State.datafile.Ymin)-y_mininterval,
                                         increment = y_mininterval,
                                         digits = 3)
 
@@ -206,16 +205,16 @@ class LinecutPanel(wx.Panel):
             return
 
             
-        #print "Total zdata shape {}".format(self.datafile.Zdata.shape)
-        total_xrange = self.datafile.Xrange
-        total_yrange = self.datafile.Yrange
+        #print "Total zdata shape {}".format(View.State.datafile.Zdata.shape)
+        total_xrange = View.State.datafile.Xrange
+        total_yrange = View.State.datafile.Yrange
 
-        x_left_idx = self.datafile.get_xrange_idx(self.x_minspin.GetValue())
-        x_right_idx = self.datafile.get_xrange_idx(self.x_maxspin.GetValue())
+        x_left_idx = View.State.datafile.get_xrange_idx(self.x_minspin.GetValue())
+        x_right_idx = View.State.datafile.get_xrange_idx(self.x_maxspin.GetValue())
         x_sign = np.sign(x_right_idx-x_left_idx)
 
-        y_bottom_idx = self.datafile.get_yrange_idx(self.y_minspin.GetValue())
-        y_top_idx = self.datafile.get_yrange_idx(self.y_maxspin.GetValue())
+        y_bottom_idx = View.State.datafile.get_yrange_idx(self.y_minspin.GetValue())
+        y_top_idx = View.State.datafile.get_yrange_idx(self.y_maxspin.GetValue())
         y_sign = np.sign(y_top_idx-y_bottom_idx)
 
         if self.radioy.GetValue():
@@ -233,10 +232,10 @@ class LinecutPanel(wx.Panel):
                 
                 #fname.replace("$","{}".format(total_xrange[position]))
 
-                #print "Zdata shape : {}".format(self.datafile.Zdata[:,position].shape)
+                #print "Zdata shape : {}".format(View.State.datafile.Zdata[:,position].shape)
                 #print "Yrange shape : {}".format(total_yrange.shape)
 
-                linecut = np.vstack([total_yrange[y_bottom_idx:y_top_idx:y_sign],self.datafile.Zdata[y_bottom_idx:y_top_idx:y_sign,position]])
+                linecut = np.vstack([total_yrange[y_bottom_idx:y_top_idx:y_sign],View.State.datafile.Zdata[y_bottom_idx:y_top_idx:y_sign,position]])
                 # print linecut.shape
                 
                 with open(fname.format(xval),'w') as file:
@@ -262,11 +261,11 @@ class LinecutPanel(wx.Panel):
                 yval = total_yrange[position]
 
                 # print "y position {}".format(position)
-                # print "Zdata shape : {}".format(self.datafile.Zdata[position,x_start_idx:x_end].shape)
+                # print "Zdata shape : {}".format(View.State.datafile.Zdata[position,x_start_idx:x_end].shape)
                 # print "Xrange shape : {}".format(total_xrange[x_start_idx:x_end].shape)
 
 
-                linecut = np.vstack([total_xrange[x_left_idx:x_right_idx:x_sign],self.datafile.Zdata[position,x_left_idx:x_right_idx:x_sign]])
+                linecut = np.vstack([total_xrange[x_left_idx:x_right_idx:x_sign],View.State.datafile.Zdata[position,x_left_idx:x_right_idx:x_sign]])
 
                 with open(fname.format(yval),'w') as file:
                     file.write("# Linecut along x axis at y = {}\n".format(yval))
@@ -334,8 +333,8 @@ class LinecutPanel(wx.Panel):
 
     def drawGrid(self):
 
-        total_xrange = self.datafile.Xrange
-        total_yrange = self.datafile.Yrange
+        total_xrange = View.State.datafile.Xrange
+        total_yrange = View.State.datafile.Yrange
 
         if self.linelist:
             for line in self.linelist:
