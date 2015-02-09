@@ -62,10 +62,7 @@ class Rotate(IMod.IMod):
         IMod.IMod.__init__(self)
         self.args = True
         
-    def apply(self):
-
-        datafile = self.view.datafile
-        # implement rotate
+    def apply(self,datafile):
         if self.args:
             datafile.rotate_cw()
         else:

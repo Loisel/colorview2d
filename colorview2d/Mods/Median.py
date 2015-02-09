@@ -69,8 +69,7 @@ class Median(IMod.IMod):
         IMod.IMod.__init__(self)
         self.args = (0.,0.)
 
-    def apply(self):
-        datafile = self.view.datafile
+    def apply(self,datafile):
         datafile.set_Zdata(median_filter(datafile.Zdata,size=self.args))
         
     def create_widget(self,panel):

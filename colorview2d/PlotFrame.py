@@ -135,8 +135,12 @@ class PlotPanel(wx.Panel):
             aspect='auto',
             origin='lower',
             interpolation="nearest")
-  
-        self.colorbar = self.fig.colorbar(self.plot)
+
+        
+        if not config['Cbtickformat'] == 'auto':
+            self.colorbar = self.fig.colorbar(self.plot, format = FormatStrFormatter(config['Cbtickformat']))
+        else:
+            self.colorbar = self.fig.colorbar(self.plot)
 
         self.apply_config_post_plot(config)
 
@@ -154,10 +158,6 @@ class PlotPanel(wx.Panel):
             self.axes.xaxis.set_major_formatter(FormatStrFormatter(config['Xtickformat']))
         if not config['Ytickformat'] == 'auto':
             self.axes.yaxis.set_major_formatter(FormatStrFormatter(config['Ytickformat']))
-        if not config['Cbtickformat'] == 'auto':
-            self.colorbar.yaxis.set_major_formatter(FormatStrFormatter(config['Cbtickformat']))
-            self.colorbar.update_ticks()
-        # import pdb; pdb.set_trace()
         self.plot.set_cmap(config['Colormap'])
 
 

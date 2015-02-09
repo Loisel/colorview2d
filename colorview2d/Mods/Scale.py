@@ -54,9 +54,7 @@ class Scale(IMod.IMod):
         IMod.IMod.__init__(self)
         self.args = 1.
 
-    def apply(self):
-        datafile = self.view.datafile
-
+    def apply(self,datafile):
         datafile.set_Zdata(datafile.Zdata*self.args)
 
         

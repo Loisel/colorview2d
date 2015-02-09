@@ -109,9 +109,7 @@ class Crop(IMod.IMod):
         IMod.IMod.__init__(self)
         self.args = (0.,0.,0.,0.)
 
-    def apply(self):
-        datafile = self.view.datafile
-
+    def apply(self,datafile):
         xleft_idx = datafile.get_xrange_idx(self.args[0])
         xright_idx = datafile.get_xrange_idx(self.args[1])
         ybottom_idx = datafile.get_yrange_idx(self.args[2])

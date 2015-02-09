@@ -62,10 +62,7 @@ class Flip(IMod.IMod):
         IMod.IMod.__init__(self)
         self.args = True
         
-    def apply(self):
-
-        datafile = self.view.datafile
-
+    def apply(self,datafile):
         if self.args:
             datafile.flip_lr()
         else:

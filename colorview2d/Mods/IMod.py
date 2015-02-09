@@ -1,4 +1,6 @@
 from colorview2d.Mods.ModWidget import ModWidget
+from pydispatch import dispatcher
+import colorview2d.Signal as Signal
 
 import logging
 from yapsy.IPlugin import IPlugin
@@ -52,7 +54,9 @@ class IMod(IPlugin):
         self.active = True
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(True)
-        self.view.add_mod_to_pipeline(self.title,self.args)
+
+        dispatcher.send(Signal.VIEW_ADD_MOD_TO_PIPELINE,self, title = self.title, args = self.args)
+        #self.view.add_mod_to_pipeline(self.title,self.args)
         
     def deactivate(self):
         """
@@ -67,15 +71,9 @@ class IMod(IPlugin):
         self.active = False
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(False)
-        self.view.remove_mod_from_pipeline(self.title)
+        dispatcher.send(Signal.VIEW_REMOVE_MOD_FROM_PIPELINE,self, title = self.title)
+        # self.view.remove_mod_from_pipeline(self.title)
         
-
-    def register(self,view):
-        """
-        Register the mod with a view object. This method is not meant to
-        be overwritten.
-        """
-        self.view = view
 
     def update_widget(self):
         """
@@ -106,7 +104,7 @@ class IMod(IPlugin):
         return self.widget
         
         
-    def apply(self):
+    def apply(self,datafile):
         """
         This method has to be overwritten to provide some useful
         functionality.

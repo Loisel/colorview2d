@@ -11,6 +11,9 @@ class View:
         self.create_modlist()
         self.pipeline = []
         self.set_datafile(datafile)
+        dispatcher.connect(self.handle_remove_mod_from_pipeline, Signal.VIEW_REMOVE_MOD_FROM_PIPELINE)
+        dispatcher.connect(self.handle_add_mod_to_pipeline, Signal.VIEW_ADD_MOD_TO_PIPELINE)
+        
         #self.config = {}
 
     def create_modlist(self):
@@ -21,14 +24,8 @@ class View:
 
         self.modman.collectPlugins()
 
-        # Activate
-        for pluginInfo in self.modman.getAllPlugins():
-            #self.modman.activatePluginByName(pluginInfo.name)
-            pluginInfo.plugin_object.register(self)
-
-        #import pdb;pdb.set_trace()
         self.modlist = [pInfo.plugin_object for pInfo in self.modman.getAllPlugins()]
-        dispatcher.send(Signal.ADD_MODWIDGETS,self,modlist=self.modlist)
+        dispatcher.send(Signal.PANEL_ADD_MODWIDGETS,self,modlist=self.modlist)
     
         
     def dump_pipeline_string(self):
@@ -47,19 +44,19 @@ class View:
                 
         return None
 
-    def add_mod_to_pipeline(self,modstring,args):
+    def handle_add_mod_to_pipeline(self, sender, title = None, args = None):
         """
         Adds a mod to the pipeline by its title string and its arguments.
         """
-        self.pipeline.append((modstring,args))
+        self.pipeline.append((title,args))
         self.apply_pipeline()
 
-    def remove_mod_from_pipeline(self,modstring):
+    def handle_remove_mod_from_pipeline(self, sender, title = None):
         """
         Removes a mod from the pipeline by its title string.
         """
         for modtuple in self.pipeline:
-            if modtuple[0] == modstring:
+            if modtuple[0] == title:
                 self.pipeline.remove(modtuple)
 
         self.apply_pipeline()
@@ -81,12 +78,12 @@ class View:
             if mod:
                 mod.set_args(modtuple[1])
                 mod.update_widget()
-                mod.apply()
+                mod.apply(self.datafile)
             else:
                 logging.warning('No mod candidate found for {}.'.format(modtuple[0]))
         
         dispatcher.send(Signal.PLOT_UPDATE_DATAFILE, datafile = self.datafile)
-        dispatcher.send(Signal.UPDATE_COLORCTRL, minval = self.datafile.Zmin, maxval = self.datafile.Zmax)
+        dispatcher.send(Signal.PANEL_UPDATE_COLORCTRL, minval = self.datafile.Zmin, maxval = self.datafile.Zmax)
 
     def reset(self):
         """

@@ -483,8 +483,8 @@ class MainPanel(wx.Panel):
         self.spin_divider = 10000
         self.slide_divider = 1000
         
-        dispatcher.connect(self.handle_update_colorctrl, signal = Signal.UPDATE_COLORCTRL, sender = dispatcher.Any)
-        dispatcher.connect(self.handle_add_modwidgets, signal = Signal.ADD_MODWIDGETS, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_update_colorctrl, signal = Signal.PANEL_UPDATE_COLORCTRL, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_add_modwidgets, signal = Signal.PANEL_ADD_MODWIDGETS, sender = dispatcher.Any)
         self.create_panel()
         
     def create_panel(self):

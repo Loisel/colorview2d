@@ -16,9 +16,7 @@ class Derive(IMod.IMod):
     def __init__(self):
         IMod.IMod.__init__(self)
         
-    def apply(self):
-
-        datafile = self.view.datafile
+    def apply(self,datafile):
 
         dydata= datafile.Zdata
         dydata[:-1] = np.diff(datafile.Zdata,axis=0)
