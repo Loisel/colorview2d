@@ -134,13 +134,7 @@ class PlotPanel(wx.Panel):
             extent=[view.datafile.Xleft,view.datafile.Xright,view.datafile.Ybottom,view.datafile.Ytop],
             aspect='auto',
             origin='lower',
-            interpolation="nearest")
-
-        
-        if not config['Cbtickformat'] == 'auto':
-            self.colorbar = self.fig.colorbar(self.plot, format = FormatStrFormatter(config['Cbtickformat']))
-        else:
-            self.colorbar = self.fig.colorbar(self.plot)
+            interpolation="nearest")        
 
         self.apply_config_post_plot(config)
 
@@ -150,9 +144,18 @@ class PlotPanel(wx.Panel):
         self.Layout()
 
     def apply_config_post_plot(self,config):
+        """
+        The function applies the rest of the configuration to the plot.
+        Note that the colorbar is created in this function because
+        colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter(string)) does not work properly.
+        """
         self.axes.set_ylabel(config['Ylabel'])
         self.axes.set_xlabel(config['Xlabel'])
 
+        if not config['Cbtickformat'] == 'auto':
+            self.colorbar = self.fig.colorbar(self.plot, format = FormatStrFormatter(config['Cbtickformat']))
+        else:
+            self.colorbar = self.fig.colorbar(self.plot)
         self.colorbar.set_label(config['Cblabel'])
         if not config['Xtickformat'] == 'auto':
             self.axes.xaxis.set_major_formatter(FormatStrFormatter(config['Xtickformat']))
@@ -164,9 +167,10 @@ class PlotPanel(wx.Panel):
     def apply_config_pre_plot(self,config):
         """
         Applies the ticks and labels stored in the MainFrame.
+        This function is called before the actual plot is drawn.
+        This pre_plot hook is necessary because the rcParams['font.family']
+        attribute can not be changed after the plot is drawn.
         """
-        # import pdb; pdb.set_trace()
-        # Apply plt.rcParams
 
         logging.info("Font now {}".format(config['Font']))
         plt.rcParams['font.family'] = config['Font']

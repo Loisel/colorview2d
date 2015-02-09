@@ -1,3 +1,11 @@
+"""
+This module contains all signals that are used by colorview2d.
+The signals contain a string specifying the purpose in more detail.
+
+We always put the (main) recipient as the first part of the signal name.
+"""
+
+
 # Signals for the PlotPanel
 PLOT_UPDATE_COLOR = 'Update the colors in the plot'
 PLOT_DRAW_ANEW = 'Redraw the plot from the start'
