@@ -103,7 +103,8 @@ def set_datafile(datafile):
     """
     State.datafile = datafile
     State.original_datafile = datafile.deep_copy()
-    apply_pipeline()
+    if hasattr(State,'modlist'):
+        apply_pipeline()
 
 def parse_config(cfgpath):
     """

@@ -140,8 +140,8 @@ class MainFrame(wx.Frame):
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
 
-        # Creating the list of plugins (modlist).
         # Then the mod pipeline is applied (if any)
+        # Creating the list of plugins (modlist).
         View.create_modlist()
         View.apply_pipeline()
         
@@ -781,7 +781,7 @@ class MainPanel(wx.Panel):
         if evt_obj.GetName() == 'min':
             minval = self.minspin.GetValue()
             centre = (maxval+minval)/2.
-            width = waxval-minval
+            width = maxval-minval
         if evt_obj.GetName() == 'max':
             maxval = self.maxspin.GetValue()
             centre = (maxval+minval)/2.
