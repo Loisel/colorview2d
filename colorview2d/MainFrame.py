@@ -96,19 +96,6 @@ class MainFrame(wx.Frame):
             # We assume that the datafile is in the same dir as the cv2d dile
             data_filepath = os.path.join(os.path.dirname(cfgpath), View.State.config['datafilename'])
 
-            
-        # We select the default matplotlib font
-        # To that end we catch the warning -- not particularly elegant
-        if View.State.config['Font'] == 'default':
-            for font in plt.rcParams['font.sans-serif']:
-                with warnings.catch_warnings(record=True) as w:
-                    warnings.simplefilter("always")
-                    findfont(FontProperties(family=font))
-                    if len(w):
-                        continue
-                    else:
-                        View.State.config['Font'] = font
-                        break
 
         # Set title for the frame and align
         self.SetTitle(self.title+View.State.config['datafilename'])
@@ -302,7 +289,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.PlotFrame.PlotPanel.fig.savefig(path)
+            self.PlotFrame.PlotPanel.fig.savefig(path, dpi = View.State.config['Dpi'])
 
     def on_save_cv2d(self, event):
         """
@@ -427,17 +414,17 @@ class MainFrame(wx.Frame):
                 reset_settings = dlg.GetSettingChk()
                 dlg.Destroy()
 
-                # We set the new datafile in the view
-                # By changing the datafile, the view notifies its observers
-                # and the plot is updated
-                View.set_datafile(gpfile.gpfile(path,columns))
-                dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
 
                 if reset_settings:
                     cfgpath = Utils.resource_path('default.cv2d')
                     View.parse_config(cfgpath)
-                    View.reset()
 
+                # We set the new datafile in the view
+                # By changing the datafile, the view notifies its observers
+                # and the plot is updated
+                View.set_datafile(gpfile.gpfile(path,columns))
+
+                dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
                 
                 View.State.config['datafilename'] = os.path.basename(path)
 
@@ -662,9 +649,23 @@ class MainPanel(wx.Panel):
         Initialize the controls for the colorbar according to the datafile.
         """
 
-        minval = View.State.datafile.Zmin
+        try:
+            maxval_config = float(View.State.config['Cbmax'])
+        except:
+            maxval_config = View.State.datafile.Zmax
+            View.State.config['Cbmax'] = maxval_config
+            logging.debug('No value for Cbmax found in the config. Using Zmax {}'.format(maxval_config))
+
+        try:
+            minval_config = float(View.State.config['Cbmin'])
+        except:
+            minval_config = View.State.datafile.Zmin
+            View.State.config['Cbmin'] = minval_config
+            logging.debug('No value for Cbmin found in the config. Using Zmin {}'.format(minval_config))
+
         maxval = View.State.datafile.Zmax
-        
+        minval = View.State.datafile.Zmin
+                    
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
 
@@ -681,16 +682,15 @@ class MainPanel(wx.Panel):
         self.ColorGridSizer.Detach(self.widthslider)
         self.ColorGridSizer.Detach(self.centreslider)
 
-        # self.ColorGridSizer.Hide(2)
-        # self.ColorGridSizer.Hide(5)
-        # self.ColorGridSizer.Remove(2)
-        # self.ColorGridSizer.Remove(5)
-
+        centreslider_value = (maxval_config + minval_config)/2
+        widthslider_value = maxval_config - minval_config
         
-        self.centreslider = FloatSlider(self,wx.ID_ANY,(maxval+minval)/2,minval,maxval,slide_increment,
-                                    size = (200,15),
-                                    name = 'centreslider')
-        self.widthslider = FloatSlider(self,wx.ID_ANY,maxval-minval,0,maxval-minval,slide_increment,
+        self.centreslider = FloatSlider(self,wx.ID_ANY,
+                                        centreslider_value, minval,maxval, slide_increment,
+                                        size = (200,15),
+                                        name = 'centreslider')
+        self.widthslider = FloatSlider(self,wx.ID_ANY,
+                                       widthslider_value, 0, maxval-minval, slide_increment,
                                        size = (200,15),
                                        name = 'widthslider')
 
@@ -703,27 +703,27 @@ class MainPanel(wx.Panel):
         self.Layout()
 
 
-        self.centrespin.SetRange(minval,maxval)
-        self.widthspin.SetRange(0,maxval-minval+spin_increment)
+        #self.centrespin.SetRange(minval,maxval)
+        #self.widthspin.SetRange(0,maxval-minval+spin_increment)
         self.minspin.SetRange(minval,maxval)
         self.maxspin.SetRange(minval,maxval)
         
-        self.centrespin.SetValue((maxval+minval)/2.)
-        self.widthspin.SetValue(maxval-minval)
-        self.maxspin.SetValue(maxval)
-        self.minspin.SetValue(minval)
+        #self.centrespin.SetValue((maxval+minval)/2.)
+        #self.widthspin.SetValue(maxval-minval)
+        self.maxspin.SetValue(maxval_config)
+        self.minspin.SetValue(minval_config)
 
         #self.widthslider.SetValue(maxval-minval)
         #self.centreslider.SetValue((minval+maxval)/2)
 
-        self.centrespin.SetIncrement(spin_increment)
-        self.widthspin.SetIncrement(spin_increment)
+        #self.centrespin.SetIncrement(spin_increment)
+        #self.widthspin.SetIncrement(spin_increment)
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
         self.colormapselect.SetStringSelection(View.State.config['Colormap'])
 
-        dispatcher.send(Signal.PLOT_UPDATE_COLOR,self, minval = minval, maxval = maxval)
+        dispatcher.send(Signal.PLOT_UPDATE_COLOR,self)
         
 
 
@@ -795,5 +795,8 @@ class MainPanel(wx.Panel):
         self.centreslider.SetValue(centre)
         self.widthslider.SetValue(width)
 
-        dispatcher.send(Signal.PLOT_UPDATE_COLOR, minval = minval, maxval = maxval)
+        View.State.config['Cbmax'] = maxval
+        View.State.config['Cbmin'] = minval
+
+        dispatcher.send(Signal.PLOT_UPDATE_COLOR)
 

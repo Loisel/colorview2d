@@ -5,6 +5,20 @@ import wx
 import logging
 import wx.lib.customtreectrl as customtreectrl
 
+def set_default_font():
+    # We select the default matplotlib font
+    # To that end we catch the warning -- not particularly elegant
+    if View.State.config['Font'] == 'default':
+        for font in plt.rcParams['font.sans-serif']:
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                findfont(FontProperties(family=font))
+                if len(w):
+                    continue
+                else:
+                    View.State.config['Font'] = font
+                    break
+
 
 def read_columns(string):
     """

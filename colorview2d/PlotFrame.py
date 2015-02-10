@@ -80,9 +80,9 @@ class PlotPanel(wx.Panel):
         self.plot.set_cmap(View.State.config['Colormap'])
         self.update()
         
-    def handle_update_color(self,sender,minval = None,maxval = None):
+    def handle_update_color(self,sender):
         # import pdb; pdb.set_trace()
-        self.plot.set_clim(minval,maxval)
+        self.plot.set_clim(View.State.config['Cbmin'],View.State.config['Cbmax'])
         self.update()
 
     def handle_update_datafile(self,sender):
@@ -123,8 +123,14 @@ class PlotPanel(wx.Panel):
         in the Observer Pattern.
         
         """
-
         self.fig.clear()
+        self.canvas.draw()
+
+        self.fig = plt.figure(figsize = (View.State.config['Width'],View.State.config['Height']), dpi = View.State.config['Dpi'])
+
+        self.axes = self.fig.add_subplot(111)
+        self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
+        #self.fig.set_size_inches((View.State.config['Width'],View.State.config['Height']))
 
         self.apply_config_pre_plot()
 
@@ -141,7 +147,8 @@ class PlotPanel(wx.Panel):
         self.fig.tight_layout()
 
         self.canvas.draw()
-        self.Layout()
+        self.parent.SetSize((self.canvas.Size[0],self.canvas.Size[1]))
+        #self.Layout()
 
     def apply_config_post_plot(self):
         """
@@ -177,7 +184,6 @@ class PlotPanel(wx.Panel):
         plt.rcParams['font.size'] = View.State.config['Fontsize']
         plt.rcParams['xtick.major.size'] = View.State.config['Xticklength']
         plt.rcParams['ytick.major.size'] = View.State.config['Yticklength']
-        self.fig.set_size_inches((View.State.config['Width'],View.State.config['Height']))
 
 
 

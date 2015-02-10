@@ -6,6 +6,10 @@ import Utils
 from pydispatch import dispatcher
 import Signal
 
+import matplotlib.pyplot as plt
+import warnings
+from matplotlib.font_manager import FontProperties,findfont
+
 class State: pass
 
 def set_pipeline(pipeline):
@@ -58,7 +62,8 @@ def apply_pipeline():
 
     The datafile is first reverted to its original state,
     then mods are applied in the order they were added.
-    Observers are notifed.
+    The plot panel is notified of the update in the datafile.
+    The main panel is signalled to update the color controls.
     """
 
     State.datafile = State.original_datafile.deep_copy()
@@ -75,6 +80,22 @@ def apply_pipeline():
     dispatcher.send(Signal.PLOT_UPDATE_DATAFILE)
     dispatcher.send(Signal.PANEL_UPDATE_COLORCTRL)
 
+
+def set_default_font():
+    # We select the default matplotlib font
+    # To that end we catch the warning -- not particularly elegant
+    if State.config['Font'] == 'default':
+        for font in plt.rcParams['font.sans-serif']:
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                findfont(FontProperties(family=font))
+                if len(w):
+                    continue
+                else:
+                    State.config['Font'] = font
+                    break
+
+    
 def reset():
     """
     Resets the datafile object by emptying the pipeline and
@@ -129,4 +150,5 @@ def parse_config(cfgpath):
         except StopIteration:
             State.pipeline = []
 
+    set_default_font()
 
