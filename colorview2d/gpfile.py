@@ -4,16 +4,23 @@
 gpfile
 ~~~~~~~
 
-A module to handle 3D gnuplot datafiles. It can be used to
-get information on the file, access the contents via
-numpy arrays and extract the ranges along the three axes.
-Datafiles can also be rotated, copied and saved.
+A module to handle 3D gnuplot datafiles.
 
-Example:
-file = gp_file.gp_file('data.dat',(0,1,2))
-file.rotate_cw()
-file.report()
-file.save('newdata.dat')
+It can be used to get information on the file,
+access the contents via numpy arrays and extract
+the ranges along the three axes.
+
+Datafiles can also be rotated, flipped, copied and saved.
+
+
+Example
+-------
+::
+
+    file = gp_file.gp_file('data.dat',(0,1,2))
+    file.rotate_cw()
+    file.report()
+    file.save('newdata.dat')
 
 The files are represented by the gp_file object.
 
@@ -25,46 +32,39 @@ import scipy as sp
 import copy
 
 
-class gpfile():
+class gpfile:
     """
     A gnuplot data file object.
 
-    Attributes:
-      Zdata (numpy.array): The two dimensional numpy arrray containing the actual data.
-      Xrange (numpy.array): A one dimensional array representing the x axis range.
-      Yrange (numpy.array): A one dimensional array representing the y axis range.
-      Xleft, Xright (float): The values on the left/right of the x axis.
-      Ytop, Ybottom (float): The values on the top/bottom of the y axis.
-      Zmin, Zmax (float): The min/max values of the 2d array.
-      Xmin, Xmax (float): The min/max values of the x axis range.
-      Ymin, Ymax (float): The min/max values of the y axis range.
-      filename (string): The filename of the ASCII file containing the data.
+    Usage:
 
-    Functions:
-      set_xyrange(numpy.array, numpy.array): Set the ranges of the datafile.
-      set_Zdata(numpy.array): Set the array containing the data.
-      deep_copy(): Return a deep copy of the object.
-      save(string): Save the array and the axes to a file with a specified filename.
-      rotate_cw(): Rotate the datafile including the axes clockwise.
-      rotate_ccw(): Rotate the datafile including the axes counter-clockwise.
-      flip_ud(): Flip the datafile including the axes up-down.
-      flip_lr(): Flip the datafile including the axes left-right.
-      
-      
-    """
-
-    def __init__(self,*args):
-        """
         The datafile object can be initiated by the use of a filename and a column tuple.
         Alternatively, one can provide a 2d array of data. The axes are then just given by
         the index ranges.
 
-        Args:
-          filename (string): A gnuplot datafile to be read in.
-          columns (tuple): A tuple of three integers to specify the three columns.
+        :filename: A gnuplot datafile to be read in.
+        :columns: A tuple of three integers to specify the three columns.
+
         or:
-          data (numpy.array): Alternatively, a 2d numpy array can be provided.
-        """
+
+        :data: Alternatively, a 2d numpy array can be provided.
+    
+
+    Attributes:
+    
+          - :Zdata (numpy.array): The two dimensional numpy arrray containing the actual data.
+          - :Xrange (numpy.array): A one dimensional array representing the x axis range.
+          - :Yrange (numpy.array): A one dimensional array representing the y axis range.
+          - :Xleft, Xright (float): The values on the left/right of the x axis.
+          - :Ytop, Ybottom (float): The values on the top/bottom of the y axis.
+          - :Zmin, Zmax (float): The min/max values of the 2d array.
+          - :Xmin, Xmax (float): The min/max values of the x axis range.
+          - :Ymin, Ymax (float): The min/max values of the y axis range.
+          - :filename (string): The filename of the ASCII file containing the data.      
+      
+    """
+
+    def __init__(self,*args):
         # We decide if we are called using a filename string
         if isinstance(args[0],basestring):
 
@@ -106,9 +106,12 @@ class gpfile():
         """
         Specify the x and y ranges of the datafile.
 
-        Args:
-          Xrange, Yrange (numpy.array): One dimensional numpy array with the same
-                                        length as the width/height of the data.
+        :param Xrange: One dimensional numpy array
+                       with the same length as the width of the data.
+        :type Xrange: numpy.array
+        :param Yrange: One dimensional numpy array
+                       with the same length as the height of the data.
+        :type Yrange: numpy.array
         """
         if Xrange.shape[0] != self.Zdata.shape[1] or Yrange.shape[0] != self.Zdata.shape[0]:
             raise ValueError("Provided ranges are not compatible with the datafile.")
@@ -137,6 +140,9 @@ class gpfile():
         """
         Replace the 2d array containing the data.
         The Zmin and Zmax values are updated.
+
+        :param Zdata: Two dimensional array to plot.
+        :type Zdata: numpy.array
         """
         self.Zdata = Zdata
 
@@ -152,14 +158,13 @@ class gpfile():
         print "Report for file {}:\n".format(self.filename)
         print "There are {} lines containing {} blocks with {} lines each.\n".format(self.Lnum,self.Bnum,self.Bsize)
         print "X-axis range from {} to {}\n\
-Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0],self.Yrange[-1])
+Y-axis range from {} to {}".format(self.Xleft,self.Xright,self.Ybottom,self.Ytop)
 
     def deep_copy(self):
         """
         Deep copy the datafile object.
 
-        Returns:
-          A copy of the datafile object.
+        :returns: A copy of the datafile object.
         """
 
         tmp = copy.deepcopy(self)
@@ -173,9 +178,10 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         """
         Saves a datafile to a file with filename in the gnuplot format.
 
-        Args:
-          fname (string): The filename of the ASCII file to contain the data.
-          comment (string, optional): A comment that is added to the top of the file.
+        :param fname: The filename of the ASCII file to contain the data.
+        :type fname: str
+        :param comment: A comment that is added to the top of the file.
+        :type comment: str
         """
 
         f = open(fname,'w')
@@ -224,8 +230,11 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         Crop the datafile to a subset of the array specifiying the corners of the subset in
         units of the axes ranges.
 
-        Args:
-          xleft,xright,ybottom,ytop (floats): The corners of the subset
+        :param xleft:
+        :param xright:
+        :param ybottom:
+        :param ytop:
+        
         """
         xleft_idx = self.get_xrange_idx(xleft)
         xright_idx = self.get_xrange_idx(xright)
@@ -243,11 +252,10 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         """
         Return the nearest index of a value within the x axis range.
 
-        Args:
-          value (float): A value in the range of the x axis
+        :param value: A value in the range of the x axis
+        :type value: float
 
-        Returns:
-          index (integer): The closest index on the x axis range.
+        :returns: The closest index on the x axis range.
         """
         idx = int(sp.rint(abs(value-self.Xleft)/abs(self.dX)))
 
@@ -262,11 +270,10 @@ Y-axis range from {} to {}".format(self.Xrange[0],self.Xrange[-1],self.Yrange[0]
         """
         Return the nearest index of a value within the y axis range.
 
-        Args:
-          value (float): A value in the range of the y axis
+        :param value: A value in the range of the y axis
+        :type value: float
 
-        Returns:
-          index (integer): The closest index on the y axis range.
+        :returns: The closest index on the y axis range.
         """
         idx = int(sp.rint(abs(value-self.Ybottom)/abs(self.dY)))
         try:
