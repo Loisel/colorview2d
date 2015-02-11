@@ -1,3 +1,8 @@
+--- Version BETA 0.51
+
+- Under the hood: a global state module simplifies life considerably.
+- Color bar ranges are now saved to config.
+
 --- Version BETA 0.50
 
 - Added an event bus using PyDispatcher.
