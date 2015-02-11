@@ -124,13 +124,11 @@ class PlotPanel(wx.Panel):
         
         """
         self.fig.clear()
-        self.canvas.draw()
-
-        self.fig = plt.figure(figsize = (View.State.config['Width'],View.State.config['Height']), dpi = View.State.config['Dpi'])
 
         self.axes = self.fig.add_subplot(111)
-        self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)
+
         #self.fig.set_size_inches((View.State.config['Width'],View.State.config['Height']))
+        #plt.get_current_fig_manager().resize(View.State.config['Width']*View.State.config['Dpi'] , View.State.config['Height']*View.State.config['Dpi'])
 
         self.apply_config_pre_plot()
 
@@ -147,8 +145,8 @@ class PlotPanel(wx.Panel):
         self.fig.tight_layout()
 
         self.canvas.draw()
-        self.parent.SetSize((self.canvas.Size[0],self.canvas.Size[1]))
-        #self.Layout()
+        self.parent.SetSize((self.canvas.Size[0],self.canvas.Size[1]+50))
+        #self.Fit()
 
     def apply_config_post_plot(self):
         """
@@ -180,6 +178,7 @@ class PlotPanel(wx.Panel):
         """
 
         logging.info("Font now {}".format(View.State.config['Font']))
+        
         plt.rcParams['font.family'] = View.State.config['Font']
         plt.rcParams['font.size'] = View.State.config['Fontsize']
         plt.rcParams['xtick.major.size'] = View.State.config['Xticklength']

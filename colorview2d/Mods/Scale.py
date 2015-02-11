@@ -1,4 +1,5 @@
 from colorview2d import IMod
+from colorview2d import View
 from colorview2d.ModWidget import ModWidget
 from colorview2d.FloatValidator import FloatValidator
 
@@ -35,7 +36,7 @@ class ScaleWidget(ModWidget):
             self.mod.deactivate()
             
     def on_auto_scale_button(self,event):
-        self.num_scale.SetValue(str(2.5812e4/self.mod.view.datafile.dY))        
+        self.num_scale.SetValue(str(2.5812e4/View.State.datafile.dY))        
 
     def update(self):
         ModWidget.update(self)

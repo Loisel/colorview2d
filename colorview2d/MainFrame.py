@@ -7,7 +7,6 @@ import gpfile
 import matplotlib
 matplotlib.use('WXAgg')
 import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties,findfont
 
 from matplotlib.pyplot import cm
 from floatspin import FloatSpin,EVT_FLOATSPIN
@@ -32,7 +31,6 @@ import Signal
 import Utils
 import yaml
 import logging
-import warnings
 
 
 """
@@ -309,11 +307,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            with open(path,'w') as stream:
-                # We write first the config dict
-                yaml.dump(View.State.config,stream,explicit_start=True)
-                # ... and second the pipeline string
-                yaml.dump(View.dump_pipeline_string(),stream,explicit_start=True)
+            View.save_config(path)
                 
 
     def on_exit(self, event):
@@ -649,20 +643,27 @@ class MainPanel(wx.Panel):
         Initialize the controls for the colorbar according to the datafile.
         """
 
+        # See if we have colorbar information in the config file.
+        # If the config parameter does not fit within the range,
+        # we reset to Zmin and Zmax default values
         try:
             maxval_config = float(View.State.config['Cbmax'])
-        except:
+            if maxval_config > View.State.datafile.Zmax:
+                raise ValueError('The maximum value in the config ({}) is larger than Zmax ({}).'.format(maxval_config,View.State.datafile.Zmax))
+        except (KeyError,ValueError) as e:
             maxval_config = View.State.datafile.Zmax
             View.State.config['Cbmax'] = maxval_config
-            logging.debug('No value for Cbmax found in the config. Using Zmax {}'.format(maxval_config))
+            logging.info('Using default color range.')
 
         try:
             minval_config = float(View.State.config['Cbmin'])
-        except:
+            if minval_config < View.State.datafile.Zmin:
+                raise ValueError('The minimum value in the config ({}) is smaller than Zmin ({}).'.format(minval_config,View.State.datafile.Zmin))
+        except (KeyError,ValueError) as e:
             minval_config = View.State.datafile.Zmin
             View.State.config['Cbmin'] = minval_config
-            logging.debug('No value for Cbmin found in the config. Using Zmin {}'.format(minval_config))
-
+            logging.info('Using default color range.')
+            
         maxval = View.State.datafile.Zmax
         minval = View.State.datafile.Zmin
                     
@@ -703,21 +704,21 @@ class MainPanel(wx.Panel):
         self.Layout()
 
 
-        #self.centrespin.SetRange(minval,maxval)
-        #self.widthspin.SetRange(0,maxval-minval+spin_increment)
+        self.centrespin.SetRange(minval,maxval)
+        self.widthspin.SetRange(0,maxval-minval+spin_increment)
         self.minspin.SetRange(minval,maxval)
         self.maxspin.SetRange(minval,maxval)
         
-        #self.centrespin.SetValue((maxval+minval)/2.)
-        #self.widthspin.SetValue(maxval-minval)
+        self.centrespin.SetValue(centreslider_value)
+        self.widthspin.SetValue(widthslider_value)
         self.maxspin.SetValue(maxval_config)
         self.minspin.SetValue(minval_config)
 
         #self.widthslider.SetValue(maxval-minval)
         #self.centreslider.SetValue((minval+maxval)/2)
 
-        #self.centrespin.SetIncrement(spin_increment)
-        #self.widthspin.SetIncrement(spin_increment)
+        self.centrespin.SetIncrement(spin_increment)
+        self.widthspin.SetIncrement(spin_increment)
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
@@ -744,6 +745,7 @@ class MainPanel(wx.Panel):
         The values in the floatspin controls are updated and the event is passed
         through to on_floatspin.
         """
+
         evt_obj = event.GetEventObject()
 
         if evt_obj.GetName() == 'widthslider':
@@ -797,6 +799,7 @@ class MainPanel(wx.Panel):
 
         View.State.config['Cbmax'] = maxval
         View.State.config['Cbmin'] = minval
+        #print "Spinning: min {} max {}".format(minval,maxval)
 
-        dispatcher.send(Signal.PLOT_UPDATE_COLOR)
+        dispatcher.send(Signal.PLOT_UPDATE_COLOR, self)
 

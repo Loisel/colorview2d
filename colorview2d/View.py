@@ -170,3 +170,9 @@ def parse_config(cfgpath):
 
     set_default_font()
 
+def save_config(cfgpath):
+    with open(cfgpath,'w') as stream:
+        # We write first the config dict
+        yaml.dump(State.config,stream,explicit_start=True)
+        # ... and second the pipeline string
+        yaml.dump(dump_pipeline_string(),stream,explicit_start=True)
