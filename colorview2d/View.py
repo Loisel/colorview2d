@@ -10,12 +10,29 @@ import matplotlib.pyplot as plt
 import warnings
 from matplotlib.font_manager import FontProperties,findfont
 
+"""
+The 'global state module' of the application.
+In the State class all application wide configuration
+is stored. The functions defined in this module are
+utility routines to fill the State class with
+config information.
+"""
+
+
 class State: pass
+
 
 def set_pipeline(pipeline):
     State.pipeline = pipeline
 
 def create_modlist():
+    """
+    Creates the list of plugins in the Mods/ folder and adds them
+    to the modlist attribute of the State class.
+    
+    The widgets of the mods are added to the MainPanel by sending
+    'PANEL_ADD_MODWIDGETS'.
+    """
     from yapsy.PluginManager import PluginManager
     modman = PluginManager()
     modpath = Utils.resource_path('Mods')
@@ -28,10 +45,16 @@ def create_modlist():
 
 
 def dump_pipeline_string():
+    """
+    This just returns a string representation of the pipeline.
+    """
     # return yaml.dump_all(State.modlist, explicit_start=True)
     return "{}".format(State.pipeline)
 
 def find_mod(string):
+    """
+    Check if a mod is available in the list of plugins.
+    """
     for mod in State.modlist:
         if mod.title == string:
             return mod
@@ -82,6 +105,11 @@ def apply_pipeline():
 
 
 def set_default_font():
+    """
+    If there is no specific font specified in the config file, i.e.,
+    Font is set to 'default', the local installation's default font
+    is selected for config['Font']
+    """
     # We select the default matplotlib font
     # To that end we catch the warning -- not particularly elegant
     if State.config['Font'] == 'default':
@@ -96,16 +124,6 @@ def set_default_font():
                     break
 
     
-def reset():
-    """
-    Resets the datafile object by emptying the pipeline and
-    deactivating all mods.
-    """
-
-    State.pipeline = []
-    for mod in State.modlist:
-        mod.deactivate()
-        apply_pipeline()
 
 def get_data():
     """
