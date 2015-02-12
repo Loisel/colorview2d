@@ -21,7 +21,7 @@ Example
 
 The files are represented by the gp_file object.
 
-:copyright: 2014 by Alois Dirnaichner, see AUTHORS for more details
+:copyright: 2014 by Alois Dirnaichner
 :license: GPLv3, see LICENSE for more details
 """
 

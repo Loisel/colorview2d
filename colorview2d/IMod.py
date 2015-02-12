@@ -1,3 +1,17 @@
+"""
+IMod
+----
+
+Interface to the mod plugin class.
+Specification of the minimum requirements of a plugin implementation.
+It also provides basic interaction with the ModWidget class.
+In particular, the checkbox of the widget is handled.
+
+:copyright: 2014 by Alois Dirnaichner
+:license: GPLv3, see LICENSE for more details
+
+"""
+
 from ModWidget import ModWidget
 from pydispatch import dispatcher
 import Signal
@@ -8,26 +22,20 @@ import abc
 
 import View
 
-"""
-Interface to the mod plugin class.
-Specification of the minimum requirements of a plugin implementation.
-It also provides basic interaction with the ModWidget base class.
-In particular, the checkbox of the widget is handled.
-The following attributes are defined:
-
-  title (string): Title string of the plugin. Usually equal to the
-                  plugin/module name.
-  args (tuple): The arguments that have to be provided to the mod to work.
-  active (bool): The current state of the plugin.
-
-"""
 
 class IMod(IPlugin):
-    __meta__ = abc.ABCMeta
     """
     The interface class is an abstract base class.
     At present, none of the methods have to be overwritten, though.
+
+    The following attributes are defined:
+
+    :title (string): Title string of the plugin. Usually equal to the
+                  plugin/module name.
+    :args (tuple): The arguments that have to be provided to the mod to work.
+    :active (bool): The current state of the plugin.
     """
+    __meta__ = abc.ABCMeta
     def __init__(self):
         """
         The init function should be called by the plugin implementation
@@ -79,7 +87,6 @@ class IMod(IPlugin):
     def update_widget(self):
         """
         Update the widget using the mod data.
-        The mod is activated on call.
         
         """
         self.active = True
@@ -94,10 +101,10 @@ class IMod(IPlugin):
         to create a custom widget, i.e., a widget that contains more
         than a simple checkbox.
 
-        Args:
-          panel (wx.Panel): The panel object to create the widget on.
-        Returns:
-          widget (wx.ModWidget): The widget object.
+        :param panel: The panel object to create the widget on.
+        :type panel: wx.Panel
+        
+        :returns: The widget object.
         """
         self.panel = panel
         self.widget = ModWidget(self,self.panel)
@@ -110,6 +117,8 @@ class IMod(IPlugin):
         This method has to be overwritten to provide some useful
         functionality.
         It should modify the view object using the parameter in args.
+
+        :param datafile: A :ref:`gpfile` object.
         """
         logging.warning('The apply method of the base class Mod should not be called directly.')
 

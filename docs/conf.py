@@ -275,6 +275,8 @@ class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
             return Mock()
+    def __or__(self, other):
+        return Mock()
 
-MOCK_MODULES = ['wx', 'scipy', 'numpy', 'argparse']
+MOCK_MODULES = ['scipy', 'numpy', 'argparse', 'colorview2d.View']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
