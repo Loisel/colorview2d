@@ -7,9 +7,6 @@ Specification of the minimum requirements of a plugin implementation.
 It also provides basic interaction with the ModWidget class.
 In particular, the checkbox of the widget is handled.
 
-:copyright: 2014 by Alois Dirnaichner
-:license: GPLv3, see LICENSE for more details
-
 """
 
 from ModWidget import ModWidget

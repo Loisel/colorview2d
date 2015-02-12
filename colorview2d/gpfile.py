@@ -7,7 +7,9 @@ It can be used to get information on the file,
 access the contents via numpy arrays and extract
 the ranges along the three axes.
 
-Datafiles can also be rotated, flipped, copied and saved.
+The files are represented by the gp_file object.
+The class provides methods to rotate, flipp, copy and save
+the datafile.
 
 
 Example
@@ -19,10 +21,7 @@ Example
     file.report()
     file.save('newdata.dat')
 
-The files are represented by the gp_file object.
 
-:copyright: 2014 by Alois Dirnaichner
-:license: GPLv3, see LICENSE for more details
 """
 
 import scipy as sp
