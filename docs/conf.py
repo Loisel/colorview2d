@@ -278,5 +278,5 @@ class Mock(MagicMock):
     def __or__(self, other):
         return Mock()
 
-MOCK_MODULES = ['scipy', 'numpy', 'argparse', 'colorview2d.View']
+MOCK_MODULES = ['wx', 'scipy', 'numpy', 'argparse', 'colorview2d.View']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
