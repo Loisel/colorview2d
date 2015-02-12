@@ -15,6 +15,6 @@ setup(name='colorview2d',
       include_package_data=True,
       install_requires=['PyDispatcher',
                 'yapsy',
-                'wxPython',
+                'wxPython==2.8.12',
                 'pyyaml'])
 
