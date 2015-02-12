@@ -13,11 +13,8 @@ setup(name='colorview2d',
       packages=['colorview2d'],
       package_data={'':['demo.dat','default.cv2d'],},
       include_package_data=True,
-      install_requires=['wxPython',
-                'PyDispatcher',
+      install_requires=['PyDispatcher',
                 'yapsy',
-                'matplotlib',
-                'scipy',
-                'numpy',
+                'wxPython',
                 'pyyaml'])
 

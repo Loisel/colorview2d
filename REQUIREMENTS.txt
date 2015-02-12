@@ -1,0 +1,7 @@
+wxPython
+PyDispatcher
+yapsy		
+matplotlib
+scipy
+numpy
+pyyaml
