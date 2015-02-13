@@ -663,10 +663,12 @@ class MainPanel(wx.Panel):
             minval_config = View.State.datafile.Zmin
             View.State.config['Cbmin'] = minval_config
             logging.info('Using default color range.')
+
             
         maxval = View.State.datafile.Zmax
         minval = View.State.datafile.Zmin
-                    
+
+        
         spin_increment = (maxval-minval)/self.spin_divider
         slide_increment = (maxval-minval)/self.slide_divider
 

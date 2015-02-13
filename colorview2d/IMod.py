@@ -98,10 +98,14 @@ class IMod(IPlugin):
         to create a custom widget, i.e., a widget that contains more
         than a simple checkbox.
 
+        Note that the widget is not added to a sizer on the panel but
+        is returned as a box sizer.
+
         :param panel: The panel object to create the widget on.
-        :type panel: wx.Panel
+        :type panel: :class:`wx.Panel`
         
         :returns: The widget object.
+        :rtype: :class:`wx.BoxSizer`
         """
         self.panel = panel
         self.widget = ModWidget(self,self.panel)
@@ -115,7 +119,8 @@ class IMod(IPlugin):
         functionality.
         It should modify the view object using the parameter in args.
 
-        :param datafile: A :ref:`gpfile` object.
+        :param datafile: A :class:`gpfile` object.
+        :type datafiel: :class:`gpfile`
         """
         logging.warning('The apply method of the base class Mod should not be called directly.')
 

@@ -48,15 +48,20 @@ class gpfile:
 
     Attributes:
     
-          - :Zdata (numpy.array): The two dimensional numpy arrray containing the actual data.
-          - :Xrange (numpy.array): A one dimensional array representing the x axis range.
-          - :Yrange (numpy.array): A one dimensional array representing the y axis range.
-          - :Xleft, Xright (float): The values on the left/right of the x axis.
-          - :Ytop, Ybottom (float): The values on the top/bottom of the y axis.
-          - :Zmin, Zmax (float): The min/max values of the 2d array.
-          - :Xmin, Xmax (float): The min/max values of the x axis range.
-          - :Ymin, Ymax (float): The min/max values of the y axis range.
-          - :filename (string): The filename of the ASCII file containing the data.      
+    :ivar Zdata:  The two dimensional numpy arrray containing the actual data.
+    :ivar Xrange: A one dimensional array representing the x axis range.
+    :ivar Yrange: A one dimensional array representing the y axis range.
+    :ivar Xleft: The value on the left of the x axis.
+    :ivar Xright: The value on the right of the x axis.
+    :ivar Ytop: The values on the top of the y axis.
+    :ivar Ybottom: The values on the bottom of the y axis.
+    :ivar Zmin: The min values of the 2d array.
+    :ivar Zmax: The max values of the 2d array.
+    :ivar Xmin: The min values of the x axis range.
+    :ivar Xmax: The max values of the x axis range.
+    :ivar Ymin: The min values of the y axis range.
+    :ivar Ymax: The max values of the y axis range.
+    :ivar filename: The filename of the ASCII file containing the data.      
       
     """
 
