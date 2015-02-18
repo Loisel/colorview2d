@@ -1,7 +1,7 @@
 from colorview2d import IMod
 from colorview2d import View
-from colorview2d.ModWidget import ModWidget
-from colorview2d.FloatValidator import FloatValidator
+from colorview2d import ModWidget
+from colorview2d import FloatValidator
 
 import numpy as np
 import wx
@@ -12,14 +12,14 @@ A text control with a custom validator is applied so that
 exponential notation can be used.
 """
 
-class ScaleWidget(ModWidget):
+class ScaleWidget(ModWidget.ModWidget):
     """
     The Widget that controls the mod. 
     Hosts a TextCtrl with a custom validator.
     """
     def __init__(self,mod,panel):
-        ModWidget.__init__(self,mod,panel)
-        self.num_scale = wx.TextCtrl(self.panel,-1,"",validator = FloatValidator('1e0'))
+        ModWidget.ModWidget.__init__(self,mod,panel)
+        self.num_scale = wx.TextCtrl(self.panel,-1,"",validator = FloatValidator.FloatValidator('1e0'))
         self.auto_scale_button = wx.Button(self.panel,wx.ID_ANY,'dI/dV')        
 
         self.Add(self.num_scale,0,self.flags,border=10)
@@ -39,7 +39,7 @@ class ScaleWidget(ModWidget):
         self.num_scale.SetValue(str(2.5812e4/View.State.datafile.dY))        
 
     def update(self):
-        ModWidget.update(self)
+        ModWidget.ModWidget.update(self)
         self.num_scale.SetValue(str(self.mod.args))
 
     
@@ -53,7 +53,7 @@ class Scale(IMod.IMod):
     """
     def __init__(self):
         IMod.IMod.__init__(self)
-        self.args = 1.
+        self.args = self.default_args = 1.
 
     def apply(self,datafile):
         datafile.set_Zdata(datafile.Zdata*self.args)

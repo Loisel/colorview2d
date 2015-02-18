@@ -83,6 +83,15 @@ def remove_mod_from_pipeline(title):
     apply_pipeline()
 
 
+def reset():
+    """
+    Reset all mods.
+    """
+    if hasattr(State, 'modlist'):
+        for mod in State.modlist:
+            mod.reset()
+
+
 def apply_pipeline():
     """
     Applies the pipeline to the datafile in the parent frame.
@@ -172,6 +181,7 @@ def parse_config(cfgpath):
         except StopIteration:
             State.pipeline = []
 
+    reset()
     set_default_font()
 
 def save_config(cfgpath):

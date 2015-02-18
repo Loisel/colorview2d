@@ -38,7 +38,8 @@ class IMod(IPlugin):
         The init function should be called by the plugin implementation
         to correctly initialize the title and provide logging.
         """
-        self.args = ()
+        self.args = self.default_args = ()
+
         self.title = self.__class__.__name__
         logging.info('{} is initialized.'.format(self.title))
         self.active = False
@@ -81,6 +82,15 @@ class IMod(IPlugin):
         View.remove_mod_from_pipeline(self.title)
         
 
+    def reset(self):
+        """
+        Reset the mod to default values.
+        """
+        self.args = self.default_args
+        self.active = False
+        if hasattr(self,'widget'):
+            self.widget.update()
+        
 
     def update_widget(self):
         """
