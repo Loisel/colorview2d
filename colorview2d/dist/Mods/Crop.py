@@ -1,6 +1,6 @@
-import IMod
-import ModWidget
-from floatspin import FloatSpin,EVT_FLOATSPIN
+(Pdb) (Pdb) (Pdb) import IMod
+(Pdb) (Pdb) (Pdb) (Pdb) import ModWidget
+import floatspin #FloatSpin,EVT_FLOATSPIN
 import View
 
 import numpy as np
@@ -37,12 +37,12 @@ class CropWidget(ModWidget.ModWidget):
         self.xrangebox_label = wx.StaticText(self.panel, wx.ID_ANY,
             "x-axis left/right: ")
         self.widgetlist.append(self.xrangebox_label)
-        self.xrange_left_spin = FloatSpin(self.panel, name='x_left',
+        self.xrange_left_spin = floatspin.FloatSpin(self.panel, name='x_left',
             digits = 3
             )
         self.xrange_left_spin.SetFormat("%e")
         self.widgetlist.append(self.xrange_left_spin)
-        self.xrange_right_spin = FloatSpin(self.panel, name='x_right',
+        self.xrange_right_spin = floatspin.FloatSpin(self.panel, name='x_right',
             digits = 3
             )
         self.xrange_right_spin.SetFormat("%e")
@@ -51,12 +51,12 @@ class CropWidget(ModWidget.ModWidget):
         self.yrangebox_label = wx.StaticText(self.panel, wx.ID_ANY,
             "y-axis bottom/top: ")
         self.widgetlist.append(self.yrangebox_label)
-        self.yrange_bottom_spin = FloatSpin(self.panel, name='y_bottom',
+        self.yrange_bottom_spin = floatspin.FloatSpin(self.panel, name='y_bottom',
             digits = 3
             )
         self.yrange_bottom_spin.SetFormat("%e")
         self.widgetlist.append(self.yrange_bottom_spin)
-        self.yrange_top_spin = FloatSpin(self.panel, name='y_top',
+        self.yrange_top_spin = floatspin.FloatSpin(self.panel, name='y_top',
             digits = 3
             )
         self.yrange_top_spin.SetFormat("%e")
@@ -142,7 +142,7 @@ class Crop(IMod.IMod):
     """
     def __init__(self):
         IMod.IMod.__init__(self)
-        self.args = (0.,0.,0.,0.)
+        self.args = self.default_args = (0.,0.,0.,0.)
 
     def apply(self,datafile):
         """

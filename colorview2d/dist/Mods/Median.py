@@ -67,7 +67,7 @@ class Median(IMod.IMod):
     """
     def __init__(self):
         IMod.IMod.__init__(self)
-        self.args = (0.,0.)
+        self.args = self.default_args = (0.,0.)
 
     def apply(self,datafile):
         datafile.set_Zdata(median_filter(datafile.Zdata,size=self.args))

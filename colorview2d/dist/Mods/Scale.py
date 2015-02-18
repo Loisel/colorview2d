@@ -1,8 +1,7 @@
 import IMod
-import ModWidget
-
-import FloatValidator
 import View
+import ModWidget
+import FloatValidator
 
 import numpy as np
 import wx
@@ -54,7 +53,7 @@ class Scale(IMod.IMod):
     """
     def __init__(self):
         IMod.IMod.__init__(self)
-        self.args = 1.
+        self.args = self.default_args = 1.
 
     def apply(self,datafile):
         datafile.set_Zdata(datafile.Zdata*self.args)

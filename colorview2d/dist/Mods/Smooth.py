@@ -66,7 +66,7 @@ class Smooth(IMod.IMod):
     """
     def __init__(self):
         IMod.IMod.__init__(self)
-        self.args = (0.,0.)
+        self.args = self.default_args = (0.,0.)
 
     def apply(self,datafile):
         datafile.set_Zdata(gaussian_filter(datafile.Zdata,self.args))

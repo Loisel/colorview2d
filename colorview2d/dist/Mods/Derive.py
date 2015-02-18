@@ -1,7 +1,6 @@
-import View
-import IMod
-
 import numpy as np
+
+import IMod
 
 """
 This mod performs a derivation of the datafile with respect to the y-axis.

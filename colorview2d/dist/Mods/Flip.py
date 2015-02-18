@@ -60,7 +60,7 @@ class Flip(IMod.IMod):
 
     def __init__(self):
         IMod.IMod.__init__(self)
-        self.args = True
+        self.args = self.default_args = True
         
     def apply(self,datafile):
         if self.args:
