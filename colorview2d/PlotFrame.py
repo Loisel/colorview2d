@@ -145,8 +145,9 @@ class PlotPanel(wx.Panel):
         self.fig.tight_layout()
 
         self.canvas.draw()
-        self.parent.SetSize((self.canvas.Size[0],self.canvas.Size[1]+50))
-        #self.Fit()
+        self.Fit()
+        self.parent.SetSize((self.GetSizeTuple()[0],self.GetSizeTuple()[1]+50))
+
 
     def apply_config_post_plot(self):
         """

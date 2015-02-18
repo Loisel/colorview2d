@@ -282,7 +282,7 @@ class SlopeExPanel(wx.Panel):
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
-        datafilename = self.parent.parent.config['datafilename']
+        datafilename = View.State.config['datafilename']
 
         dlg = wx.FileDialog(
             self,
@@ -295,11 +295,11 @@ class SlopeExPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
 
-        with open(path, 'a') as outfile:
-            outfile.write("# Linear slopes extracted from {} \n\
-# line shift (x-axis) | slope | comment\n".format(datafilename))
-            for line in self.linelist:
-                outfile.write("{}\t{}\t#{}\n".format(line.get_shift(),line.get_slope(),line.get_comment()))
+            with open(path, 'a') as outfile:
+                outfile.write("# Linear slopes extracted from {} \n\
+    # line shift (x-axis) | slope | comment\n".format(datafilename))
+                for line in self.linelist:
+                    outfile.write("{}\t{}\t#{}\n".format(line.get_shift(),line.get_slope(),line.get_comment()))
 
 
     def on_close(self,event):

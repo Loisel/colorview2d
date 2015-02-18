@@ -1,0 +1,8 @@
+[Core]
+Name = Flip
+Module = Flip
+   
+[Documentation]
+Description = Flip the dataset up/down or right/left.
+Author = Alois Dirnaichner
+Version = 1.0

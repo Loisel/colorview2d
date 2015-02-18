@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import warnings
 from matplotlib.font_manager import FontProperties,findfont
 
+import IMod
+import ModWidget
+
 """
 The 'global state module' of the application.
 In the State class all application wide configuration
@@ -41,6 +44,7 @@ def create_modlist():
     modman.collectPlugins()
 
     State.modlist = [pInfo.plugin_object for pInfo in modman.getAllPlugins()]
+
     dispatcher.send(Signal.PANEL_ADD_MODWIDGETS)
 
 

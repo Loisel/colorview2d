@@ -81,6 +81,7 @@ class IMod(IPlugin):
         View.remove_mod_from_pipeline(self.title)
         
 
+
     def update_widget(self):
         """
         Update the widget using the mod data.

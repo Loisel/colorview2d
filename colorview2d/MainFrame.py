@@ -141,7 +141,7 @@ class MainFrame(wx.Frame):
         dw, dh = wx.DisplaySize()
         w, h = self.GetSize()
         x = dw -w
-        y = dh-1.5*h
+        y = dh-1.2*h
         self.SetPosition((x, y))
 
 
