@@ -1,14 +1,3 @@
-(Pdb) (Pdb) (Pdb) import IMod
-(Pdb) (Pdb) (Pdb) (Pdb) import ModWidget
-import floatspin #FloatSpin,EVT_FLOATSPIN
-import View
-
-import numpy as np
-
-import wx
-
-
-
 """
 Crop
 ~~~~
@@ -18,6 +7,18 @@ to specify the window (xleft, xright, ybottom, ytop).
 A button can be used to specify set the original size in the controls.
 
 """
+
+import IMod
+import ModWidget
+import floatspin #FloatSpin,EVT_FLOATSPIN
+import View
+
+import numpy as np
+
+import wx
+
+
+
 
 class CropWidget(ModWidget.ModWidget):
     """
