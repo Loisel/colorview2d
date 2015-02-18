@@ -1,3 +1,12 @@
+"""
+The 'global state module' of the application.
+In the State class all application wide configuration
+is stored. The functions defined in this module are
+utility routines to fill the State class with
+config information.
+"""
+
+
 import logging
 import yaml
 import Mods
@@ -10,16 +19,11 @@ import matplotlib.pyplot as plt
 import warnings
 from matplotlib.font_manager import FontProperties,findfont
 
+# These imports are needed for the visibility of the modules
+# to the yapsy plugins.
 import IMod
 import ModWidget
 
-"""
-The 'global state module' of the application.
-In the State class all application wide configuration
-is stored. The functions defined in this module are
-utility routines to fill the State class with
-config information.
-"""
 
 
 class State: pass
