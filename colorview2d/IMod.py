@@ -1,4 +1,7 @@
+
 """
+.. module:: imod
+
 IMod
 ----
 
@@ -128,10 +131,10 @@ class IMod(IPlugin):
         """
         This method has to be overwritten to provide some useful
         functionality.
-        It should modify the view object using the parameter in args.
+        It should modify the :class:`gpfile <colorview2d.gpfile.gpfile>` object using the parameter in args.
 
-        :param datafile: A :class:`gpfile` object.
-        :type datafiel: :class:`gpfile`
+        :param datafile: A :class:`gpfile <colorview2d.gpfile.gpfile>` object from the :mod:`gpfile` module.
+        :type datafiel: :class:`gpfile <colorview2d.gpfile.gpfile>`
         """
         logging.warning('The apply method of the base class Mod should not be called directly.')
 

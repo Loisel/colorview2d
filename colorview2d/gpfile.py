@@ -1,6 +1,8 @@
 #!/bin/python
 
 """
+.. module:: gpfile
+
 A module to handle 3D gnuplot datafiles.
 
 It can be used to get information on the file,

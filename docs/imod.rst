@@ -28,7 +28,7 @@ directly in a mod plugin.
    Base class for the plugin widgets that can be provided
    to colorview2d.
 
-   The widget is a descendant of wx.BoxSizer.
+   The widget is a descendant of `wx.BoxSizer <http://www.wxpython.org/docs/api/wx.BoxSizer-class.html>`_.
    Childs should call init and update upon overwrite.
 
    :ivar mod: The mod class this widget is assigned to
