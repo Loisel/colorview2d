@@ -3,8 +3,8 @@ import logging
 from optparse import OptionParser
 
 from pydispatch import dispatcher
-import Utils
-from MainFrame import MainFrame
+import utils
+from mainframe import MainFrame
 import wx
 
 

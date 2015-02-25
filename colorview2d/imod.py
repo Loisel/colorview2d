@@ -7,20 +7,20 @@ IMod
 
 Interface to the mod plugin class.
 Specification of the minimum requirements of a plugin implementation.
-It also provides basic interaction with the ModWidget class.
+It also provides basic interaction with the :class:`ModWidget <colorview2d.ModWidget.ModWidget>` class.
 In particular, the checkbox of the widget is handled.
 
 """
 
-from ModWidget import ModWidget
+from modwidget import ModWidget
 from pydispatch import dispatcher
-import Signal
+import signal
 
 import logging
 from yapsy.IPlugin import IPlugin
 import abc
 
-import View
+import view
 
 
 class IMod(IPlugin):
@@ -66,7 +66,7 @@ class IMod(IPlugin):
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(True)
 
-        View.add_mod_to_pipeline(self.title,self.args)
+        view.add_mod_to_pipeline(self.title,self.args)
         
     def deactivate(self):
         """
@@ -82,7 +82,7 @@ class IMod(IPlugin):
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(False)
 
-        View.remove_mod_from_pipeline(self.title)
+        view.remove_mod_from_pipeline(self.title)
         
 
     def reset(self):
@@ -116,10 +116,10 @@ class IMod(IPlugin):
         is returned as a box sizer.
 
         :param panel: The panel object to create the widget on.
-        :type panel: :class:`wx.Panel`
+        :type panel: `wx.Panel <http://www.wxpython.org/docs/api/wx.Panel-class.html>`_
         
         :returns: The widget object.
-        :rtype: :class:`wx.BoxSizer`
+        :rtype: :class:`ModWidget <colorview2d.ModWidget.ModWidget>`
         """
         self.panel = panel
         self.widget = ModWidget(self,self.panel)
@@ -131,10 +131,10 @@ class IMod(IPlugin):
         """
         This method has to be overwritten to provide some useful
         functionality.
-        It should modify the :class:`gpfile <colorview2d.gpfile.gpfile>` object using the parameter in args.
+        It should modify the :class:`Gpfile <colorview2d.gpfile.Gpfile>` object using the parameter in args.
 
-        :param datafile: A :class:`gpfile <colorview2d.gpfile.gpfile>` object from the :mod:`gpfile` module.
-        :type datafiel: :class:`gpfile <colorview2d.gpfile.gpfile>`
+        :param datafile: A :class:`Gpfile <colorview2d.gpfile.Gpfile>` object from the :mod:`gpfile` module.
+        :type datafiel: :class:`Gpfile <colorview2d.gpfile.Gpfile>`
         """
         logging.warning('The apply method of the base class Mod should not be called directly.')
 

@@ -14,27 +14,27 @@ from floatslider import FloatSlider
 
 from wx.lib.masked import NumCtrl,EVT_NUM
 
-import View
+import view
 
-from PlotFrame import PlotFrame
-from LineoutFrame import LineoutFrame
-from LinecutFrame import LinecutFrame
-from CropFrame import CropFrame
-from SlopeExFrame import SlopeExFrame
+from plotframe import PlotFrame
+from lineoutframe import LineoutFrame
+from linecutframe import LinecutFrame
+
+from slopeexframe import SlopeExFrame
 # Experimental feature
 # from BinaryFitFrame import BinaryFitFrame
-from LabelticksFrame import LabelticksFrame
+from labelticksframe import LabelticksFrame
 
 from pydispatch import dispatcher
-import Signal
+import signal
 
-import Utils
+import utils
 import yaml
 import logging
 
 
 """
-The MainFrame module hostst the MainFrame class and the MainPanel class.
+The mainframe module hostst the MainFrame class and the MainPanel class.
 In the MainFrame.__init__ the view object is intialized and all other frames 
 are created.
 The MainPanel hosts the colorbar controls and the mod plugin widgets.
@@ -73,30 +73,30 @@ class MainFrame(wx.Frame):
             columns = None
         else:
             # The name of the default config file is hard coded.
-            # Utils.resource_path adds the path to the 
+            # utils.resource_path adds the path to the 
             # library in win and linux
-            cfgpath = Utils.resource_path('default.cv2d')
+            cfgpath = utils.resource_path('default.cv2d')
             
         # The config file is parsed, 
         # modlist is a string variable that is given to the view
         # to create the mod pipeline
-        View.parse_config(cfgpath)
+        view.parse_config(cfgpath)
 
         # If a datafilename is specified, we use this instead of the default
         # Same for the the columns        
         if datafilename:
-            View.State.config['datafilename'] = datafilename
-            data_filepath = os.path.join(os.getcwd(), View.State.config['datafilename'])
+            view.State.config['datafilename'] = datafilename
+            data_filepath = os.path.join(os.getcwd(), view.State.config['datafilename'])
             if columns:
-                View.State.config['datafilecolumns'] = Utils.read_columns(columns)
+                view.State.config['datafilecolumns'] = utils.read_columns(columns)
         else:
             # The path to the datafile, either in the cwd or in the lib (default)
             # We assume that the datafile is in the same dir as the cv2d dile
-            data_filepath = os.path.join(os.path.dirname(cfgpath), View.State.config['datafilename'])
+            data_filepath = os.path.join(os.path.dirname(cfgpath), view.State.config['datafilename'])
 
 
         # Set title for the frame and align
-        self.SetTitle(self.title+View.State.config['datafilename'])
+        self.SetTitle(self.title+view.State.config['datafilename'])
         self.alignToBottomRight()
 
         # Create menu and status bar
@@ -115,10 +115,10 @@ class MainFrame(wx.Frame):
         self.LabelticksFrame = LabelticksFrame(self)
 
         # The datafile of the global view object is set
-        View.set_datafile(gpfile.gpfile(data_filepath,View.State.config['datafilecolumns']))
+        view.set_datafile(gpfile.Gpfile(data_filepath,view.State.config['datafilecolumns']))
 
         # We have to draw the plot first before we can apply the modlist
-        dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
+        dispatcher.send(signal.PLOT_DRAW_ANEW,self)
 
         # The other tools are intialized
         self.LinecutFrame = LinecutFrame(self)
@@ -127,8 +127,8 @@ class MainFrame(wx.Frame):
 
         # Then the mod pipeline is applied (if any)
         # Creating the list of plugins (modlist).
-        View.create_modlist()
-        View.apply_pipeline()
+        view.create_modlist()
+        view.apply_pipeline()
         
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
@@ -254,19 +254,19 @@ class MainFrame(wx.Frame):
 # data modifications: {}
 #
 # axes: {} | {} | {}
-""".format(View.State.config['datafilename'],View.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
+""".format(view.State.config['datafilename'],view.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
             message="Save plot data as...",
             defaultDir=os.getcwd(),
-            defaultFile=View.State.config['datafilename'],
+            defaultFile=view.State.config['datafilename'],
             wildcard=file_choices,
             style=wx.SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            View.State.datafile.save(path,comment)
+            view.State.datafile.save(path,comment)
 
 
     def on_save_pdf(self, event):
@@ -275,7 +275,7 @@ class MainFrame(wx.Frame):
 
         """
         file_choices = "PDF (*.pdf)|*.pdf"
-        defaultfilename = os.path.splitext(View.State.config['datafilename'])[0]+'.pdf'
+        defaultfilename = os.path.splitext(view.State.config['datafilename'])[0]+'.pdf'
 
         dlg = wx.FileDialog(
             self,
@@ -287,7 +287,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.PlotFrame.PlotPanel.fig.savefig(path, dpi = View.State.config['Dpi'])
+            self.PlotFrame.PlotPanel.fig.savefig(path, dpi = view.State.config['Dpi'])
 
     def on_save_cv2d(self, event):
         """
@@ -295,7 +295,7 @@ class MainFrame(wx.Frame):
 
         """
         file_choices = "CV2D (*.cv2d)|*.cv2d"
-        defaultfilename = os.path.splitext(View.State.config['datafilename'])[0]+'.cv2d'
+        defaultfilename = os.path.splitext(view.State.config['datafilename'])[0]+'.cv2d'
 
         dlg = wx.FileDialog(
             self,
@@ -307,7 +307,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            View.save_config(path)
+            view.save_config(path)
                 
 
     def on_exit(self, event):
@@ -355,15 +355,15 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
             dirname = os.path.dirname(path)
             # The config is overwritten
-            View.parse_config(path)
+            view.parse_config(path)
             # The datafile is replaced
-            View.set_datafile(gpfile.gpfile(os.path.join(dirname,View.State.config['datafilename']),View.State.config['datafilecolumns']))
-            dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
+            view.set_datafile(gpfile.Gpfile(os.path.join(dirname,view.State.config['datafilename']),view.State.config['datafilecolumns']))
+            dispatcher.send(signal.PLOT_DRAW_ANEW,self)
             # ... and the pipeline is applied
-            View.apply_pipeline()
+            view.apply_pipeline()
 
             # We make sure the title is correct
-            self.SetTitle(self.title+View.State.datafile.filename)
+            self.SetTitle(self.title+view.State.datafile.filename)
             # The slope extraction utility has to know about the correct dimensions
             # of the datafile (the FloatSpin tools need the x/y range)
             # self.SlopeExFrame.SlopeExPanel.update()
@@ -402,7 +402,7 @@ class MainFrame(wx.Frame):
             
             # dlg.SetValue("{},{},{}".format(columns[0],columns[1],columns[2]))
 
-            dlg = Utils.SettingsDialog(self)
+            dlg = utils.SettingsDialog(self)
             if dlg.ShowModal() == wx.ID_OK:
                 columns = dlg.GetColumns()
                 reset_settings = dlg.GetSettingChk()
@@ -410,19 +410,19 @@ class MainFrame(wx.Frame):
 
 
                 if reset_settings:
-                    cfgpath = Utils.resource_path('default.cv2d')
-                    View.parse_config(cfgpath)
+                    cfgpath = utils.resource_path('default.cv2d')
+                    view.parse_config(cfgpath)
 
                 # We set the new datafile in the view
                 # By changing the datafile, the view notifies its observers
                 # and the plot is updated
-                View.set_datafile(gpfile.gpfile(path,columns))
+                view.set_datafile(gpfile.Gpfile(path,columns))
 
-                dispatcher.send(Signal.PLOT_DRAW_ANEW,self)
+                dispatcher.send(signal.PLOT_DRAW_ANEW,self)
                 
-                View.State.config['datafilename'] = os.path.basename(path)
+                view.State.config['datafilename'] = os.path.basename(path)
 
-                self.SetTitle(self.title+View.State.datafile.filename)
+                self.SetTitle(self.title+view.State.datafile.filename)
             
 class MainPanel(wx.Panel):
     """
@@ -436,8 +436,8 @@ class MainPanel(wx.Panel):
         self.spin_divider = 10000
         self.slide_divider = 1000
         
-        dispatcher.connect(self.handle_update_colorctrl, signal = Signal.PANEL_UPDATE_COLORCTRL, sender = dispatcher.Any)
-        dispatcher.connect(self.handle_add_modwidgets, signal = Signal.PANEL_ADD_MODWIDGETS, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_update_colorctrl, signal = signal.PANEL_UPDATE_COLORCTRL, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_add_modwidgets, signal = signal.PANEL_ADD_MODWIDGETS, sender = dispatcher.Any)
         self.create_panel()
         
     def create_panel(self):
@@ -464,7 +464,7 @@ class MainPanel(wx.Panel):
         for m in self.maps:
             self.colormapselect.Append(m)
 
-        self.colormapselect.SetStringSelection(View.State.config['Colormap'])
+        self.colormapselect.SetStringSelection(view.State.config['Colormap'])
 
         self.Bind(wx.EVT_COMBOBOX,self.on_colormapselect,self.colormapselect)
 
@@ -626,10 +626,10 @@ class MainPanel(wx.Panel):
         # And finally we add all the modification plugins
 
         try:
-            for mod in View.State.modlist[:-1]:
+            for mod in view.State.modlist[:-1]:
                 self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
                 self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
-            self.ModBoxSizer.Add(View.State.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
+            self.ModBoxSizer.Add(view.State.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
         except IndexError:
             logging.warning('No plugins found!')
 
@@ -647,26 +647,26 @@ class MainPanel(wx.Panel):
         # If the config parameter does not fit within the range,
         # we reset to Zmin and Zmax default values
         try:
-            maxval_config = float(View.State.config['Cbmax'])
-            if maxval_config > View.State.datafile.Zmax:
-                raise ValueError('The maximum value in the config ({}) is larger than Zmax ({}).'.format(maxval_config,View.State.datafile.Zmax))
+            maxval_config = float(view.State.config['Cbmax'])
+            if maxval_config > view.State.datafile.Zmax:
+                raise ValueError('The maximum value in the config ({}) is larger than Zmax ({}).'.format(maxval_config,view.State.datafile.Zmax))
         except (KeyError,ValueError) as e:
-            maxval_config = View.State.datafile.Zmax
-            View.State.config['Cbmax'] = maxval_config
+            maxval_config = view.State.datafile.Zmax
+            view.State.config['Cbmax'] = maxval_config
             logging.info('Using default color range.')
 
         try:
-            minval_config = float(View.State.config['Cbmin'])
-            if minval_config < View.State.datafile.Zmin:
-                raise ValueError('The minimum value in the config ({}) is smaller than Zmin ({}).'.format(minval_config,View.State.datafile.Zmin))
+            minval_config = float(view.State.config['Cbmin'])
+            if minval_config < view.State.datafile.Zmin:
+                raise ValueError('The minimum value in the config ({}) is smaller than Zmin ({}).'.format(minval_config,view.State.datafile.Zmin))
         except (KeyError,ValueError) as e:
-            minval_config = View.State.datafile.Zmin
-            View.State.config['Cbmin'] = minval_config
+            minval_config = view.State.datafile.Zmin
+            view.State.config['Cbmin'] = minval_config
             logging.info('Using default color range.')
 
             
-        maxval = View.State.datafile.Zmax
-        minval = View.State.datafile.Zmin
+        maxval = view.State.datafile.Zmax
+        minval = view.State.datafile.Zmin
 
         
         spin_increment = (maxval-minval)/self.spin_divider
@@ -724,9 +724,9 @@ class MainPanel(wx.Panel):
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
-        self.colormapselect.SetStringSelection(View.State.config['Colormap'])
+        self.colormapselect.SetStringSelection(view.State.config['Colormap'])
 
-        dispatcher.send(Signal.PLOT_UPDATE_COLOR,self)
+        dispatcher.send(signal.PLOT_UPDATE_COLOR,self)
         
 
 
@@ -736,15 +736,15 @@ class MainPanel(wx.Panel):
         """
         
         colormap = str(self.colormapselect.GetValue())
-        View.State.config['Colormap'] = colormap
+        view.State.config['Colormap'] = colormap
 
-        dispatcher.send(Signal.PLOT_CHANGE_COLORMAP,self)
+        dispatcher.send(signal.PLOT_CHANGE_COLORMAP,self)
 
     def on_scroll(self,event):
         """
         Handles events sent by the slider objects in the panel.
 
-        The values in the floatspin controls are updated and the event is passed
+        The values in the FloatSpin controls are updated and the event is passed
         through to on_floatspin.
         """
 
@@ -765,7 +765,7 @@ class MainPanel(wx.Panel):
 
     def on_floatspin(self, event):
         """
-        Handles events sent by one of the floatspin controls in the panel.
+        Handles events sent by one of the FloatSpin controls in the panel.
 
         The values in the controls are not independent, e.g. the width depends on
         maximum and minimum etc.
@@ -799,9 +799,9 @@ class MainPanel(wx.Panel):
         self.centreslider.SetValue(centre)
         self.widthslider.SetValue(width)
 
-        View.State.config['Cbmax'] = maxval
-        View.State.config['Cbmin'] = minval
+        view.State.config['Cbmax'] = maxval
+        view.State.config['Cbmin'] = minval
         #print "Spinning: min {} max {}".format(minval,maxval)
 
-        dispatcher.send(Signal.PLOT_UPDATE_COLOR, self)
+        dispatcher.send(signal.PLOT_UPDATE_COLOR, self)
 

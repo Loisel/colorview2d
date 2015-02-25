@@ -1,5 +1,5 @@
-from colorview2d import IMod
-from colorview2d import ModWidget
+from colorview2d import imod
+from colorview2d import modwidget
 
 import numpy as np
 import wx
@@ -8,13 +8,13 @@ import wx
 """
 This mod flips the the datafile along x or y direction.
 """
-class FlipWidget(ModWidget.ModWidget):
+class FlipWidget(modwidget.ModWidget):
     """
     A widget to control the Flip mod.
     Hosts two radio buttons to choose between up/down or right/left flip.
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
+        modwidget.ModWidget.__init__(self,mod,panel)
 
         self.radio_lr = wx.RadioButton(self.panel,wx.ID_ANY,'left/right', style=wx.RB_GROUP)
         self.radio_ud = wx.RadioButton(self.panel, wx.ID_ANY,'up/down')
@@ -39,7 +39,7 @@ class FlipWidget(ModWidget.ModWidget):
             self.mod.deactivate()
 
     def update(self):
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         if self.mod.args:
             self.radio_lr.SetValue(True)
         else:
@@ -53,13 +53,13 @@ class FlipWidget(ModWidget.ModWidget):
             
 
 
-class Flip(IMod.IMod):
+class Flip(imod.IMod):
     """
     The mod class to flip the datafile.
     """
 
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = True
         
     def apply(self,datafile):

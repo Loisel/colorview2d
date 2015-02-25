@@ -2,10 +2,10 @@ import wx
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from wx.lib.masked import NumCtrl,EVT_NUM
-from FloatValidator import FloatValidator
+from floatvalidator import FloatValidator
 
-import View
-import Signal
+import view
+import signal
 from pydispatch import dispatcher
 
 class LabelticksFrame(wx.Frame):
@@ -29,19 +29,19 @@ class LabelticksPanel(wx.Panel):
 
         self.HeightBoxLabel = wx.StaticText(self, wx.ID_ANY,'Height:')
         self.HeightBox = NumCtrl(self,wx.ID_ANY,
-                                 value = View.State.config['Height'],
+                                 value = view.State.config['Height'],
                                  fractionWidth = 1,
                                  allowNegative = False)
         
         self.WidthBoxLabel = wx.StaticText(self, wx.ID_ANY,'Width:')
         self.WidthBox = NumCtrl(self,wx.ID_ANY,
-                                value = View.State.config['Width'],
+                                value = view.State.config['Width'],
                                 fractionWidth = 1,
                                 allowNegative = False)
 
         self.DpiBoxLabel = wx.StaticText(self, wx.ID_ANY,'Dpi:')
         self.DpiBox = NumCtrl(self,wx.ID_ANY,
-                              value = View.State.config['Dpi'],
+                              value = view.State.config['Dpi'],
                               fractionWidth = 0,
                               allowNegative = False)
 
@@ -119,7 +119,7 @@ class LabelticksPanel(wx.Panel):
                                       choices=fontliststrings,
                                       style=wx.CB_READONLY)
 
-        self.fontselect.SetStringSelection(View.State.config['Font'])
+        self.fontselect.SetStringSelection(view.State.config['Font'])
         
         self.widgetlist_right.append(self.fontselect)
 
@@ -130,7 +130,7 @@ class LabelticksPanel(wx.Panel):
                                    fractionWidth = 0,
                                    allowNegative = False)
         
-        self.fontsizebox.SetValue(View.State.config['Fontsize'])
+        self.fontsizebox.SetValue(view.State.config['Fontsize'])
         self.widgetlist_right.append(self.fontsizebox)
 
         self.xticksizebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -140,7 +140,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.xticksizebox.SetValue(View.State.config['Xticklength'])
+        self.xticksizebox.SetValue(view.State.config['Xticklength'])
         self.widgetlist_right.append(self.xticksizebox)
 
         self.yticksizebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -150,7 +150,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.yticksizebox.SetValue(View.State.config['Yticklength'])
+        self.yticksizebox.SetValue(view.State.config['Yticklength'])
         self.widgetlist_right.append(self.yticksizebox)
 
         self.linewidthbox_label = wx.StaticText(self, wx.ID_ANY,
@@ -160,7 +160,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.linewidthbox.SetValue(View.State.config['Linewidth'])
+        self.linewidthbox.SetValue(view.State.config['Linewidth'])
         self.widgetlist_right.append(self.linewidthbox)
 
 
@@ -173,14 +173,14 @@ class LabelticksPanel(wx.Panel):
             "x-axis label: ")
         self.widgetlist_left.append(self.xtextbox_label)
         self.xtextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.xtextbox.SetValue(View.State.config['Xlabel'])
+        self.xtextbox.SetValue(view.State.config['Xlabel'])
         self.widgetlist_left.append(self.xtextbox)
 
         self.xformattextbox_label = wx.StaticText(self, wx.ID_ANY,
             "format: ")
         self.widgetlist_left.append(self.xformattextbox_label)
         self.xformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.xformattextbox.SetValue(View.State.config['Xtickformat'])
+        self.xformattextbox.SetValue(view.State.config['Xtickformat'])
         self.widgetlist_left.append(self.xformattextbox)
 
 
@@ -188,14 +188,14 @@ class LabelticksPanel(wx.Panel):
             "y-axis label: ")
         self.widgetlist_left.append(self.ytextbox_label)
         self.ytextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.ytextbox.SetValue(View.State.config['Ylabel'])
+        self.ytextbox.SetValue(view.State.config['Ylabel'])
         self.widgetlist_left.append(self.ytextbox)
 
         self.yformattextbox_label = wx.StaticText(self, wx.ID_ANY,
             "format: ")
         self.widgetlist_left.append(self.yformattextbox_label)
         self.yformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.yformattextbox.SetValue(View.State.config['Ytickformat'])
+        self.yformattextbox.SetValue(view.State.config['Ytickformat'])
         self.widgetlist_left.append(self.yformattextbox)
 
 
@@ -203,7 +203,7 @@ class LabelticksPanel(wx.Panel):
             "cb-axis label: ")
         self.widgetlist_left.append(self.cbtextbox_label)
         self.cbtextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.cbtextbox.SetValue(View.State.config['Cblabel'])
+        self.cbtextbox.SetValue(view.State.config['Cblabel'])
 
         self.widgetlist_left.append(self.cbtextbox)
 
@@ -211,25 +211,25 @@ class LabelticksPanel(wx.Panel):
             "format: ")
         self.widgetlist_left.append(self.cbformattextbox_label)
         self.cbformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.cbformattextbox.SetValue(View.State.config['Cbtickformat'])
+        self.cbformattextbox.SetValue(view.State.config['Cbtickformat'])
         self.widgetlist_left.append(self.cbformattextbox)
 
     def on_apply(self,event):
-        View.State.config['Xlabel'] = self.xtextbox.GetValue()
-        View.State.config['Xtickformat'] = self.xformattextbox.GetValue()
-        View.State.config['Ylabel'] = self.ytextbox.GetValue()
-        View.State.config['Ytickformat'] = self.yformattextbox.GetValue()
-        View.State.config['Cblabel'] = self.cbtextbox.GetValue()
-        View.State.config['Cbtickformat'] = self.cbformattextbox.GetValue()
-        View.State.config['Font'] = self.fontselect.GetStringSelection()
-        View.State.config['Fontsize'] = self.fontsizebox.GetValue()
-        View.State.config['Xticklength'] = self.xticksizebox.GetValue()
-        View.State.config['Yticklength'] = self.yticksizebox.GetValue()
-        View.State.config['Linewidth'] = self.linewidthbox.GetValue()
-        View.State.config['Width'] = self.WidthBox.GetValue()
-        View.State.config['Height'] = self.HeightBox.GetValue()
-        View.State.config['Dpi'] = self.DpiBox.GetValue()
-        dispatcher.send(Signal.PLOT_CHANGE_CONFIG, self)
+        view.State.config['Xlabel'] = self.xtextbox.GetValue()
+        view.State.config['Xtickformat'] = self.xformattextbox.GetValue()
+        view.State.config['Ylabel'] = self.ytextbox.GetValue()
+        view.State.config['Ytickformat'] = self.yformattextbox.GetValue()
+        view.State.config['Cblabel'] = self.cbtextbox.GetValue()
+        view.State.config['Cbtickformat'] = self.cbformattextbox.GetValue()
+        view.State.config['Font'] = self.fontselect.GetStringSelection()
+        view.State.config['Fontsize'] = self.fontsizebox.GetValue()
+        view.State.config['Xticklength'] = self.xticksizebox.GetValue()
+        view.State.config['Yticklength'] = self.yticksizebox.GetValue()
+        view.State.config['Linewidth'] = self.linewidthbox.GetValue()
+        view.State.config['Width'] = self.WidthBox.GetValue()
+        view.State.config['Height'] = self.HeightBox.GetValue()
+        view.State.config['Dpi'] = self.DpiBox.GetValue()
+        dispatcher.send(signal.PLOT_CHANGE_CONFIG, self)
 
     def on_cancel(self,event):
         self.parent.Hide()

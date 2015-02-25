@@ -1,5 +1,5 @@
-from colorview2d import IMod
-from colorview2d import ModWidget
+from colorview2d import imod
+from colorview2d import modwidget
 from colorview2d import floatspin #FloatSpin,EVT_FLOATSPIN
 
 import numpy as np
@@ -21,7 +21,7 @@ and a minimum height of a possible peak.
 
 """
 
-class Adaptive_ThresholdWidget(ModWidget.ModWidget):
+class Adaptive_ThresholdWidget(modwidget.ModWidget):
     """
     The widget hosting the FloatSpin controls and the labels.
 
@@ -29,7 +29,7 @@ class Adaptive_ThresholdWidget(ModWidget.ModWidget):
     :ival offset: float that determines the minimum offset
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
+        modwidget.ModWidget.__init__(self,mod,panel)
 
         self.widgetlist = []
         self.blocksize_label = wx.StaticText(self.panel, wx.ID_ANY,
@@ -76,7 +76,7 @@ class Adaptive_ThresholdWidget(ModWidget.ModWidget):
         Updates the widget with the arguments of the mod.
         The super class' update is called. 
         """
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         self.blocksize_spin.SetValue(self.mod.args[0])
         self.offset_spin.SetValue(self.mod.args[1])
         
@@ -93,7 +93,7 @@ class Adaptive_ThresholdWidget(ModWidget.ModWidget):
             self.mod.activate()
             
 
-class Adaptive_Threshold(IMod.IMod):
+class Adaptive_Threshold(imod.IMod):
     """
     The mod class. The apply routine contains the logic for applying
     the adaptive threshold filter to the datafile.
@@ -101,7 +101,7 @@ class Adaptive_Threshold(IMod.IMod):
     :ivar args: A tuple containing the blocksize and the offset.
     """
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = (2.,0.)
 
     def apply(self,datafile):

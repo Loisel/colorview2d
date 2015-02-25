@@ -30,7 +30,7 @@ import scipy as sp
 import copy
 
 
-class gpfile:
+class Gpfile:
     """
     A gnuplot data file object.
 
@@ -45,7 +45,7 @@ class gpfile:
 
         or:
 
-        :data: Alternatively, a 2d numpy array can be provided.
+        :data: Alternatively, a 2d :class:`numpy.ndarray` can be provided.
     
 
     Attributes:
@@ -98,7 +98,7 @@ class gpfile:
             self.Lnum = self.Bnum*self.Bsize
             self.set_xyrange(sp.arange(self.Bnum),sp.arange(self.Lnum))
         else:
-            raise ValueError("Received {}. gpfile has to be initiated by filename or array.".format(args))
+            raise ValueError("Received {}. Gpfile has to be initiated by filename or array.".format(args))
             
 
         self.Zmax = sp.amax(self.Zdata)
@@ -111,10 +111,10 @@ class gpfile:
 
         :param Xrange: One dimensional numpy array
                        with the same length as the width of the data.
-        :type Xrange: numpy.array
+        :type Xrange: :class:`numpy.ndarray`
         :param Yrange: One dimensional numpy array
                        with the same length as the height of the data.
-        :type Yrange: numpy.array
+        :type Yrange: :class:`numpy.ndarray`
         """
         if Xrange.shape[0] != self.Zdata.shape[1] or Yrange.shape[0] != self.Zdata.shape[0]:
             raise ValueError("Provided ranges are not compatible with the datafile.")
@@ -145,7 +145,7 @@ class gpfile:
         The Zmin and Zmax values are updated.
 
         :param Zdata: Two dimensional array to plot.
-        :type Zdata: numpy.array
+        :type Zdata: :class:`numpy.ndarray`
         """
         self.Zdata = Zdata
 

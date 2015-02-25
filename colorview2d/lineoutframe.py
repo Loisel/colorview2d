@@ -2,16 +2,16 @@ import wx
 
 import numpy as np
 import matplotlib.pyplot as plt
-from MyLine import MyLine
+from utils import Line
 
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
     NavigationToolbar2WxAgg as NavigationToolbar
 
-import Signal
+import signal
 from pydispatch import dispatcher
 
-import View
+import view
 
 class LineoutFrame(wx.Frame):
     def __init__(self,parent):
@@ -87,7 +87,7 @@ class LineoutPanel(wx.Panel):
         if event.GetShow():
 
             self.axes.cla()            
-            self.axes.set_ylabel(View.State.config['Cblabel'])
+            self.axes.set_ylabel(view.State.config['Cblabel'])
             self.axes.set_xlabel(r'$\sqrt{\Delta_x^2+\Delta_y^2}$')
             self.fig.tight_layout()
             self.canvas.draw()
@@ -96,7 +96,7 @@ class LineoutPanel(wx.Panel):
             self.right = False
 
             #self.plotpanel.draw_plot()
-            dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
+            dispatcher.send(signal.PLOT_UPDATE_CANVAS,self)
             
             self.plotpanel.axes.autoscale(False)
 
@@ -118,7 +118,7 @@ class LineoutPanel(wx.Panel):
                 line.removeline()
         self.linelist = []
 
-        dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
+        dispatcher.send(signal.PLOT_UPDATE_CANVAS,self)
         self.parent.Hide()
 
     def on_click(self,event):
@@ -141,18 +141,18 @@ class LineoutPanel(wx.Panel):
         #import pdb;pdb.set_trace()
 
         if not hasattr(self, 'currentline'):
-            self.currentline = MyLine(self.plotpanel.axes,self.x1,self.x2, self.y1,self.y2)
+            self.currentline = Line(self.plotpanel.axes,self.x1,self.x2, self.y1,self.y2)
         else:
             self.currentline.set_data(self.x1,self.x2, self.y1,self.y2)
 
-        dispatcher.send(Signal.PLOT_UPDATE_CANVAS,self)
+        dispatcher.send(signal.PLOT_UPDATE_CANVAS,self)
 
         #self.parent.parent.PlotFrame.PlotPanel.canvas.draw()
 
 
     def draw_linetrace(self):
 
-        datafile = View.State.datafile
+        datafile = view.State.datafile
 
         idx1 = self.closest_idx(self.x1,datafile.Xrange)
         idx2 = self.closest_idx(self.x2,datafile.Xrange)

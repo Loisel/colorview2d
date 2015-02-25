@@ -1,5 +1,5 @@
-from colorview2d import IMod
-from colorview2d import ModWidget
+from colorview2d import imod
+from colorview2d import modwidget
 
 import numpy as np
 
@@ -12,14 +12,14 @@ This mod performs a gaussian filter on the data. The window size for the
 filter is specified by wx.lib.masked.NumCtrl widgets.
 """
 
-class SmoothWidget(ModWidget.ModWidget):
+class SmoothWidget(modwidget.ModWidget):
     """
     A widget to control the filter.
     Hosts two wx.lib.masked.NumCtrl widgets to specify the size of the
     filter window.
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
+        modwidget.ModWidget.__init__(self,mod,panel)
         self.num_smooth_xwidth = NumCtrl(self.panel,
                                           fractionWidth = 1,
                                           allowNegative = False)
@@ -48,7 +48,7 @@ class SmoothWidget(ModWidget.ModWidget):
             self.mod.activate()            
 
     def update(self):
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         # Note that we call ChangeValue instead of SetValue to not trigger a
         # EVT_NUM event
         self.num_smooth_xwidth.ChangeValue(self.mod.args[0])
@@ -56,7 +56,7 @@ class SmoothWidget(ModWidget.ModWidget):
         
 
 
-class Smooth(IMod.IMod):
+class Smooth(imod.IMod):
     """
     The modification class. Convolutes a gaussian window of size
     
@@ -65,7 +65,7 @@ class Smooth(IMod.IMod):
     with the datafile array.
     """
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = (0.,0.)
 
     def apply(self,datafile):

@@ -1,7 +1,7 @@
-from colorview2d import IMod
-from colorview2d import ModWidget
+from colorview2d import imod
+from colorview2d import modwidget
 from colorview2d import floatspin #FloatSpin,EVT_FLOATSPIN
-from colorview2d import View
+from colorview2d import view
 
 import numpy as np
 
@@ -19,7 +19,7 @@ A button can be used to specify set the original size in the controls.
 
 """
 
-class CropWidget(ModWidget.ModWidget):
+class CropWidget(modwidget.ModWidget):
     """
     The widget hosting the FloatSpin controls and the labels 
     as well as the "Auto" update button.
@@ -31,7 +31,7 @@ class CropWidget(ModWidget.ModWidget):
     :ivar full_range_button: A :class:`wx.Button` to set the ranges of the full plot.
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
+        modwidget.ModWidget.__init__(self,mod,panel)
 
         self.widgetlist = []
         self.xrangebox_label = wx.StaticText(self.panel, wx.ID_ANY,
@@ -101,7 +101,7 @@ class CropWidget(ModWidget.ModWidget):
         Updates the widget with the arguments of the mod.
         The super class' update is called. 
         """
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         self.xrange_left_spin.SetValue(self.mod.args[0])
         self.xrange_right_spin.SetValue(self.mod.args[1])
         self.yrange_bottom_spin.SetValue(self.mod.args[2])
@@ -122,18 +122,18 @@ class CropWidget(ModWidget.ModWidget):
     def on_full_range_button(self,event):
         """
         Handles clicks on the full_range_button.
-        Uses the global state object :class:`View.State` to set the correct bounds.
+        Uses the global state object :class:`view.State` to set the correct bounds.
 
         :param event: The event
         :type event: :class:`wx.EVT_BUTTON`
         """
-        self.xrange_left_spin.SetValue(View.State.datafile.Xleft)
-        self.xrange_right_spin.SetValue(View.State.datafile.Xright)
-        self.yrange_bottom_spin.SetValue(View.State.datafile.Ybottom)
-        self.yrange_top_spin.SetValue(View.State.datafile.Ytop)
+        self.xrange_left_spin.SetValue(view.State.datafile.Xleft)
+        self.xrange_right_spin.SetValue(view.State.datafile.Xright)
+        self.yrange_bottom_spin.SetValue(view.State.datafile.Ybottom)
+        self.yrange_top_spin.SetValue(view.State.datafile.Ytop)
             
 
-class Crop(IMod.IMod):
+class Crop(imod.IMod):
     """
     The mod class. The apply routine contains the logic for cropping
     the datafile array to the new size
@@ -141,7 +141,7 @@ class Crop(IMod.IMod):
     :ivar args: A 4-tuple containing the corners of the cropped region.
     """
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = (0.,0.,0.,0.)
 
     def apply(self,datafile):

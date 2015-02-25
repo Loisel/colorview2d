@@ -1,5 +1,5 @@
-from colorview2d import IMod
-from colorview2d import ModWidget
+from colorview2d import imod
+from colorview2d import modwidget
 
 import numpy as np
 
@@ -13,14 +13,14 @@ filter is specified by wx.lib.masked.NumCtrl widgets.
 """
 
 
-class MedianWidget(ModWidget.ModWidget):
+class MedianWidget(modwidget.ModWidget):
     """
     A widget to control the filter.
     Hosts two wx.lib.masked.NumCtrl widgets to specify the size of the
     filter window.
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
+        modwidget.ModWidget.__init__(self,mod,panel)
         self.num_median_xwidth = NumCtrl(self.panel,
                                           fractionWidth = 1,
                                           allowNegative = False)
@@ -43,7 +43,7 @@ class MedianWidget(ModWidget.ModWidget):
             self.mod.deactivate()
 
     def update(self):
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         # Note that we call ChangeValue instead of SetValue to not trigger a
         # EVT_NUM event
         self.num_median_xwidth.ChangeValue(self.mod.args[0])
@@ -57,7 +57,7 @@ class MedianWidget(ModWidget.ModWidget):
             
 
 
-class Median(IMod.IMod):
+class Median(imod.IMod):
     """
     The modification class. Applies a median filter of size
     
@@ -66,7 +66,7 @@ class Median(IMod.IMod):
     to the datafile.
     """
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = (0.,0.)
 
     def apply(self,datafile):

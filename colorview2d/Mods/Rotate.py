@@ -1,5 +1,5 @@
-from colorview2d import IMod
-from colorview2d import ModWidget
+from colorview2d import imod
+from colorview2d import modwidget
 
 import numpy as np
 import wx
@@ -8,13 +8,13 @@ import wx
 """
 This mod performs a 90 deg clockwise or anti-clockwise rotation of the datafile.
 """
-class RotateWidget(ModWidget.ModWidget):
+class RotateWidget(modwidget.ModWidget):
     """
     A widget to control the Rotate mod.
     Hosts two radio buttons to choose between clockwise and anti-clockwise rotation.
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
+        modwidget.ModWidget.__init__(self,mod,panel)
 
         self.radio_cw = wx.RadioButton(self.panel,wx.ID_ANY,'cw', style=wx.RB_GROUP)
         self.radio_ccw = wx.RadioButton(self.panel, wx.ID_ANY,'ccw')
@@ -39,7 +39,7 @@ class RotateWidget(ModWidget.ModWidget):
             self.mod.deactivate()
 
     def update(self):
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         if self.mod.args:
             self.radio_cw.SetValue(True)
         else:
@@ -53,13 +53,13 @@ class RotateWidget(ModWidget.ModWidget):
             
 
 
-class Rotate(IMod.IMod):
+class Rotate(imod.IMod):
     """
     The mod class to apply the rotation.
     """
 
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = True
         
     def apply(self,datafile):

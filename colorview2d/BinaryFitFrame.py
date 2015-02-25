@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from floatspin import FloatSpin,EVT_FLOATSPIN
 import toolbox as tb
-from View import View
+import view
 
 import parser
 

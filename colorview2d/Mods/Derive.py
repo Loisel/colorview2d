@@ -1,20 +1,20 @@
 import numpy as np
 
-from colorview2d import IMod
+from colorview2d import imod
 
 """
 This mod performs a derivation of the datafile with respect to the y-axis.
 """
 
 
-class Derive(IMod.IMod):
+class Derive(imod.IMod):
     """
     The mod class to apply the derivative of the datafile array with respect
     to the y-axis.
     """
 
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         
     def apply(self,datafile):
 

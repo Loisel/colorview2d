@@ -1,7 +1,7 @@
-from colorview2d import IMod
-from colorview2d import View
-from colorview2d import ModWidget
-from colorview2d import FloatValidator
+from colorview2d import imod
+from colorview2d import view
+from colorview2d import modwidget
+from colorview2d import floatvalidator
 
 import numpy as np
 import wx
@@ -12,14 +12,14 @@ A text control with a custom validator is applied so that
 exponential notation can be used.
 """
 
-class ScaleWidget(ModWidget.ModWidget):
+class ScaleWidget(modwidget.ModWidget):
     """
     The Widget that controls the mod. 
     Hosts a TextCtrl with a custom validator.
     """
     def __init__(self,mod,panel):
-        ModWidget.ModWidget.__init__(self,mod,panel)
-        self.num_scale = wx.TextCtrl(self.panel,-1,"",validator = FloatValidator.FloatValidator('1e0'))
+        modwidget.ModWidget.__init__(self,mod,panel)
+        self.num_scale = wx.TextCtrl(self.panel,-1,"",validator = floatvalidator.FloatValidator('1e0'))
         self.auto_scale_button = wx.Button(self.panel,wx.ID_ANY,'dI/dV')        
 
         self.Add(self.num_scale,0,self.flags,border=10)
@@ -36,15 +36,15 @@ class ScaleWidget(ModWidget.ModWidget):
             self.mod.deactivate()
             
     def on_auto_scale_button(self,event):
-        self.num_scale.SetValue(str(2.5812e4/View.State.datafile.dY))        
+        self.num_scale.SetValue(str(2.5812e4/view.State.datafile.dY))        
 
     def update(self):
-        ModWidget.ModWidget.update(self)
+        modwidget.ModWidget.update(self)
         self.num_scale.SetValue(str(self.mod.args))
 
     
 
-class Scale(IMod.IMod):
+class Scale(imod.IMod):
     """
     The mod class to scale the values in the 2d datafile array
     according to the value entered in the widget:
@@ -52,7 +52,7 @@ class Scale(IMod.IMod):
     args (float): The float that is multiplied with the datafile array.
     """
     def __init__(self):
-        IMod.IMod.__init__(self)
+        imod.IMod.__init__(self)
         self.args = self.default_args = 1.
 
     def apply(self,datafile):
