@@ -1,5 +1,5 @@
 View
 ~~~~
 
-.. automodule:: colorview2d.View
+.. automodule:: colorview2d.view
    :members:

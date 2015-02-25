@@ -9,11 +9,11 @@ The plugin interface consists of two modules, the
 Please have a look at specific plugin implementations
 for examples.
 
-.. automodule:: colorview2d.IMod
+.. automodule:: colorview2d.imod
    :members:
 
 
-.. module:: colorview2d.ModWidget
+.. module:: colorview2d.modwidget
 
 ModWidget
 ---------
