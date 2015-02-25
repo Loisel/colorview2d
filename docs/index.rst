@@ -6,14 +6,16 @@
 Welcome to colorview2d's documentation!
 =======================================
 
+We present some modules that are important with respect to plugin creation.
+
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   gpfile
    imod
-
+   gpfile
+   view
 
 
 Indices and tables

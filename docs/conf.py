@@ -15,10 +15,25 @@
 import sys
 import os
 
+
+# Mocking section
+import sys
+from mock import Mock as MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return Mock()
+    def __or__(self, other):
+        return Mock()
+
+MOCK_MODULES = ['matplotlib', 'matplotlib.pyplot', 'matplotlib.font_manager', 'wx', 'scipy', 'numpy', 'argparse']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('/usr/lib/pymodules/python2.7/'))
 
 # -- General configuration ------------------------------------------------
 
@@ -267,16 +282,3 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
 
-# Mocking section
-import sys
-from mock import Mock as MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-            return Mock()
-    def __or__(self, other):
-        return Mock()
-
-MOCK_MODULES = ['wx', 'scipy', 'numpy', 'argparse', 'colorview2d.View']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

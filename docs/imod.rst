@@ -13,7 +13,7 @@ for examples.
    :members:
 
 
-.. module:: ModWidget
+.. module:: colorview2d.ModWidget
 
 ModWidget
 ---------
@@ -47,3 +47,5 @@ directly in a mod plugin.
       the checkbox.
 
       It is not required to overwrite this function in a custom plugin implementation.
+
+
