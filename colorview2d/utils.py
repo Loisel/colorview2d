@@ -19,19 +19,18 @@ class Line():
       line (matplotlib line): The lineplot associated with the axes object.
       commenttext (matplotlib text): The commenttext plotted in the axes object.
     """
-    def __init__(self,axes,x1, x2, y1, y2, comment=""):
+    def __init__(self,axes,x1, x2, y1, y2, comment = None, position = None, **args):
         self.x1 = x1
         self.y1 = y1
         self.y2 = y2
         self.x2 = x2
+        
         self.comment = comment
-
-        self.axes = axes
-        self.line, = self.axes.plot([self.x1,self.x2],[self.y1,self.y2])
-        self.commenttext = self.axes.text(self.x1,self.y1-0.5,self.comment)
 
         self.dx = self.x2-self.x1
         self.dy = self.y2-self.y1
+
+        self.addline(axes, comment = comment, position = position)
         
     def __del__(self):
         try:
@@ -39,13 +38,17 @@ class Line():
         except ValueError:
             logging.info("Line already deleted.")
             
-    def addline(self,axes):
+    def addline(self,axes, comment = None, position = None,**args):
         self.axes = axes
-        self.commenttext = self.axes.text(self.x1,self.y1-0.5,self.comment)
-        self.line, = self.axes.plot([self.x1,self.x2],[self.y1,self.y2])
+        if comment:
+            if position is None:
+                position = self.x1, self.y1+0.5
+            self.commenttext = self.axes.text(position[0], position[1], comment)
+        self.line, = self.axes.plot([self.x1,self.x2],[self.y1,self.y2], **args)
 
     def removeline(self):
-        self.commenttext.remove()
+        if hasattr(self,'commenttext'):
+            self.commenttext.remove()
         self.line.remove()
 
     def set_data(self,x1,x2,y1,y2):
@@ -59,10 +62,12 @@ class Line():
 
         self.line.set_data([x1,x2],[y1,y2])
 
-    def set_comment(self,comment):
+    def set_comment(self,comment, position = None):
+        if position is None:
+            position = self.x1, self.y1-0.5
         self.comment = comment
         self.commenttext.remove()
-        self.commenttext = self.axes.text(self.x1,self.y1-0.5,self.comment)
+        self.commenttext = self.axes.text(position[0],position[1],self.comment)
 
 
     def get_slope(self):        
@@ -82,6 +87,49 @@ class Line():
 
     def get_comment(self):
         return self.comment
+
+
+class DistanceLine(Line):
+    def __init__(self, axes, x1, x2, y1, y2, horizontal):
+
+        self.axes = axes
+        self.horizontal = horizontal
+        
+        self.x1 = x1
+        self.y1 = y1
+        self.y2 = y2
+        self.x2 = x2
+        
+        self.dx = self.x2-self.x1
+        self.dy = self.y2-self.y1
+
+        if self.horizontal:
+            self.marker = '|'
+        else:
+            self.marker = '_'
+            
+        self.addline(axes)
+
+    def get_distance(self):
+        if self.horizontal:
+            return "{:1.3e}".format(self.dx)
+        else:
+            return "{:1.3e}".format(self.dy)
+
+    def set_distancelabel(self):
+        self.set_comment(self.get_distance(), position = self.get_position()) 
+            
+    def get_position(self):
+        if self.horizontal:
+            pixel_coord = self.axes.transData.transform(((self.x1+self.x2)/2.,self.y1))+[0,5.]
+        else:
+            pixel_coord = self.axes.transData.transform((self.x1, (self.y1+self.y2)/2.))+[5.,0]
+        inv = self.axes.transData.inverted()
+        return inv.transform(pixel_coord)
+
+    def addline(self,axes):
+        Line.addline(self, axes, comment = self.get_distance(), position = self.get_position(), marker = self.marker, markersize = 10)
+        
 
 
 def read_columns(string):

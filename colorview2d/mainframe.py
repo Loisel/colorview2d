@@ -19,6 +19,7 @@ import view
 from plotframe import PlotFrame
 from lineoutframe import LineoutFrame
 from linecutframe import LinecutFrame
+from distanceframe import DistanceFrame
 
 from slopeexframe import SlopeExFrame
 # Experimental feature
@@ -124,7 +125,8 @@ class MainFrame(wx.Frame):
         self.LinecutFrame = LinecutFrame(self)
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
-
+        self.DistanceFrame = DistanceFrame(self)
+        
         # Then the mod pipeline is applied (if any)
         # Creating the list of plugins (modlist).
         view.create_modlist()
@@ -182,8 +184,11 @@ class MainFrame(wx.Frame):
         m_lineout = menu_tools.Append(wx.ID_ANY,  "Linecut &Viewer\tCtrl-V", "Plot data along line")
         self.Bind(wx.EVT_MENU, self.on_lineout, m_lineout)
 
-        m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit (beta!)", "Fit to prominent data features")
-        self.Bind(wx.EVT_MENU,self.on_binaryfit,m_binaryfit)
+        m_distance = menu_tools.Append(wx.ID_ANY,  "&Distance Viewer\tCtrl-D", "Measure distances")
+        self.Bind(wx.EVT_MENU, self.on_distance, m_distance)
+
+        # m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit (beta!)", "Fit to prominent data features")
+        # self.Bind(wx.EVT_MENU,self.on_binaryfit,m_binaryfit)
 
 
         menu_help = wx.Menu()
@@ -236,6 +241,13 @@ class MainFrame(wx.Frame):
 
         """
         self.SlopeExFrame.Show()
+
+    def on_distance(self,event):
+        """
+        Shows the Frame to measure distances.
+
+        """
+        self.DistanceFrame.Show()
 
 
     def on_save_datafile(self, event):
