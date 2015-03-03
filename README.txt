@@ -14,6 +14,7 @@ Features of the beta:
 * Plot line traces of arbitrary orientations by point and click in the 2d colorplot. 
 * Mass extract linetraces (to depict feature evolution). 
 * Extract linear slopes in units of the datafile axis by point and click. 
+* Measure distances interactively in the plot.
 * Convolute the dataset with a gaussian window ("smoothing").
 * Apply a median filter to the data. 
 * Scale and derive data.
@@ -47,4 +48,4 @@ Installation and Usage:
  where you can specify the filename of the datafile and which columns you want to read in, or, 
  alternatively, a cv2d config file.
 
-23.1.2015 Alois Dirnaichner
+3.3.2015 Alois Dirnaichner

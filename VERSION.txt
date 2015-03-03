@@ -1,3 +1,7 @@
+--- Version BETA 0.52
+
+- Added a tool to measure distances in the plot and save them to a file.
+
 --- Version BETA 0.51
 
 - Under the hood: a global state module simplifies life considerably.
