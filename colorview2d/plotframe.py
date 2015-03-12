@@ -73,12 +73,14 @@ class PlotPanel(wx.Panel):
         dispatcher.connect(self.handle_change_colormap, signal = signal.PLOT_CHANGE_COLORMAP, sender=dispatcher.Any)
         dispatcher.connect(self.handle_update_datafile, signal = signal.PLOT_UPDATE_DATAFILE)
         dispatcher.connect(self.handle_draw_plot_anew, signal = signal.PLOT_DRAW_ANEW)
+
         dispatcher.connect(self.handle_update_canvas, signal = signal.PLOT_UPDATE_CANVAS, sender=dispatcher.Any)
         dispatcher.connect(self.handle_config_changed, signal = signal.PLOT_CHANGE_CONFIG, sender=dispatcher.Any)
 
     def handle_change_colormap(self,sender):
         self.plot.set_cmap(view.State.config['Colormap'])
         self.update()
+
         
     def handle_update_color(self,sender):
         # import pdb; pdb.set_trace()

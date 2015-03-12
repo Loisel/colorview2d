@@ -299,7 +299,9 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+            self.PlotFrame.PlotPanel.fig.set_size_inches(view.State.config['Width'], view.State.config['Height'])
             self.PlotFrame.PlotPanel.fig.savefig(path, dpi = view.State.config['Dpi'])
+            self.PlotFrame.PlotPanel.Layout()
 
     def on_save_cv2d(self, event):
         """

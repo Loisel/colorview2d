@@ -1,13 +1,13 @@
 #!/bin/python
 
 import scipy as sp
-
+import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import median_filter
 from scipy import optimize
 
 
-class modification(yaml.YAMLObject):
+class modification():
     removeOnLoadFile = False
     
     def __repr__(self):
@@ -109,6 +109,81 @@ class crop(modification):
 
         datafile.set_xyrange(datafile.Xrange[xleft_idx:xright_idx],datafile.Yrange[ybottom_idx:ytop_idx])
         datafile.set_Zdata(datafile.get_region(xleft_idx,xright_idx,ybottom_idx,ytop_idx))
+
+
+
+def peakdetect2(y_axis, x_axis, region = 20, delta_rel = 5, delta_abs = 0, dynamic_threshold = False, delta_rel_step = 1.):
+    """
+    Peak finding algorhithm that supports relative and
+    absolute peak heights above an average value that is taken
+    over a given region of points.
+    The maxima are found over the absolute values of the input array.
+    In the relative peak height mode, it can operate recursively
+    reducing the relative magnitude by delta_rel_step in each recursion.
+
+    Args:
+      y_axis (np.ndarray): A numpy array with the values on the y axis.
+                           The absolute values of the contents are used for the analysis.
+      x_axis (np.ndarray): A numpy array with the values on the x axis.
+      region (int): Integer size of region over which the average is taken.
+                    It will also determine the minimum distance between peaks.
+      delta_rel (float): Relative height of a possible maximum over the average.
+      delta_abs (float): Absolute height of a possible maximum over the average.
+                         Overrides the choice of delta_rel
+      dynamic_threshold (boolean): Switches the dynamic recursion on and off.
+      delta_rel_step (float): If the dynamic recursion is switched on, this values
+                              determines the step size that is substracted from delta_rel
+                              during each recursion.
+
+    Returns:
+      max_peaks (np.array): A numpy array where each line contains the value on the x-axis,
+                            the value on the y-axis and the index on the x-range:
+                            ...
+                            [x_max, y_max, max_index]
+                            ...
+    """
+    max_peaks = []
+    maxindex = None
+    maxi = -np.Inf
+    found_new_max = False
+
+    y_axis = np.abs(y_axis)
+
+    for index in range(x_axis.shape[0]):
+        
+        # let us look at the first points
+        if index < region/2:
+            avg = np.average(y_axis[:region/2])
+        elif index > x_axis.shape[0]-region/2:
+            avg = np.average(y_axis[-region/2:])
+        else:
+            avg = np.average(y_axis[index-region/2:index+region/2])
+
+        if(y_axis[index] > maxi):
+            if delta_abs > 0 and y_axis[index] > avg + delta_abs:
+                maxi = y_axis[index]
+                maxindex = index
+                max_peaks.append([x_axis[index], maxi, maxindex])
+                print "call"
+
+            elif y_axis[index] > avg*delta_rel:
+                #import pdb;pdb.set_trace()
+                maxi = y_axis[index]
+                maxindex = index
+                found_new_max = True
+
+        if maxindex:
+            if maxindex + region/2 < index and found_new_max:
+                max_peaks.append([x_axis[maxindex], maxi, maxindex])
+                maxi = -np.Inf
+                found_new_max = False
+
+    if dynamic_threshold and len(max_peaks) == 0 and delta_rel > 0:
+        # print "Going into recursion: delta_rel = {}".format(delta_rel-delta_rel_step)
+        return peakdetect2(y_axis, x_axis, region = region, delta_rel = delta_rel - delta_rel_step, dynamic_threshold = True)
+                
+    return np.array(max_peaks)
+        
 
 
 def peakdetect(y_axis, x_axis = None, lookahead = 300, delta=0):

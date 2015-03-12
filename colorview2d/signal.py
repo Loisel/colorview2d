@@ -14,7 +14,6 @@ PLOT_CHANGE_COLORMAP = 'Change the colormap in the plot'
 PLOT_UPDATE_CANVAS = 'Redraw all objects in the plot canvas'
 PLOT_CHANGE_CONFIG =  'Update the labels, ticks and plot size from the config.'
 
-
 # Signals for the MainPanel
 PANEL_UPDATE_COLORCTRL = 'Update the color controls in the MainPanel'
 PANEL_ADD_MODWIDGETS = 'Add mod widgets to the MainPanel'
