@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 class DistanceFrame(wx.Frame):
     def __init__(self,parent):
-        wx.Frame.__init__(self, parent, title="Linear slope extraction",size=(430,320))
+        wx.Frame.__init__(self, parent, title="Linear slope extraction",size=(400,320))
         self.parent = parent
         self.DistancePanel = DistancePanel(self)
         self.Layout()
@@ -41,7 +41,7 @@ class DistancePanel(wx.Panel):
 
         # the line list widget
 
-        self.linelistbox = VariableListCtrl(self,wx.ID_ANY,size=(250,160), style = wx.LC_REPORT|wx.BORDER_SUNKEN)
+        self.linelistbox = VariableListCtrl(self,wx.ID_ANY,size=(140,180), style = wx.LC_REPORT|wx.BORDER_SUNKEN)
 
         self.linelistbox.InsertColumn(0,'dx',width=70)
         self.linelistbox.InsertColumn(1,'dy',width=70)
@@ -71,16 +71,16 @@ class DistancePanel(wx.Panel):
         self.CoordBox = wx.StaticBox(self, wx.ID_ANY, 'Point coordinates')
         self.CoordBoxSizer = wx.StaticBoxSizer(self.CoordBox, wx.VERTICAL)
 
-        self.CoordGridSizer = wx.GridSizer(rows=2, cols=4, hgap=5, vgap=10)
+        self.CoordGridSizer = wx.GridSizer(rows=2, cols=4, vgap=2)
 
         gridflags = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
 
         for widget in self.pointwidgetlist:
-            self.CoordGridSizer.Add(widget,flag = gridflags)
+            self.CoordGridSizer.Add(widget, 0, flag = gridflags)
 
         self.CoordBoxSizer.Add(self.CoordGridSizer)
 
-        self.middlevbox.Add(self.CoordBoxSizer)
+        self.middlevbox.Add(self.CoordBoxSizer, 0)
         self.middlevbox.AddSizer((-1,10))
 
         self.listhbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -92,18 +92,18 @@ class DistancePanel(wx.Panel):
         self.listvbox_right.Add(self.addlinebutton,0,wx.ALL|wx.ALIGN_CENTER_VERTICAL,border = 5)
         self.listvbox_right.Add(self.removelinebutton,0,wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         self.listvbox_right.Add(self.savelistbutton,0,wx.ALIGN_CENTER_VERTICAL| wx.ALL, border = 5)
+        self.listvbox_right.Add(wx.StaticLine(self, -1))
+        self.listvbox_right.Add(self.close_button,flag = wx.ALIGN_CENTER_VERTICAL|wx.ALL,border=5)
 
         self.listhbox.Add(self.listvbox_left)
         self.listhbox.Add(self.listvbox_right,1,wx.EXPAND)
 
         self.middlevbox.Add(self.listhbox,1,wx.EXPAND)
 
-        self.middlevbox.Add(wx.StaticLine(self, -1))
-        self.middlevbox.Add(self.close_button,flag = wx.ALIGN_CENTER)
 
         self.mainbox.Add((10,10))
         self.mainbox.Add(self.middlevbox)
-        self.mainbox.Add((10,10))
+
 
         self.SetSizerAndFit(self.mainbox)
 

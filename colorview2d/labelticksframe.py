@@ -56,7 +56,7 @@ class LabelticksPanel(wx.Panel):
         self.LabelFormatBox = wx.StaticBox(self, wx.ID_ANY, 'Labels')
         self.LabelFormatBoxSizer = wx.StaticBoxSizer(self.LabelFormatBox, wx.VERTICAL)
 
-        self.PlotBox = wx.StaticBox(self, wx.ID_ANY, 'Plotsize')
+        self.PlotBox = wx.StaticBox(self, wx.ID_ANY, 'Plotsize (pdf)')
         self.PlotBoxSizer = wx.StaticBoxSizer(self.PlotBox, wx.HORIZONTAL)
 
         self.PlotBoxSizer.Add(self.WidthBoxLabel,0,wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, border=10)
