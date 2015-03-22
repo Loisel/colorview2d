@@ -232,7 +232,8 @@ class SlopeExPanel(wx.Panel):
 
             #import pdb;pdb.set_trace()
             
-            self.plotpanel.axes.autoscale(False)
+            dispatcher.send(signal.PLOT_AUTOSCALE_OFF,self)
+
             self.left = False
             self.right = False
 
@@ -246,8 +247,7 @@ class SlopeExPanel(wx.Panel):
 
             
         else:
-
-            self.plotpanel.axes.autoscale(True)
+            dispatcher.send(signal.PLOT_AUTOSCALE_ON, self)
             self.cid = self.plotpanel.canvas.mpl_disconnect(self.cid)
 
     def on_addline(self,event):

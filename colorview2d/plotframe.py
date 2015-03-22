@@ -77,10 +77,21 @@ class PlotPanel(wx.Panel):
         dispatcher.connect(self.handle_update_canvas, signal = signal.PLOT_UPDATE_CANVAS, sender=dispatcher.Any)
         dispatcher.connect(self.handle_config_changed, signal = signal.PLOT_CHANGE_CONFIG, sender=dispatcher.Any)
 
+        dispatcher.connect(self.handle_autoscale_on, signal = signal.PLOT_AUTOSCALE_ON, sender=dispatcher.Any)
+        dispatcher.connect(self.handle_autoscale_off, signal = signal.PLOT_AUTOSCALE_OFF, sender=dispatcher.Any)
+
     def handle_change_colormap(self,sender):
         self.plot.set_cmap(view.State.config['Colormap'])
         self.update()
 
+    def handle_autoscale_on(self, sender):
+        self.axes.autoscale(True)
+        self.axes.set_xlim(view.State.datafile.Xleft,view.State.datafile.Xright)
+        self.axes.set_ylim(view.State.datafile.Ybottom,view.State.datafile.Ytop)
+
+
+    def handle_autoscale_off(self, sender):
+        self.axes.autoscale(False)
         
     def handle_update_color(self,sender):
         # import pdb; pdb.set_trace()
@@ -110,6 +121,7 @@ class PlotPanel(wx.Panel):
         """
         
         self.plot.changed()
+        #import pdb;pdb.set_trace()
         self.canvas.draw()
 
 

@@ -97,14 +97,14 @@ class LineoutPanel(wx.Panel):
 
             #self.plotpanel.draw_plot()
             dispatcher.send(signal.PLOT_UPDATE_CANVAS,self)
-            
-            self.plotpanel.axes.autoscale(False)
+            dispatcher.send(signal.PLOT_AUTOSCALE_OFF,self)
 
             self.cid = self.plotpanel.canvas.mpl_connect('button_press_event',self.on_click)
             
         else:
-            self.plotpanel.axes.autoscale(True)
             self.cid = self.plotpanel.canvas.mpl_disconnect(self.cid)
+            dispatcher.send(signal.PLOT_AUTOSCALE_ON,self)
+
         
     def on_plot(self,event):
         self.draw_linetrace()

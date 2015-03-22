@@ -232,7 +232,8 @@ class MainFrame(wx.Frame):
         Shows the frame to extract linecut series.
 
         """
-        self.PlotFrame.PlotPanel.axes.autoscale(False)
+        #self.PlotFrame.PlotPanel.axes.autoscale(False)
+        dispatcher.send(signal.PLOT_AUTOSCALE_OFF,self)
         self.LinecutFrame.Show()
 
     def on_slopex(self,event):
