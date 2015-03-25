@@ -63,7 +63,7 @@ class MainFrame(wx.Frame):
         """
         # find a way to autosize the frame!
         # this is annoying, especially with respect to the plugins
-        wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,550),style=wx.DEFAULT_FRAME_STYLE)
+        wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,590),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
 
         

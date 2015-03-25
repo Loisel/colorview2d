@@ -6,4 +6,5 @@ from pydispatch import dispatcher
 State = view.State
 
 def update():
-    dispatcher.send(signal.PLOT_DRAW_ANEW)
+    dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
+    dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
