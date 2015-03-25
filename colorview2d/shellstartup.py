@@ -1,6 +1,6 @@
 import numpy as np
-import view
-import signal
+import colorview2d.signal as signal
+import colorview2d.view as view
 from pydispatch import dispatcher
 
 State = view.State

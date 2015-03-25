@@ -2,12 +2,16 @@ from colorview2d import imod
 from colorview2d import modwidget
 from colorview2d import floatspin #FloatSpin,EVT_FLOATSPIN
 
+import logging
 import numpy as np
 
 import wx
 
-from skimage.filter import threshold_adaptive
-from skimage import img_as_float
+try:
+    from skimage.filter import threshold_adaptive
+    from skimage import img_as_float
+except ImportError:
+    logging.info('The skimage package is missing. You can not use the adaptive threshold mod.')
 
 
 """

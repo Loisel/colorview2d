@@ -2,6 +2,10 @@ import wx
 import wx.py.shell
 import utils
 
+import view
+
+State = view.State
+
 class ShellFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Python shell",size=(800,600))
