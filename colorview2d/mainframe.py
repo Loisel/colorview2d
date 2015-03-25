@@ -20,6 +20,7 @@ from plotframe import PlotFrame
 from lineoutframe import LineoutFrame
 from linecutframe import LinecutFrame
 from distanceframe import DistanceFrame
+from shellframe import ShellFrame
 
 from slopeexframe import SlopeExFrame
 # Experimental feature
@@ -126,6 +127,7 @@ class MainFrame(wx.Frame):
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
         self.DistanceFrame = DistanceFrame(self)
+        self.ShellFrame = ShellFrame(self)
         
         # Then the mod pipeline is applied (if any)
         # Creating the list of plugins (modlist).
@@ -187,6 +189,9 @@ class MainFrame(wx.Frame):
         m_distance = menu_tools.Append(wx.ID_ANY,  "&Distance Viewer\tCtrl-D", "Measure distances")
         self.Bind(wx.EVT_MENU, self.on_distance, m_distance)
 
+        m_shell = menu_tools.Append(wx.ID_ANY,  "S&hell\tCtrl-h", "Open a python shell")
+        self.Bind(wx.EVT_MENU, self.on_shell, m_shell)
+
         # m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit (beta!)", "Fit to prominent data features")
         # self.Bind(wx.EVT_MENU,self.on_binaryfit,m_binaryfit)
 
@@ -218,6 +223,14 @@ class MainFrame(wx.Frame):
         """
         self.LineoutFrame.Show()
 
+    def on_shell(self,event):
+        """
+        Shows the Frame to extract linecuts.
+        
+        """
+        self.ShellFrame.Show()
+
+        
     def on_binaryfit(self,event):
         """
         Shows the fitting Frame.
