@@ -282,7 +282,7 @@ class LinecutPanel(wx.Panel):
         self.linelist = []
         
         self.canvas.draw()
-        self.axes.autoscale(True)
+        dispatcher.send(signal.PLOT_AUTOSCALE_ON, self)
 
         self.parent.Hide()
 

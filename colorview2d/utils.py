@@ -36,7 +36,7 @@ class Line():
         try:
             self.removeline()
         except ValueError:
-            logging.info("Line already deleted.")
+            logging.debug("Line already deleted.")
             
     def addline(self,axes, comment = None, position = None,**args):
         self.axes = axes
@@ -48,7 +48,10 @@ class Line():
 
     def removeline(self):
         if hasattr(self,'commenttext'):
-            self.commenttext.remove()
+            try:
+                self.commenttext.remove()
+            except ValueError:
+                logging.debug('Can not remove linetext properly.')
         self.line.remove()
 
     def set_data(self,x1,x2,y1,y2):
@@ -66,7 +69,8 @@ class Line():
         if position is None:
             position = self.x1, self.y1-0.5
         self.comment = comment
-        self.commenttext.remove()
+        if hasattr(self,'commenttext'):
+            self.commenttext.remove()
         self.commenttext = self.axes.text(position[0],position[1],self.comment)
 
 

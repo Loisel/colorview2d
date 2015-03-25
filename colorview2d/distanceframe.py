@@ -229,7 +229,8 @@ class DistancePanel(wx.Panel):
 
             #import pdb;pdb.set_trace()
             
-            self.plotpanel.axes.autoscale(False)
+            dispatcher.send(signal.PLOT_AUTOSCALE_OFF,self)
+
             self.left = False
             self.right = False
 
@@ -244,7 +245,8 @@ class DistancePanel(wx.Panel):
             self.release_cid = self.plotpanel.canvas.mpl_connect('button_release_event',self.on_release)
             
         else:
-            self.plotpanel.axes.autoscale(True)
+            dispatcher.send(signal.PLOT_AUTOSCALE_ON,self)
+
             self.press_cid = self.plotpanel.canvas.mpl_disconnect(self.press_cid)
             self.motion_cid = self.plotpanel.canvas.mpl_disconnect(self.motion_cid)
             self.release_cid = self.plotpanel.canvas.mpl_disconnect(self.release_cid)

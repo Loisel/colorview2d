@@ -13,6 +13,8 @@ PLOT_UPDATE_DATAFILE = 'Replace the datafile in the plot'
 PLOT_CHANGE_COLORMAP = 'Change the colormap in the plot'
 PLOT_UPDATE_CANVAS = 'Redraw all objects in the plot canvas'
 PLOT_CHANGE_CONFIG =  'Update the labels, ticks and plot size from the config.'
+PLOT_AUTOSCALE_OFF = 'Deactivate the autoscaling of the axis on the plot canvas.'
+PLOT_AUTOSCALE_ON = 'Activate the autoscaling of the axis on the plot canvas.'
 
 # Signals for the MainPanel
 PANEL_UPDATE_COLORCTRL = 'Update the color controls in the MainPanel'
