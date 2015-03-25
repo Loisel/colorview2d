@@ -49,6 +49,14 @@ Installation and Usage:
 
    sudo easy_install colorview2d-version.tar.gz 
 
+ alternatively one can use the python package index via pip
+
+  sudo pip2.7 install --upgrade colorview2d
+
+ or easy_install
+
+  sudo easy_install --upgrade colorview2d
+
  If everything works out nicely, you can start the program via
 
    colorview2d [-f | --file filename] [--columns columns] [-c | --cv2d config_file]
