@@ -28,6 +28,13 @@ Features of the beta:
 Installation and Usage: 
 
 * Windows:
+ Note that that only some (few) versions can be provided as a binary package
+ for Windows.
+
+ Please have a look at 
+   https://sourceforge.net/projects/colorview2d/files/
+ for the latest version.
+
  Download and extract the files from the archive into a single folder. 
  Execute colorview2d.exe, 
  whilst the default plotting file ("demo.dat") and the 
