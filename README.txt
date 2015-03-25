@@ -21,7 +21,8 @@ Features of the beta:
 * Save cv2d config files to recover the state of the data file
   including axis labels and plotting pipeline. 
 * Extensible plot manipulation toolbox using yapsy plugin framework.
-
+* Interactive Python shell can be used to access internal objects.
+ 
 ---
 
 Installation and Usage: 

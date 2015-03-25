@@ -1,3 +1,9 @@
+--- Version BETA 0.53
+
+- Added an interactive python shell that provides some basic functionality.
+- Added a log scale mod.
+- Minor bugfixes.
+
 --- Version BETA 0.52
 
 - Added a tool to measure distances in the plot and save them to a file.
