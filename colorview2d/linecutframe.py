@@ -6,6 +6,9 @@ from utils import resource_path
 
 import view
 
+from pydispatch import dispatcher
+import signal
+
 class LinecutFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, title="Linecut series extraction")
