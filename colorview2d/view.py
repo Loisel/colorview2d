@@ -205,6 +205,7 @@ def parse_config(cfgpath):
 
     reset()
     set_default_font()
+    dispatcher.send(signal.CONFIG_UPDATE)
 
 def save_config(cfgpath):
     """

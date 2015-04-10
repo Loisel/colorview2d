@@ -96,6 +96,8 @@ class LabelticksPanel(wx.Panel):
         self.SetSizerAndFit(self.mainbox)
         self.mainbox.Fit(self.parent)
 
+        dispatcher.connect(self.handle_config_update, signal = signal.CONFIG_UPDATE)
+
     def init_widgetlist_right(self):
         self.widgetlist_right = []
 
@@ -231,5 +233,25 @@ class LabelticksPanel(wx.Panel):
         view.State.config['Dpi'] = self.DpiBox.GetValue()
         dispatcher.send(signal.PLOT_CHANGE_CONFIG, self)
 
+
+    def handle_config_update(self):
+        """
+        Update the values in the panel widgets from the State object.
+        """
+        self.xtextbox.SetValue(view.State.config['Xlabel'])
+        self.xformattextbox.SetValue(view.State.config['Xtickformat'])
+        self.ytextbox.SetValue(view.State.config['Ylabel']) 
+        self.yformattextbox.SetValue(view.State.config['Ytickformat'])
+        self.cbtextbox.SetValue(view.State.config['Cblabel'])
+        self.cbformattextbox.SetValue(view.State.config['Cbtickformat'])
+        self.fontselect.SetStringSelection(view.State.config['Font'])
+        self.fontsizebox.SetValue(view.State.config['Fontsize'])
+        self.xticksizebox.SetValue(view.State.config['Xticklength'])
+        self.yticksizebox.SetValue(view.State.config['Yticklength'])
+        self.linewidthbox.SetValue(view.State.config['Linewidth'])
+        self.WidthBox.SetValue(view.State.config['Width'])
+        self.HeightBox.SetValue(view.State.config['Height'])
+        self.DpiBox.SetValue(view.State.config['Dpi'])
+        
     def on_cancel(self,event):
         self.parent.Hide()

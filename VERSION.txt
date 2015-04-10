@@ -1,3 +1,7 @@
+--- Version BETA 0.54
+
+- Minor bugfixes. The State object is now accessible in the shell.
+
 --- Version BETA 0.53
 
 - Added an interactive python shell that provides some basic functionality.

@@ -23,3 +23,6 @@ PANEL_ADD_MODWIDGETS = 'Add mod widgets to the MainPanel'
 
 # Signals for the Mod object
 MOD_WIDGET_UPDATE = 'Update the mod widgets from the information in the mod'
+
+# Signals for the config panel
+CONFIG_UPDATE = 'Update the labeltickframe with the newly parsed config.'
