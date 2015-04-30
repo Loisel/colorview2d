@@ -586,7 +586,10 @@ class MainPanel(wx.Panel):
 
         self.maxspin.SetFormat("%e")
 
-        self.Bind(EVT_FLOATSPIN, self.on_floatspin)
+        self.maxspin.Bind(EVT_FLOATSPIN, self.on_floatspin)
+        self.minspin.Bind(EVT_FLOATSPIN, self.on_floatspin)
+        self.widthspin.Bind(EVT_FLOATSPIN, self.on_floatspin)
+        self.centrespin.Bind(EVT_FLOATSPIN, self.on_floatspin)
 
 
         #
@@ -810,12 +813,15 @@ class MainPanel(wx.Panel):
         minval = centre-width/2.
         maxval = centre+width/2.
 
+        print "Called with event name {}".format(evt_obj.GetName())
         if evt_obj.GetName() == 'min':
             minval = self.minspin.GetValue()
+            print "Changed min to {}".format(minval)
             centre = (maxval+minval)/2.
             width = maxval-minval
         if evt_obj.GetName() == 'max':
             maxval = self.maxspin.GetValue()
+            print "Changed max to {}".format(minval)
             centre = (maxval+minval)/2.
             width = maxval-minval
 
