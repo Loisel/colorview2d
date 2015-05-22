@@ -96,7 +96,7 @@ class Gpfile:
             self.Bsize = self.Zdata.shape[0]
             self.Bnum = self.Zdata.shape[1]
             self.Lnum = self.Bnum*self.Bsize
-            self.set_xyrange(sp.arange(self.Bnum),sp.arange(self.Lnum))
+            self.set_xyrange(sp.arange(self.Bnum),sp.arange(self.Bsize))
         else:
             raise ValueError("Received {}. Gpfile has to be initiated by filename or array.".format(args))
             
