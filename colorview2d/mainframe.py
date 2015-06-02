@@ -816,7 +816,7 @@ class MainPanel(wx.Panel):
         print "Called with event name {}".format(evt_obj.GetName())
         if evt_obj.GetName() == 'min':
             minval = self.minspin.GetValue()
-            print "Changed min to {}".format(minval)
+            logging.debug("Changed min to {}".format(minval))
             centre = (maxval+minval)/2.
             width = maxval-minval
         if evt_obj.GetName() == 'max':
