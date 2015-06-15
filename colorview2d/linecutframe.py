@@ -288,6 +288,7 @@ class LinecutPanel(wx.Panel):
         dispatcher.send(signal.PLOT_AUTOSCALE_ON, self)
 
         self.parent.Hide()
+        self.parent.Destroy()
 
     def on_radioxy(self, event):
         evt_obj = event.GetEventObject()

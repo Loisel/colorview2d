@@ -65,6 +65,7 @@ class MainFrame(wx.Frame):
         # this is annoying, especially with respect to the plugins
         wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,590),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
+        import pdb;pdb.set_trace()
 
         
         if cv2dpath:
@@ -123,11 +124,10 @@ class MainFrame(wx.Frame):
         dispatcher.send(signal.PLOT_DRAW_ANEW,self)
 
         # The other tools are intialized
-        self.LinecutFrame = LinecutFrame(self)
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
         self.DistanceFrame = DistanceFrame(self)
-        self.ShellFrame = ShellFrame(self)
+        #self.ShellFrame = ShellFrame(self)
         
         # Then the mod pipeline is applied (if any)
         # Creating the list of plugins (modlist).
@@ -246,6 +246,7 @@ class MainFrame(wx.Frame):
 
         """
         #self.PlotFrame.PlotPanel.axes.autoscale(False)
+        self.LinecutFrame = LinecutFrame(self)
         dispatcher.send(signal.PLOT_AUTOSCALE_OFF,self)
         self.LinecutFrame.Show()
 
@@ -813,7 +814,6 @@ class MainPanel(wx.Panel):
         minval = centre-width/2.
         maxval = centre+width/2.
 
-        print "Called with event name {}".format(evt_obj.GetName())
         if evt_obj.GetName() == 'min':
             minval = self.minspin.GetValue()
             logging.debug("Changed min to {}".format(minval))
@@ -821,7 +821,7 @@ class MainPanel(wx.Panel):
             width = maxval-minval
         if evt_obj.GetName() == 'max':
             maxval = self.maxspin.GetValue()
-            print "Changed max to {}".format(minval)
+            logging.debug("Changed max to {}".format(maxval))
             centre = (maxval+minval)/2.
             width = maxval-minval
 
