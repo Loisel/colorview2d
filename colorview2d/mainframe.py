@@ -65,7 +65,6 @@ class MainFrame(wx.Frame):
         # this is annoying, especially with respect to the plugins
         wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,590),style=wx.DEFAULT_FRAME_STYLE)
         self.parent = parent
-        import pdb;pdb.set_trace()
 
         
         if cv2dpath:
