@@ -4,7 +4,6 @@ import utils
 
 import view
 
-State = view.State
 
 class ShellFrame(wx.Frame):
     def __init__(self,parent):
@@ -20,7 +19,9 @@ class Shell(wx.py.shell.Shell):
 
 The State object is made available as State.
 Type update() to send a signal to draw the plot."""
-        wx.py.shell.Shell.__init__(self, parent, introText = Text, startupScript = utils.resource_path("shellstartup.py"))
-
+        wx.py.shell.Shell.__init__(self,
+                                   parent,
+                                   introText = Text,
+                                   startupScript = utils.resource_path("shellstartup.py"))
 
             

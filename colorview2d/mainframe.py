@@ -126,7 +126,7 @@ class MainFrame(wx.Frame):
         self.LineoutFrame = LineoutFrame(self)
         self.SlopeExFrame = SlopeExFrame(self)
         self.DistanceFrame = DistanceFrame(self)
-        #self.ShellFrame = ShellFrame(self)
+        self.ShellFrame = ShellFrame(self)
         
         # Then the mod pipeline is applied (if any)
         # Creating the list of plugins (modlist).
@@ -228,6 +228,7 @@ class MainFrame(wx.Frame):
         
         """
         self.ShellFrame.Show()
+
 
         
     def on_binaryfit(self,event):
