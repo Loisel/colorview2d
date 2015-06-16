@@ -1,12 +1,14 @@
+colorview2d Readme
+==================
 
 colorview2d is a 2D color plotting utility. 
 
 It uses the power of numpy, scipy and matplotlib to visualize 3d datasets 
 provided as ASCII text data files. 
 
----
 
-Features of the beta: 
+Features of the beta:
+~~~~~~~~~~~~~~~~~~~~~
 
 * Adjustable colorbar. 
 * Rotate and crop datasets. 
@@ -23,11 +25,13 @@ Features of the beta:
 * Extensible plot manipulation toolbox using yapsy plugin framework.
 * Interactive Python shell can be used to access internal objects.
  
----
 
 Installation and Usage: 
+~~~~~~~~~~~~~~~~~~~~~~~
 
-* Windows:
+Windows:
+--------
+
  Note that that only some (few) versions can be provided as a binary package
  for Windows.
 
@@ -36,11 +40,17 @@ Installation and Usage:
  for the latest version.
 
  Download and extract the files from the archive into a single folder. 
- Execute colorview2d.exe, 
- whilst the default plotting file ("demo.dat") and the 
- configuration file ("default.cv2d") are present in the same directory. 
+ Execute colorview2d.exe, whilst
+ 
+  + the default plotting file ("demo.dat"), 
+  + the configuration file ("default.cv2d") and 
+  + the Mods/ folder 
 
-* Linux:
+ are present in the same directory. 
+
+Linux:
+------
+
  You can download a tarball from
  
    https://pypi.python.org/pypi/colorview2d/
@@ -57,11 +67,15 @@ Installation and Usage:
 
   sudo easy_install --upgrade colorview2d
 
+ Note that some packages like wx or numpy can not be installed via the
+ python package index. Please install these packages via the package
+ manager that is shipped with your linux distribution.
+
  If everything works out nicely, you can start the program via
 
    colorview2d [-f | --file filename] [--columns columns] [-c | --cv2d config_file]
 
- where you can specify the filename of the datafile and which columns you want to read in, or, 
- alternatively, a cv2d config file.
+ where you can specify the filename of the datafile and which columns
+ you want to read in, or, alternatively, a cv2d config file.
 
-3.3.2015 Alois Dirnaichner
+16.6.2015 Alois Dirnaichner

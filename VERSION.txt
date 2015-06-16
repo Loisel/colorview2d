@@ -1,3 +1,8 @@
+--- Version BETA 0.55
+
+- Minor bugfixes: Colorbar min and max now work as expected. 
+- The shell does not try to open ipython which confilcts with PyCrust from wx.
+
 --- Version BETA 0.54
 
 - Minor bugfixes. The State object is now accessible in the shell.
