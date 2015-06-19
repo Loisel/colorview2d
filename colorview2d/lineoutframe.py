@@ -11,22 +11,23 @@ from matplotlib.backends.backend_wxagg import \
 import signal
 from pydispatch import dispatcher
 
-import view
+# import view
 
 class LineoutFrame(wx.Frame):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Frame.__init__(self, parent, title="Line trace tool",size=(800,600))
         self.parent = parent
-        self.LineoutPanel = LineoutPanel(self)
+        self.LineoutPanel = LineoutPanel(self, cvfig)
         self.Layout()
         self.Bind(wx.EVT_SHOW,self.LineoutPanel.on_show)
 
 
 class LineoutPanel(wx.Panel):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Panel.__init__(self,parent)
 
         self.parent = parent
+        self.cvfig = cvfig
 
         self.x1 = None
         self.x2 = None
@@ -87,7 +88,7 @@ class LineoutPanel(wx.Panel):
         if event.GetShow():
 
             self.axes.cla()            
-            self.axes.set_ylabel(view.State.config['Cblabel'])
+            self.axes.set_ylabel(self.cvfig.config['Cblabel'])
             self.axes.set_xlabel(r'$\sqrt{\Delta_x^2+\Delta_y^2}$')
             self.fig.tight_layout()
             self.canvas.draw()
@@ -152,7 +153,7 @@ class LineoutPanel(wx.Panel):
 
     def draw_linetrace(self):
 
-        datafile = view.State.datafile
+        datafile = self.cvfig.datafile
 
         idx1 = self.closest_idx(self.x1,datafile.Xrange)
         idx2 = self.closest_idx(self.x2,datafile.Xrange)

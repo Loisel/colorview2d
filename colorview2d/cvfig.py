@@ -1,11 +1,8 @@
-import colorview2d.utils as utils
 import logging
 import yaml
 import Mods
-import colorview2d.gpfile as gpfile
 
 from pydispatch import dispatcher
-import colorview2d.signal as signal
 
 import sys
 
@@ -17,10 +14,25 @@ from matplotlib.font_manager import FontProperties,findfont
 # to the yapsy plugins.
 import colorview2d.imod as imod
 import colorview2d.modwidget as modwidget
+import colorview2d.gpfile as gpfile
+import colorview2d.utils as utils
+import colorview2d.signal as signal
+import colorview2d.mainapp as mainapp
+#import mainapp
+#import imod
+#import modwidget
+#import gpfile
+#import utils
+#import colorview2d.signal
 
-
-class Cv2d:
-    def __init__(self, data = None, datafile = None, datafilename = None, datafilecolumns = None, cfgfile = None):
+class CvFig:
+    def __init__(self, 
+                 data = None, 
+                 datafile = None, 
+                 datafilename = None, 
+                 datafilecolumns = None, 
+                 cfgfile = None, 
+                 interactive = False):
         self.create_modlist()
 
         if data:
@@ -54,12 +66,16 @@ class Cv2d:
 
         self.apply_pipeline()
 
-        if self.is_interactive():
-            print "Interactive mode: Not implemented."
+        if self.is_interactive() or interactive:
+            self.interactive = True
+            print "Interactive mode."
+            # logging.info("Interactive mode.")
+            self.mainapp = mainapp.MainApp(self)
+            self.mainapp.MainLoop()
 
     def is_interactive(self):
         import __main__ as main
-        return hasattr(main, '__file__')
+        return not hasattr(main, '__file__')
 
     def create_modlist(self):
         """

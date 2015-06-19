@@ -4,22 +4,21 @@ import matplotlib.font_manager as fm
 from wx.lib.masked import NumCtrl,EVT_NUM
 from floatvalidator import FloatValidator
 
-import view
 import signal
 from pydispatch import dispatcher
 
 class LabelticksFrame(wx.Frame):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Frame.__init__(self, parent, title="Axes and tick labels")
         self.parent = parent
-        panel = LabelticksPanel(self)
+        panel = LabelticksPanel(self, cvfig)
         self.Layout()
 
 class LabelticksPanel(wx.Panel):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Panel.__init__(self,parent)
         self.parent = parent
-
+        self.cvfig = cvfig
 
         self.init_widgetlist_left()
         self.init_widgetlist_right()
@@ -29,19 +28,19 @@ class LabelticksPanel(wx.Panel):
 
         self.HeightBoxLabel = wx.StaticText(self, wx.ID_ANY,'Height:')
         self.HeightBox = NumCtrl(self,wx.ID_ANY,
-                                 value = view.State.config['Height'],
+                                 value = self.cvfig.config['Height'],
                                  fractionWidth = 1,
                                  allowNegative = False)
         
         self.WidthBoxLabel = wx.StaticText(self, wx.ID_ANY,'Width:')
         self.WidthBox = NumCtrl(self,wx.ID_ANY,
-                                value = view.State.config['Width'],
+                                value = self.cvfig.config['Width'],
                                 fractionWidth = 1,
                                 allowNegative = False)
 
         self.DpiBoxLabel = wx.StaticText(self, wx.ID_ANY,'Dpi:')
         self.DpiBox = NumCtrl(self,wx.ID_ANY,
-                              value = view.State.config['Dpi'],
+                              value = self.cvfig.config['Dpi'],
                               fractionWidth = 0,
                               allowNegative = False)
 
@@ -121,7 +120,7 @@ class LabelticksPanel(wx.Panel):
                                       choices=fontliststrings,
                                       style=wx.CB_READONLY)
 
-        self.fontselect.SetStringSelection(view.State.config['Font'])
+        self.fontselect.SetStringSelection(self.cvfig.config['Font'])
         
         self.widgetlist_right.append(self.fontselect)
 
@@ -132,7 +131,7 @@ class LabelticksPanel(wx.Panel):
                                    fractionWidth = 0,
                                    allowNegative = False)
         
-        self.fontsizebox.SetValue(view.State.config['Fontsize'])
+        self.fontsizebox.SetValue(self.cvfig.config['Fontsize'])
         self.widgetlist_right.append(self.fontsizebox)
 
         self.xticksizebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -142,7 +141,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.xticksizebox.SetValue(view.State.config['Xticklength'])
+        self.xticksizebox.SetValue(self.cvfig.config['Xticklength'])
         self.widgetlist_right.append(self.xticksizebox)
 
         self.yticksizebox_label = wx.StaticText(self, wx.ID_ANY,
@@ -152,7 +151,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.yticksizebox.SetValue(view.State.config['Yticklength'])
+        self.yticksizebox.SetValue(self.cvfig.config['Yticklength'])
         self.widgetlist_right.append(self.yticksizebox)
 
         self.linewidthbox_label = wx.StaticText(self, wx.ID_ANY,
@@ -162,7 +161,7 @@ class LabelticksPanel(wx.Panel):
                                     fractionWidth = 1,
                                     allowNegative = False)
 
-        self.linewidthbox.SetValue(view.State.config['Linewidth'])
+        self.linewidthbox.SetValue(self.cvfig.config['Linewidth'])
         self.widgetlist_right.append(self.linewidthbox)
 
 
@@ -175,14 +174,14 @@ class LabelticksPanel(wx.Panel):
             "x-axis label: ")
         self.widgetlist_left.append(self.xtextbox_label)
         self.xtextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.xtextbox.SetValue(view.State.config['Xlabel'])
+        self.xtextbox.SetValue(self.cvfig.config['Xlabel'])
         self.widgetlist_left.append(self.xtextbox)
 
         self.xformattextbox_label = wx.StaticText(self, wx.ID_ANY,
             "format: ")
         self.widgetlist_left.append(self.xformattextbox_label)
         self.xformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.xformattextbox.SetValue(view.State.config['Xtickformat'])
+        self.xformattextbox.SetValue(self.cvfig.config['Xtickformat'])
         self.widgetlist_left.append(self.xformattextbox)
 
 
@@ -190,14 +189,14 @@ class LabelticksPanel(wx.Panel):
             "y-axis label: ")
         self.widgetlist_left.append(self.ytextbox_label)
         self.ytextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.ytextbox.SetValue(view.State.config['Ylabel'])
+        self.ytextbox.SetValue(self.cvfig.config['Ylabel'])
         self.widgetlist_left.append(self.ytextbox)
 
         self.yformattextbox_label = wx.StaticText(self, wx.ID_ANY,
             "format: ")
         self.widgetlist_left.append(self.yformattextbox_label)
         self.yformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.yformattextbox.SetValue(view.State.config['Ytickformat'])
+        self.yformattextbox.SetValue(self.cvfig.config['Ytickformat'])
         self.widgetlist_left.append(self.yformattextbox)
 
 
@@ -205,7 +204,7 @@ class LabelticksPanel(wx.Panel):
             "cb-axis label: ")
         self.widgetlist_left.append(self.cbtextbox_label)
         self.cbtextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.cbtextbox.SetValue(view.State.config['Cblabel'])
+        self.cbtextbox.SetValue(self.cvfig.config['Cblabel'])
 
         self.widgetlist_left.append(self.cbtextbox)
 
@@ -213,24 +212,24 @@ class LabelticksPanel(wx.Panel):
             "format: ")
         self.widgetlist_left.append(self.cbformattextbox_label)
         self.cbformattextbox = wx.TextCtrl(self,wx.ID_ANY)
-        self.cbformattextbox.SetValue(view.State.config['Cbtickformat'])
+        self.cbformattextbox.SetValue(self.cvfig.config['Cbtickformat'])
         self.widgetlist_left.append(self.cbformattextbox)
 
     def on_apply(self,event):
-        view.State.config['Xlabel'] = self.xtextbox.GetValue()
-        view.State.config['Xtickformat'] = self.xformattextbox.GetValue()
-        view.State.config['Ylabel'] = self.ytextbox.GetValue()
-        view.State.config['Ytickformat'] = self.yformattextbox.GetValue()
-        view.State.config['Cblabel'] = self.cbtextbox.GetValue()
-        view.State.config['Cbtickformat'] = self.cbformattextbox.GetValue()
-        view.State.config['Font'] = self.fontselect.GetStringSelection()
-        view.State.config['Fontsize'] = self.fontsizebox.GetValue()
-        view.State.config['Xticklength'] = self.xticksizebox.GetValue()
-        view.State.config['Yticklength'] = self.yticksizebox.GetValue()
-        view.State.config['Linewidth'] = self.linewidthbox.GetValue()
-        view.State.config['Width'] = self.WidthBox.GetValue()
-        view.State.config['Height'] = self.HeightBox.GetValue()
-        view.State.config['Dpi'] = self.DpiBox.GetValue()
+        self.cvfig.config['Xlabel'] = self.xtextbox.GetValue()
+        self.cvfig.config['Xtickformat'] = self.xformattextbox.GetValue()
+        self.cvfig.config['Ylabel'] = self.ytextbox.GetValue()
+        self.cvfig.config['Ytickformat'] = self.yformattextbox.GetValue()
+        self.cvfig.config['Cblabel'] = self.cbtextbox.GetValue()
+        self.cvfig.config['Cbtickformat'] = self.cbformattextbox.GetValue()
+        self.cvfig.config['Font'] = self.fontselect.GetStringSelection()
+        self.cvfig.config['Fontsize'] = self.fontsizebox.GetValue()
+        self.cvfig.config['Xticklength'] = self.xticksizebox.GetValue()
+        self.cvfig.config['Yticklength'] = self.yticksizebox.GetValue()
+        self.cvfig.config['Linewidth'] = self.linewidthbox.GetValue()
+        self.cvfig.config['Width'] = self.WidthBox.GetValue()
+        self.cvfig.config['Height'] = self.HeightBox.GetValue()
+        self.cvfig.config['Dpi'] = self.DpiBox.GetValue()
         dispatcher.send(signal.PLOT_CHANGE_CONFIG, self)
 
 
@@ -238,20 +237,20 @@ class LabelticksPanel(wx.Panel):
         """
         Update the values in the panel widgets from the State object.
         """
-        self.xtextbox.SetValue(view.State.config['Xlabel'])
-        self.xformattextbox.SetValue(view.State.config['Xtickformat'])
-        self.ytextbox.SetValue(view.State.config['Ylabel']) 
-        self.yformattextbox.SetValue(view.State.config['Ytickformat'])
-        self.cbtextbox.SetValue(view.State.config['Cblabel'])
-        self.cbformattextbox.SetValue(view.State.config['Cbtickformat'])
-        self.fontselect.SetStringSelection(view.State.config['Font'])
-        self.fontsizebox.SetValue(view.State.config['Fontsize'])
-        self.xticksizebox.SetValue(view.State.config['Xticklength'])
-        self.yticksizebox.SetValue(view.State.config['Yticklength'])
-        self.linewidthbox.SetValue(view.State.config['Linewidth'])
-        self.WidthBox.SetValue(view.State.config['Width'])
-        self.HeightBox.SetValue(view.State.config['Height'])
-        self.DpiBox.SetValue(view.State.config['Dpi'])
+        self.xtextbox.SetValue(self.cvfig.config['Xlabel'])
+        self.xformattextbox.SetValue(self.cvfig.config['Xtickformat'])
+        self.ytextbox.SetValue(self.cvfig.config['Ylabel']) 
+        self.yformattextbox.SetValue(self.cvfig.config['Ytickformat'])
+        self.cbtextbox.SetValue(self.cvfig.config['Cblabel'])
+        self.cbformattextbox.SetValue(self.cvfig.config['Cbtickformat'])
+        self.fontselect.SetStringSelection(self.cvfig.config['Font'])
+        self.fontsizebox.SetValue(self.cvfig.config['Fontsize'])
+        self.xticksizebox.SetValue(self.cvfig.config['Xticklength'])
+        self.yticksizebox.SetValue(self.cvfig.config['Yticklength'])
+        self.linewidthbox.SetValue(self.cvfig.config['Linewidth'])
+        self.WidthBox.SetValue(self.cvfig.config['Width'])
+        self.HeightBox.SetValue(self.cvfig.config['Height'])
+        self.DpiBox.SetValue(self.cvfig.config['Dpi'])
         
     def on_cancel(self,event):
         self.parent.Hide()

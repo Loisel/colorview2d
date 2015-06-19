@@ -14,13 +14,13 @@ from floatslider import FloatSlider
 
 from wx.lib.masked import NumCtrl,EVT_NUM
 
-import view
+#import view
 
 from plotframe import PlotFrame
 from lineoutframe import LineoutFrame
 from linecutframe import LinecutFrame
 from distanceframe import DistanceFrame
-from shellframe import ShellFrame
+# from shellframe import ShellFrame
 
 from slopeexframe import SlopeExFrame
 # Experimental feature
@@ -52,7 +52,7 @@ class MainFrame(wx.Frame):
 
     title = 'colorplot utility: '
 
-    def __init__(self,parent,cv2dpath=None,datafilename=None,columns=None):
+    def __init__(self, parent, cvfig):
         """
         Initialize the frame, create subframes and load a default 
         datafile object.
@@ -64,41 +64,10 @@ class MainFrame(wx.Frame):
         # find a way to autosize the frame!
         # this is annoying, especially with respect to the plugins
         wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,590),style=wx.DEFAULT_FRAME_STYLE)
-        self.parent = parent
-
-        
-        if cv2dpath:
-            # If a config file is provided, we load that one.
-            # All other parameters are ignored.
-            cfgpath = os.path.join(os.getcwd(),cv2dpath)
-            datafilename = None
-            columns = None
-        else:
-            # The name of the default config file is hard coded.
-            # utils.resource_path adds the path to the 
-            # library in win and linux
-            cfgpath = utils.resource_path('default.cv2d')
-            
-        # The config file is parsed, 
-        # modlist is a string variable that is given to the view
-        # to create the mod pipeline
-        view.parse_config(cfgpath)
-
-        # If a datafilename is specified, we use this instead of the default
-        # Same for the the columns        
-        if datafilename:
-            view.State.config['datafilename'] = datafilename
-            data_filepath = os.path.join(os.getcwd(), view.State.config['datafilename'])
-            if columns:
-                view.State.config['datafilecolumns'] = utils.read_columns(columns)
-        else:
-            # The path to the datafile, either in the cwd or in the lib (default)
-            # We assume that the datafile is in the same dir as the cv2d dile
-            data_filepath = os.path.join(os.path.dirname(cfgpath), view.State.config['datafilename'])
-
+        self.cvfig = cvfig
 
         # Set title for the frame and align
-        self.SetTitle(self.title+view.State.config['datafilename'])
+        self.SetTitle(self.title+self.cvfig.datafile.filename)
         self.alignToBottomRight()
 
         # Create menu and status bar
@@ -106,33 +75,25 @@ class MainFrame(wx.Frame):
         self.create_status_bar()
 
         # The plot frame is created first with a dummy plot
-        self.PlotFrame = PlotFrame(self)
+        self.PlotFrame = PlotFrame(self, self.cvfig)
 
         # The MainPanel contains all the colorbar controls
         # The PlotPanel listens to the MainPanel for changes (e.g. to the colorbar)
-        self.MainPanel = MainPanel(self)
+        self.MainPanel = MainPanel(self, self.cvfig)
         # self.MainPanel.attach(self.PlotFrame.PlotPanel)
 
         # The frame with the settings (font, ticks, labels, etc)
-        self.LabelticksFrame = LabelticksFrame(self)
-
-        # The datafile of the global view object is set
-        view.set_datafile(gpfile.Gpfile(data_filepath,view.State.config['datafilecolumns']))
+        self.LabelticksFrame = LabelticksFrame(self, self.cvfig)
 
         # We have to draw the plot first before we can apply the modlist
-        dispatcher.send(signal.PLOT_DRAW_ANEW,self)
+        # dispatcher.send(signal.PLOT_DRAW_ANEW,self)
 
         # The other tools are intialized
-        self.LineoutFrame = LineoutFrame(self)
-        self.SlopeExFrame = SlopeExFrame(self)
-        self.DistanceFrame = DistanceFrame(self)
-        self.ShellFrame = ShellFrame(self)
-        
-        # Then the mod pipeline is applied (if any)
-        # Creating the list of plugins (modlist).
-        view.create_modlist()
-        view.apply_pipeline()
-        
+        self.LineoutFrame = LineoutFrame(self, self.cvfig)
+        self.SlopeExFrame = SlopeExFrame(self, self.cvfig)
+        self.DistanceFrame = DistanceFrame(self, self.cvfig)
+        # self.ShellFrame = ShellFrame(self, self.cvfig)
+                
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
 
@@ -188,8 +149,8 @@ class MainFrame(wx.Frame):
         m_distance = menu_tools.Append(wx.ID_ANY,  "&Distance Viewer\tCtrl-D", "Measure distances")
         self.Bind(wx.EVT_MENU, self.on_distance, m_distance)
 
-        m_shell = menu_tools.Append(wx.ID_ANY,  "S&hell\tCtrl-h", "Open a python shell")
-        self.Bind(wx.EVT_MENU, self.on_shell, m_shell)
+        #m_shell = menu_tools.Append(wx.ID_ANY,  "S&hell\tCtrl-h", "Open a python shell")
+        #self.Bind(wx.EVT_MENU, self.on_shell, m_shell)
 
         # m_binaryfit = menu_tools.Append(wx.ID_ANY, "Segment and Fit (beta!)", "Fit to prominent data features")
         # self.Bind(wx.EVT_MENU,self.on_binaryfit,m_binaryfit)
@@ -227,7 +188,7 @@ class MainFrame(wx.Frame):
         Shows the Frame to extract linecuts.
         
         """
-        self.ShellFrame.Show()
+        # self.ShellFrame.Show()
 
 
         
@@ -281,19 +242,19 @@ class MainFrame(wx.Frame):
 # data modifications: {}
 #
 # axes: {} | {} | {}
-""".format(view.State.config['datafilename'],view.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
+""".format(self.cvfig.datafile.filename,view.pipeline,self.Xlabel,self.Ylabel,self.Cblabel)
 
         dlg = wx.FileDialog(
             self,
             message="Save plot data as...",
             defaultDir=os.getcwd(),
-            defaultFile=view.State.config['datafilename'],
+            defaultFile=self.cvfig.datafile.filename,
             wildcard=file_choices,
             style=wx.SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            view.State.datafile.save(path,comment)
+            self.cvfig.datafile.save(path,comment)
 
 
     def on_save_pdf(self, event):
@@ -302,7 +263,7 @@ class MainFrame(wx.Frame):
 
         """
         file_choices = "PDF (*.pdf)|*.pdf"
-        defaultfilename = os.path.splitext(view.State.config['datafilename'])[0]+'.pdf'
+        defaultfilename = os.path.splitext(self.cvfig.datafile.filename)[0]+'.pdf'
 
         dlg = wx.FileDialog(
             self,
@@ -314,8 +275,8 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.PlotFrame.PlotPanel.fig.set_size_inches(view.State.config['Width'], view.State.config['Height'])
-            self.PlotFrame.PlotPanel.fig.savefig(path, dpi = view.State.config['Dpi'])
+            self.PlotFrame.PlotPanel.fig.set_size_inches(self.cvfig.config['Width'], self.cvfig.config['Height'])
+            self.PlotFrame.PlotPanel.fig.savefig(path, dpi = self.cvfig.config['Dpi'])
             self.PlotFrame.PlotPanel.Layout()
 
     def on_save_cv2d(self, event):
@@ -324,7 +285,7 @@ class MainFrame(wx.Frame):
 
         """
         file_choices = "CV2D (*.cv2d)|*.cv2d"
-        defaultfilename = os.path.splitext(view.State.config['datafilename'])[0]+'.cv2d'
+        defaultfilename = os.path.splitext(self.cvfig.datafile.filename)[0]+'.cv2d'
 
         dlg = wx.FileDialog(
             self,
@@ -386,13 +347,13 @@ class MainFrame(wx.Frame):
             # The config is overwritten
             view.parse_config(path)
             # The datafile is replaced
-            view.set_datafile(gpfile.Gpfile(os.path.join(dirname,view.State.config['datafilename']),view.State.config['datafilecolumns']))
+            view.set_datafile(gpfile.Gpfile(os.path.join(dirname,self.cvfig.datafile.filename),self.cvfig.config['datafilecolumns']))
             dispatcher.send(signal.PLOT_DRAW_ANEW,self)
             # ... and the pipeline is applied
             view.apply_pipeline()
 
             # We make sure the title is correct
-            self.SetTitle(self.title+view.State.datafile.filename)
+            self.SetTitle(self.title+self.cvfig.datafile.filename)
             # The slope extraction utility has to know about the correct dimensions
             # of the datafile (the FloatSpin tools need the x/y range)
             # self.SlopeExFrame.SlopeExPanel.update()
@@ -449,17 +410,18 @@ class MainFrame(wx.Frame):
 
                 dispatcher.send(signal.PLOT_DRAW_ANEW,self)
                 
-                view.State.config['datafilename'] = os.path.basename(path)
+                self.cvfig.datafile.filename = os.path.basename(path)
 
-                self.SetTitle(self.title+view.State.datafile.filename)
+                self.SetTitle(self.title+self.cvfig.datafile.filename)
             
 class MainPanel(wx.Panel):
     """
     Panel with colorbar controls and checkboxes for the plot modifications.
     """
-    def __init__(self, parent):
+    def __init__(self, parent, cvfig):
         wx.Panel.__init__(self, parent)
         self.parent = parent
+        self.cvfig = cvfig
         
         # Magic numbers for the "fine-graindedness" of the FloatSpin and FloatSlider objects
         self.spin_divider = 10000
@@ -493,7 +455,7 @@ class MainPanel(wx.Panel):
         for m in self.maps:
             self.colormapselect.Append(m)
 
-        self.colormapselect.SetStringSelection(view.State.config['Colormap'])
+        self.colormapselect.SetStringSelection(self.cvfig.config['Colormap'])
 
         self.Bind(wx.EVT_COMBOBOX,self.on_colormapselect,self.colormapselect)
 
@@ -658,10 +620,10 @@ class MainPanel(wx.Panel):
         # And finally we add all the modification plugins
 
         try:
-            for mod in view.State.modlist[:-1]:
+            for mod in self.cvfig.modlist[:-1]:
                 self.ModBoxSizer.Add(mod.create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM, border=5)
                 self.ModBoxSizer.Add(wx.StaticLine(self),0,wx.EXPAND)
-            self.ModBoxSizer.Add(view.State.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
+            self.ModBoxSizer.Add(self.cvfig.modlist[-1].create_widget(self), 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.BOTTOM,border=5)
         except IndexError:
             logging.warning('No plugins found!')
 
@@ -679,26 +641,26 @@ class MainPanel(wx.Panel):
         # If the config parameter does not fit within the range,
         # we reset to Zmin and Zmax default values
         try:
-            maxval_config = float(view.State.config['Cbmax'])
-            if maxval_config > view.State.datafile.Zmax:
-                raise ValueError('The maximum value in the config ({}) is larger than Zmax ({}).'.format(maxval_config,view.State.datafile.Zmax))
+            maxval_config = float(self.cvfig.config['Cbmax'])
+            if maxval_config > self.cvfig.datafile.Zmax:
+                raise ValueError('The maximum value in the config ({}) is larger than Zmax ({}).'.format(maxval_config,self.cvfig.datafile.Zmax))
         except (KeyError,ValueError) as e:
-            maxval_config = view.State.datafile.Zmax
-            view.State.config['Cbmax'] = maxval_config
+            maxval_config = self.cvfig.datafile.Zmax
+            self.cvfig.config['Cbmax'] = maxval_config
             logging.info('Using default color range.')
 
         try:
-            minval_config = float(view.State.config['Cbmin'])
-            if minval_config < view.State.datafile.Zmin:
-                raise ValueError('The minimum value in the config ({}) is smaller than Zmin ({}).'.format(minval_config,view.State.datafile.Zmin))
+            minval_config = float(self.cvfig.config['Cbmin'])
+            if minval_config < self.cvfig.datafile.Zmin:
+                raise ValueError('The minimum value in the config ({}) is smaller than Zmin ({}).'.format(minval_config,self.cvfig.datafile.Zmin))
         except (KeyError,ValueError) as e:
-            minval_config = view.State.datafile.Zmin
-            view.State.config['Cbmin'] = minval_config
+            minval_config = self.cvfig.datafile.Zmin
+            self.cvfig.config['Cbmin'] = minval_config
             logging.info('Using default color range.')
 
             
-        maxval = view.State.datafile.Zmax
-        minval = view.State.datafile.Zmin
+        maxval = self.cvfig.datafile.Zmax
+        minval = self.cvfig.datafile.Zmin
 
         
         spin_increment = (maxval-minval)/self.spin_divider
@@ -756,7 +718,7 @@ class MainPanel(wx.Panel):
         self.minspin.SetIncrement(spin_increment)
         self.maxspin.SetIncrement(spin_increment)
 
-        self.colormapselect.SetStringSelection(view.State.config['Colormap'])
+        self.colormapselect.SetStringSelection(self.cvfig.config['Colormap'])
 
         dispatcher.send(signal.PLOT_UPDATE_COLOR,self)
         
@@ -768,7 +730,7 @@ class MainPanel(wx.Panel):
         """
         
         colormap = str(self.colormapselect.GetValue())
-        view.State.config['Colormap'] = colormap
+        self.cvfig.config['Colormap'] = colormap
 
         dispatcher.send(signal.PLOT_CHANGE_COLORMAP,self)
 
@@ -833,8 +795,8 @@ class MainPanel(wx.Panel):
         self.centreslider.SetValue(centre)
         self.widthslider.SetValue(width)
 
-        view.State.config['Cbmax'] = maxval
-        view.State.config['Cbmin'] = minval
+        self.cvfig.config['Cbmax'] = maxval
+        self.cvfig.config['Cbmin'] = minval
         #print "Spinning: min {} max {}".format(minval,maxval)
 
         dispatcher.send(signal.PLOT_UPDATE_COLOR, self)

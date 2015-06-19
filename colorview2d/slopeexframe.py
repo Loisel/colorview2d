@@ -10,22 +10,22 @@ from utils import Line
 import signal
 from pydispatch import dispatcher
 
-import view
 
 class SlopeExFrame(wx.Frame):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Frame.__init__(self, parent, title="Linear slope extraction",size=(430,320))
         self.parent = parent
-        self.SlopeExPanel = SlopeExPanel(self)
+        self.SlopeExPanel = SlopeExPanel(self, cvfig)
         self.Layout()
         self.Bind(wx.EVT_SHOW,self.SlopeExPanel.on_show)
 
 
 class SlopeExPanel(wx.Panel):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Panel.__init__(self,parent)
 
         self.parent = parent
+        self.cvfig = cvfig
 
         self.plotpanel = self.parent.parent.PlotFrame.PlotPanel
 
@@ -115,10 +115,10 @@ class SlopeExPanel(wx.Panel):
         self.lineindex = -1
         self.evenodd = 0
         self.linelistbox.DeleteAllItems()
-        max_xval = view.State.datafile.Xmax
-        min_xval = view.State.datafile.Xmin
-        max_yval = view.State.datafile.Ymax
-        min_yval = view.State.datafile.Ymin
+        max_xval = self.cvfig.datafile.Xmax
+        min_xval = self.cvfig.datafile.Xmin
+        max_yval = self.cvfig.datafile.Ymax
+        min_yval = self.cvfig.datafile.Ymin
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
         self.x1spin.SetRange(min_xval,max_xval)
@@ -136,10 +136,10 @@ class SlopeExPanel(wx.Panel):
 
         self.pointwidgetlist = []
         
-        max_xval = view.State.datafile.Xmax
-        min_xval = view.State.datafile.Xmin
-        max_yval = view.State.datafile.Ymax
-        min_yval = view.State.datafile.Ymin
+        max_xval = self.cvfig.datafile.Xmax
+        min_xval = self.cvfig.datafile.Xmin
+        max_yval = self.cvfig.datafile.Ymax
+        min_yval = self.cvfig.datafile.Ymin
 
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
@@ -282,7 +282,7 @@ class SlopeExPanel(wx.Panel):
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
-        datafilename = view.State.config['datafilename']
+        datafilename = self.cvfig.datafile.filename
 
         dlg = wx.FileDialog(
             self,

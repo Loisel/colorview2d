@@ -10,25 +10,26 @@ from utils import DistanceLine
 import signal
 from pydispatch import dispatcher
 
-import view
+# import view
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 class DistanceFrame(wx.Frame):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Frame.__init__(self, parent, title="Linear slope extraction",size=(400,320))
         self.parent = parent
-        self.DistancePanel = DistancePanel(self)
+        self.DistancePanel = DistancePanel(self, cvfig)
         self.Layout()
         self.Bind(wx.EVT_SHOW,self.DistancePanel.on_show)
 
 
 class DistancePanel(wx.Panel):
-    def __init__(self,parent):
+    def __init__(self, parent, cvfig):
         wx.Panel.__init__(self,parent)
 
         self.parent = parent
+        self.cvfig = cvfig
 
         self.plotpanel = self.parent.parent.PlotFrame.PlotPanel
 
@@ -114,10 +115,10 @@ class DistancePanel(wx.Panel):
         self.lineindex = -1
 
         self.linelistbox.DeleteAllItems()
-        max_xval = view.State.datafile.Xmax
-        min_xval = view.State.datafile.Xmin
-        max_yval = view.State.datafile.Ymax
-        min_yval = view.State.datafile.Ymin
+        max_xval = self.cvfig.datafile.Xmax
+        min_xval = self.cvfig.datafile.Xmin
+        max_yval = self.cvfig.datafile.Ymax
+        min_yval = self.cvfig.datafile.Ymin
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
         self.x1spin.SetRange(min_xval,max_xval)
@@ -135,10 +136,10 @@ class DistancePanel(wx.Panel):
 
         self.pointwidgetlist = []
         
-        max_xval = view.State.datafile.Xmax
-        min_xval = view.State.datafile.Xmin
-        max_yval = view.State.datafile.Ymax
-        min_yval = view.State.datafile.Ymin
+        max_xval = self.cvfig.datafile.Xmax
+        min_xval = self.cvfig.datafile.Xmin
+        max_yval = self.cvfig.datafile.Ymax
+        min_yval = self.cvfig.datafile.Ymin
 
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
@@ -277,7 +278,7 @@ class DistancePanel(wx.Panel):
 
     def on_savelist(self,event):
         file_choices = "DAT (*.dat)|*.dat"
-        datafilename = view.State.config['datafilename']
+        datafilename = self.cvfig.datafile.filename
 
         dlg = wx.FileDialog(
             self,
