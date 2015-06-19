@@ -1,10 +1,11 @@
-import utils
+import colorview2d.utils as utils
 import logging
 import yaml
 import Mods
+import colorview2d.gpfile as gpfile
 
 from pydispatch import dispatcher
-import signal
+import colorview2d.signal as signal
 
 import sys
 
@@ -14,20 +15,24 @@ from matplotlib.font_manager import FontProperties,findfont
 
 # These imports are needed for the visibility of the modules
 # to the yapsy plugins.
-import imod
-import modwidget
+import colorview2d.imod as imod
+import colorview2d.modwidget as modwidget
 
 
 class Cv2d:
-    def __init__(self, data = None, datafile = None, cfgfile = None):
+    def __init__(self, data = None, datafile = None, datafilename = None, datafilecolumns = None, cfgfile = None):
         self.create_modlist()
 
         if data:
             self.set_datafile(gpfile.Gpfile(data))
         elif datafile:
             self.set_datafile(datafile)
+        elif datafilename:
+            if not datafilecolumns:
+                datafilecolumns = (0,1,2)
+            self.set_datafile(gpfile.Gpfile(datafilename,datafilecolumns))
         else:
-            raise ValueError("Provide data or datafile keyword arguments to create a Cv2d object.")
+            raise ValueError("Provide data, datafile or datafilename keyword arguments to create a Cv2d object.")
                     
 
         if cfgfile:
@@ -45,8 +50,16 @@ class Cv2d:
         # The config file is parsed, 
         # modlist is a string variable that is given to the view
         # to create the mod pipeline
-        view.parse_config(cfgfile)
+        self.parse_config(cfgfile)
 
+        self.apply_pipeline()
+
+        if self.is_interactive():
+            print "Interactive mode: Not implemented."
+
+    def is_interactive(self):
+        import __main__ as main
+        return hasattr(main, '__file__')
 
     def create_modlist(self):
         """
@@ -65,8 +78,8 @@ class Cv2d:
 
         self.modlist = [pInfo.plugin_object for pInfo in modman.getAllPlugins()]
 
-        if self.interactive:
-            dispatcher.send(signal.PANEL_ADD_MODWIDGETS)
+        # if self.interactive:
+        #     dispatcher.send(signal.PANEL_ADD_MODWIDGETS)
 
 
     def set_datafile(self, datafile):
@@ -79,8 +92,6 @@ class Cv2d:
         """
         self.datafile = datafile
         self.original_datafile = datafile.deep_copy()
-        if hasattr(self,'modlist'):
-            apply_pipeline()
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline
@@ -152,18 +163,76 @@ class Cv2d:
         self.datafile = self.original_datafile.deep_copy()
 
         for modtuple in self.pipeline:
-            mod = find_mod(modtuple[0])
+            mod = self.find_mod(modtuple[0])
             if mod:
                 mod.set_args(modtuple[1])
-                if self.interactive:
-                    mod.update_widget()
+                # if self.interactive:
+                #     mod.update_widget()
                 mod.apply(self.datafile)
             else:
                 logging.warning('No mod candidate found for {}.'.format(modtuple[0]))
 
-        if self.interactive:
-            dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
-            dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
+        # if self.interactive:
+        #     dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
+        #     dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
+
+    def extract_ylinetraces(xfirst, xlast, xinterval, ystart, ystop):
+
+        linecuts = []
+
+        x_left_idx = self.datafile.get_xrange_idx(xfirst)
+        x_right_idx = self.datafile.get_xrange_idx(xlast)
+        x_sign = np.sign(x_right_idx-x_left_idx)
+
+        y_bottom_idx = self.datafile.get_yrange_idx(ystart)
+        y_top_idx = self.datafile.get_yrange_idx(ystop)
+        y_sign = np.sign(y_top_idx-y_bottom_idx)
+
+        total_mininterval = np.absolute(self.datafile.dX)
+        x_step_idx = int(xinterval/total_mininterval)
+
+        position = x_left_idx
+
+        while position*x_sign <= x_right_idx*x_sign:
+
+            xval = self.datafile.Xrange[position]
+                
+            linecuts.append = np.vstack([self.datafile.Yrange[y_bottom_idx:y_top_idx:y_sign], self.datafile.Zdata[y_bottom_idx:y_top_idx:y_sign,position]])
+                
+            position += x_step_idx*x_sign
+            if x_sign == 0:
+                break
+
+        return linecuts
+
+    def extract_xlinetraces(yfirst, ylast, yinterval, xstart, xstop):
+
+        linecuts = []
+
+        y_bottom_idx = self.datafile.get_yrange_idx(yfirst)
+        y_top_idx = self.datafile.get_yrange_idx(ylast)
+        y_sign = np.sign(y_top_idx-y_bottom_idx)
+
+        x_left_idx = self.datafile.get_xrange_idx(xstart)
+        x_right_idx = self.datafile.get_xrange_idx(xstop)
+        x_sign = np.sign(x_right_idx-x_left_idx)
+
+        total_mininterval = np.absolute(self.datafile.dY)
+
+        y_step_idx = int(yinterval/total_mininterval)
+
+        position = y_bottom_idx
+        while position*y_sign <= y_top_idx*y_sign:
+
+            yval = self.datafile.Yrange[position]
+
+            linecuts.append = np.vstack([self.datafile.Xrange[x_left_idx:x_right_idx:x_sign],self.datafile.Zdata[position,x_left_idx:x_right_idx:x_sign]])
+
+            position += y_step_idx*y_sign
+            if y_sign == 0:
+                break
+
+        return linecuts
 
     def get_data(self):
         """
@@ -193,8 +262,8 @@ class Cv2d:
             except StopIteration:
                 self.pipeline = []
 
-        reset()
-        set_default_font()
+        self.reset()
+
         dispatcher.send(signal.CONFIG_UPDATE)
 
     def save_config(self, cfgpath):
