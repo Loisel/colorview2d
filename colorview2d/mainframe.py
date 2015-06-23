@@ -64,7 +64,8 @@ class MainFrame(wx.Frame):
         # find a way to autosize the frame!
         # this is annoying, especially with respect to the plugins
         wx.Frame.__init__(self, None, wx.ID_ANY, size=(630,590),style=wx.DEFAULT_FRAME_STYLE)
-        self.cvfig = cvfig
+        self.parent = parent
+        self.cvfig = cvfig        
 
         # Set title for the frame and align
         self.SetTitle(self.title+self.cvfig.datafile.filename)
@@ -93,7 +94,7 @@ class MainFrame(wx.Frame):
         self.SlopeExFrame = SlopeExFrame(self, self.cvfig)
         self.DistanceFrame = DistanceFrame(self, self.cvfig)
         # self.ShellFrame = ShellFrame(self, self.cvfig)
-                
+
         self.PlotFrame.Show()
         self.PlotFrame.Layout()
 
@@ -428,8 +429,12 @@ class MainPanel(wx.Panel):
         self.slide_divider = 1000
         
         dispatcher.connect(self.handle_update_colorctrl, signal = signal.PANEL_UPDATE_COLORCTRL, sender = dispatcher.Any)
-        dispatcher.connect(self.handle_add_modwidgets, signal = signal.PANEL_ADD_MODWIDGETS, sender = dispatcher.Any)
+        #dispatcher.connect(self.handle_add_modwidgets, signal = signal.PANEL_ADD_MODWIDGETS, sender = dispatcher.Any)
         self.create_panel()
+
+        self.add_modwidgets()
+        self.SetSizerAndFit(self.mainbox)
+        self.mainbox.Fit(self)
         
     def create_panel(self):
         """
@@ -612,11 +617,10 @@ class MainPanel(wx.Panel):
         self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
 
 
-#        self.parent.PlotFrame.PlotPanel.draw_plot()
 
 
 
-    def handle_add_modwidgets(self,sender):
+    def add_modwidgets(self):
         # And finally we add all the modification plugins
 
         try:
@@ -627,8 +631,6 @@ class MainPanel(wx.Panel):
         except IndexError:
             logging.warning('No plugins found!')
 
-        self.SetSizerAndFit(self.mainbox)
-        self.mainbox.Fit(self)
 
 
         

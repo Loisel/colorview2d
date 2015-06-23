@@ -26,3 +26,7 @@ MOD_WIDGET_UPDATE = 'Update the mod widgets from the information in the mod'
 
 # Signals for the config panel
 CONFIG_UPDATE = 'Update the labeltickframe with the newly parsed config.'
+
+# Signals for the Fig object
+FIG_ADD_MOD_TO_PIPELINE = 'Add a mod to the pipeline.'
+FIG_REMOVE_MOD_FROM_PIPELINE = 'Remove a mod from the pipeline.'

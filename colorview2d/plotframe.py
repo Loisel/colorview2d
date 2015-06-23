@@ -49,6 +49,7 @@ class PlotPanel(wx.Panel):
         # We add a toolbar to the canvas and add everything 
         # to a sizer
 
+        plt.ioff()
         self.fig = plt.figure(1,dpi = self.cvfig.config['Dpi'])
         # self.axes = self.fig.add_subplot(111)
         self.canvas = FigCanvas(self, wx.ID_ANY, self.fig)

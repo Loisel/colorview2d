@@ -27,7 +27,7 @@ class MainApp(wx.App):
     def OnInit(self):
         # create frame here
         self.frame = MainFrame(self, self.cvfig)
-        self.frame.Show()
         self.SetTopWindow(self.frame)
         self.frame.Layout()
+        self.frame.Show()
         return True

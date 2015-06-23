@@ -151,6 +151,7 @@ class Crop(imod.IMod):
 
         :param datafile gpfile: The datafile.
         """
+        import pdb;pdb.set_trace()
         datafile.crop(self.args[0],self.args[1],self.args[2],self.args[3])
         
     def create_widget(self,panel):

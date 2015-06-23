@@ -20,7 +20,7 @@ import logging
 from yapsy.IPlugin import IPlugin
 import abc
 
-import view
+# import view
 
 
 class IMod(IPlugin):
@@ -66,7 +66,8 @@ class IMod(IPlugin):
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(True)
 
-        view.add_mod_to_pipeline(self.title,self.args)
+        #view.add_mod_to_pipeline(self.title,self.args)
+        dispatcher.send(signal.FIG_ADD_MOD_TO_PIPELINE, self, modstring = self.title, modargs = self.args)
         
     def deactivate(self):
         """
@@ -82,8 +83,9 @@ class IMod(IPlugin):
         if hasattr(self,'widget'):
             self.widget.chk.SetValue(False)
 
-        view.remove_mod_from_pipeline(self.title)
-        
+        #view.remove_mod_from_pipeline(self.title)
+        dispatcher.send(signal.FIG_REMOVE_MOD_FROM_PIPELINE, self, modstring = self.title)
+
 
     def reset(self):
         """

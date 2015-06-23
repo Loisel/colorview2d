@@ -5,6 +5,7 @@ import Mods
 from pydispatch import dispatcher
 
 import sys
+import os
 
 import matplotlib.pyplot
 import warnings
@@ -12,18 +13,19 @@ from matplotlib.font_manager import FontProperties,findfont
 
 # These imports are needed for the visibility of the modules
 # to the yapsy plugins.
-import colorview2d.imod as imod
-import colorview2d.modwidget as modwidget
-import colorview2d.gpfile as gpfile
-import colorview2d.utils as utils
-import colorview2d.signal as signal
-import colorview2d.mainapp as mainapp
-#import mainapp
-#import imod
-#import modwidget
-#import gpfile
-#import utils
-#import colorview2d.signal
+
+#import colorview2d.imod as imod
+#import colorview2d.modwidget as modwidget
+#import colorview2d.gpfile as gpfile
+#import colorview2d.utils as utils
+#import colorview2d.signal as signal
+#import colorview2d.mainapp as mainapp
+import mainapp
+import imod
+import modwidget
+import gpfile
+import utils
+import signal
 
 class CvFig:
     def __init__(self, 
@@ -35,6 +37,11 @@ class CvFig:
                  interactive = False):
         self.create_modlist()
 
+        self.interactive = False
+
+        dispatcher.connect(self.handle_add_mod_to_pipeline, signal = signal.FIG_ADD_MOD_TO_PIPELINE, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_remove_mod_from_pipeline, signal = signal.FIG_REMOVE_MOD_FROM_PIPELINE, sender = dispatcher.Any)
+        
         if data:
             self.set_datafile(gpfile.Gpfile(data))
         elif datafile:
@@ -75,7 +82,7 @@ class CvFig:
 
     def is_interactive(self):
         import __main__ as main
-        return not hasattr(main, '__file__')
+        return hasattr(main, '__file__')
 
     def create_modlist(self):
         """
@@ -134,7 +141,11 @@ class CvFig:
 
         return None
 
-    def add_mod_to_pipeline(self, title, args):
+    def handle_add_mod_to_pipeline(self, sender, modstring = None, modargs = None):
+        self.add_mod_to_pipeline(modstring, modargs)
+
+        
+    def add_mod_to_pipeline(self, title, args, DoApply = True):
         """
         Adds a mod to the pipeline by its title string and its arguments.
 
@@ -142,9 +153,14 @@ class CvFig:
         :param args: A tuple containing the arguments of the mod.
         """
         self.pipeline.append((title,args))
-        #apply_pipeline()
 
-    def remove_mod_from_pipeline(self, title):
+        if DoApply:
+            self.apply_pipeline()
+
+    def handle_remove_mod_from_pipeline(self, sender, modstring = None):
+        self.remove_mod_from_pipeline(modstring)
+        
+    def remove_mod_from_pipeline(self, title, DoApply = True):
         """
         Removes a mod from the pipeline by its title string.
 
@@ -154,7 +170,8 @@ class CvFig:
             if modtuple[0] == title:
                 self.pipeline.remove(modtuple)
 
-        #apply_pipeline()
+        if DoApply:
+            self.apply_pipeline()
 
 
     def reset(self):
@@ -182,15 +199,15 @@ class CvFig:
             mod = self.find_mod(modtuple[0])
             if mod:
                 mod.set_args(modtuple[1])
-                # if self.interactive:
-                #     mod.update_widget()
+                if self.interactive:
+                    mod.update_widget()
                 mod.apply(self.datafile)
             else:
                 logging.warning('No mod candidate found for {}.'.format(modtuple[0]))
 
-        # if self.interactive:
-        #     dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
-        #     dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
+        if self.interactive:
+            dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
+            dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
 
     def extract_ylinetraces(xfirst, xlast, xinterval, ystart, ystop):
 
