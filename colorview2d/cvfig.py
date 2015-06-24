@@ -3,6 +3,7 @@ import yaml
 import Mods
 
 from pydispatch import dispatcher
+from thread import start_new_thread
 
 import sys
 import os
@@ -38,9 +39,6 @@ class CvFig:
         self.create_modlist()
 
         self.interactive = False
-
-        dispatcher.connect(self.handle_add_mod_to_pipeline, signal = signal.FIG_ADD_MOD_TO_PIPELINE, sender = dispatcher.Any)
-        dispatcher.connect(self.handle_remove_mod_from_pipeline, signal = signal.FIG_REMOVE_MOD_FROM_PIPELINE, sender = dispatcher.Any)
         
         if data:
             self.set_datafile(gpfile.Gpfile(data))
@@ -71,6 +69,9 @@ class CvFig:
         # to create the mod pipeline
         self.parse_config(cfgfile)
 
+        dispatcher.connect(self.handle_add_mod_to_pipeline, signal = signal.FIG_ADD_MOD_TO_PIPELINE, sender = dispatcher.Any)
+        dispatcher.connect(self.handle_remove_mod_from_pipeline, signal = signal.FIG_REMOVE_MOD_FROM_PIPELINE, sender = dispatcher.Any)
+
         self.apply_pipeline()
 
         if self.is_interactive() or interactive:
@@ -78,8 +79,13 @@ class CvFig:
             print "Interactive mode."
             # logging.info("Interactive mode.")
             self.mainapp = mainapp.MainApp(self)
-            self.mainapp.MainLoop()
+            start_new_thread(self.mainapp.MainLoop,())
 
+    def show(self):
+        self.interactive = True
+        self.mainapp = mainapp.MainApp(self)
+        self.mainapp.MainLoop()
+            
     def is_interactive(self):
         import __main__ as main
         return hasattr(main, '__file__')
