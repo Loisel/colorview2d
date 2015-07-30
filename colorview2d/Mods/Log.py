@@ -19,6 +19,6 @@ class Log(imod.IMod):
     def apply(self,datafile):
 
         logdata = datafile.Zdata
-        logdata[logdata <= 0.] = 1.
+        logdata[logdata <= 0.] = np.amin(logdata[logdata > 0])
         logdata = np.log(logdata)
         datafile.set_Zdata(logdata)
