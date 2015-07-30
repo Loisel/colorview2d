@@ -277,6 +277,7 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.PlotFrame.PlotPanel.fig.set_size_inches(self.cvfig.config['Width'], self.cvfig.config['Height'])
+            self.PlotFrame.PlotPanel.fig.tight_layout()
             self.PlotFrame.PlotPanel.fig.savefig(path, dpi = self.cvfig.config['Dpi'])
             self.PlotFrame.PlotPanel.Layout()
 
