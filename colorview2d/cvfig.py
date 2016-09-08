@@ -13,6 +13,8 @@ import threading
 import os
 
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 
 import yaml
 from pydispatch import dispatcher
@@ -30,18 +32,20 @@ class CvFig(object):
     Attributes:
         modlist (list): a list of all mods that could be found.
         datafile (colorview2d.GpFile): the datafile object encapsulates the 2d data
-        pipeline (list): a list of mod identifiers (strings) that are currently in the mod pipeline
+        pipeline (list): a list of tuples with mod identifiers (strings) 
+            and their arguments (tuples).
+        config (dict): the configuration of the plot details, colormap, fonts, etc.
 
     """
-    def __init__(self,
-                 data=None,
+    def __init__(self, data=None,
                  cfgfile=None,
-                 interactive=False):
+                 config=None,
+                 pipeline=None):
         self.create_modlist()
 
-        if isinstance(data, 'numpy.ndarray'):
+        if isinstance(data, np.ndarray):
             self.set_datafile(gpfile.Gpfile(data))
-        elif isinstance(data, 'gpfile.Gpfile'):
+        elif isinstance(data, gpfile.Gpfile):
             self.set_datafile(data)
         else:
             raise ValueError("Provide data or datafile to create a CvFig object.")
@@ -57,13 +61,28 @@ class CvFig(object):
             # library in win and linux
             cfgpath = utils.resource_path('default.cv2d')
 
-        self.pipeline = []
+        # Holds information on the plot layout, ticks, fonts etc.
+        self.config = {}
 
         # The config file is parsed,
         # modlist is a string variable that is given to the view
         # to create the mod pipeline
         self.parse_config(cfgpath)
 
+        # if the config argument is not empty we replace the values
+        if config:
+            for k, v in config:
+                try:
+                    self.config[k] = v
+                except KeyError:
+                    logging.warn('Config key %s not found.' % k)
+
+        # Matplotlib figure object, contains the actual plot
+        # Initialized with one pixel
+        plt.ioff()
+        self.fig = plt.figure(1, dpi=self.config['Dpi'])
+
+        # Q: Do we really need the message parsing system for this?
         dispatcher.connect(self.handle_add_mod_to_pipeline,
                            signal=signal.FIG_ADD_MOD_TO_PIPELINE,
                            sender=dispatcher.Any)
@@ -71,34 +90,25 @@ class CvFig(object):
                            signal=signal.FIG_REMOVE_MOD_FROM_PIPELINE,
                            sender=dispatcher.Any)
 
+        # The pipeline contains a list of tuples with strings that are unique to IMod objects
+        # and their arguments
+        self.pipeline = []
+
+        # We append the pipeline given by parameter.
+        if pipeline is not None:
+            self.pipeline.append(pipeline)
+
         self.apply_pipeline()
 
-        if self.shell_is_interactive() or interactive:
-            self.show()
+    def __repr__(self):
+        print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self.config, self.pipeline)
 
     def show(self):
         """Show the figure in the GUI."""
 
         logging.info("Initializing the GUI.")
         self.mainapp = mainapp.MainApp(self)
-        self.guithread = threading.Thread(target=self.mainapp.MainLoop)
-        self.guithread.start()
-
-    def hide(self):
-        """Destroy the GUI."""
-        if hasattr(self, 'mainapp'):
-            self.mainapp.Destroy()
-        logging.info("GUI destroyed.")
-
-    def is_interactive(self):
-        """Check if a GUI is initialized."""
-        return hasattr(self, 'mainapp')
-
-    @staticmethod
-    def shell_is_interactive():
-        """Check if we run in an interactive shell."""
-        import __main__ as main
-        return hasattr(main, '__file__')
+        self.mainapp.MainLoop()
 
     def create_modlist(self):
         """
@@ -116,9 +126,6 @@ class CvFig(object):
         modman.collectPlugins()
 
         self.modlist = [pInfo.plugin_object for pInfo in modman.getAllPlugins()]
-
-        # if self.interactive:
-        #     dispatcher.send(signal.PANEL_ADD_MODWIDGETS)
 
     def set_datafile(self, datafile):
         """Sets the datafile.
@@ -216,15 +223,16 @@ class CvFig(object):
             mod = self.find_mod(modtuple[0])
             if mod:
                 mod.set_args(modtuple[1])
-                if self.is_interactive():
-                    mod.update_widget()
+                # if self.is_interactive():
+                #     mod.update_widget()
                 mod.apply(self.datafile)
             else:
                 logging.warning('No mod candidate found for %s.', modtuple[0])
 
-        if self.is_interactive():
-            dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
-            dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
+        # This should be removed. Orthogonality!
+        # if self.is_interactive():
+        #     dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
+        #     dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
 
     def extract_ylinetraces(self, xfirst, xlast, xinterval, ystart, ystop):
         """Extract linetraces along a given y-axis range for
@@ -329,8 +337,6 @@ class CvFig(object):
 
         self.reset()
 
-        dispatcher.send(signal.CONFIG_UPDATE)
-
     def save_config(self, cfgpath):
         """Save the configuration and the pipeline to a config file specified by
         cfgpath.
@@ -344,3 +350,73 @@ class CvFig(object):
             # ... and second the pipeline string
             yaml.dump(self.dump_pipeline_string(), stream, explicit_start=True)
 
+    def plot_pdf(self, filename):
+        """Redraw the figure and plot it to a pdf file."""
+        self.draw_mpl_fig()
+        self.fig.set_size_inches(self.config['Width'], self.config['Height'])
+        self.fig.tight_layout()
+        self.fig.savefig(filename, dpi=self.config['Dpi'])
+
+    def draw_mpl_fig(self):
+        """Draw a matplotlib figure.
+
+        The figure is stored in the fig attribute.
+        In includes an axes object containing the (imshow generated)
+        2d color plot with labels, ticks and colorbar as specified in the
+        config dictionary..
+        """
+        self.fig.clear()
+        self.axes = self.fig.add_subplot(111)
+        self.apply_config_pre_plot()
+
+        self.plot = self.axes.imshow(self.get_arraydata(),
+            extent=[self.datafile.Xleft,
+                    self.datafile.Xright,
+                    self.datafile.Ybottom,
+                    self.datafile.Ytop],
+            aspect='auto',
+            origin='lower',
+            interpolation="nearest")
+
+        self.apply_config_post_plot()
+
+        self.fig.tight_layout()
+
+
+    def apply_config_post_plot(self):
+        """
+        The function applies the rest of the configuration to the plot.
+        Note that the colorbar is created in this function because
+        colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter(string)) does not work properly.
+        """
+        self.axes.set_ylabel(self.config['Ylabel'])
+        self.axes.set_xlabel(self.config['Xlabel'])
+
+        if not self.config['Cbtickformat'] == 'auto':
+            self.colorbar = self.fig.colorbar(
+                self.plot,
+                format=FormatStrFormatter(self.config['Cbtickformat']))
+        else:
+            self.colorbar = self.fig.colorbar(self.plot)
+        self.colorbar.set_label(self.config['Cblabel'])
+        if not self.config['Xtickformat'] == 'auto':
+            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.config['Xtickformat']))
+        if not self.config['Ytickformat'] == 'auto':
+            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.config['Ytickformat']))
+        self.plot.set_cmap(self.config['Colormap'])
+
+
+    def apply_config_pre_plot(self):
+        """
+        Applies the ticks and labels stored in the MainFrame.
+        This function is called before the actual plot is drawn.
+        This pre_plot hook is necessary because the rcParams['font.family']
+        attribute can not be changed after the plot is drawn.
+        """
+
+        logging.info("Font now {}".format(self.config['Font']))
+        
+        plt.rcParams['font.family'] = self.config['Font']
+        plt.rcParams['font.size'] = self.config['Fontsize']
+        plt.rcParams['xtick.major.size'] = self.config['Xticklength']
+        plt.rcParams['ytick.major.size'] = self.config['Yticklength']
