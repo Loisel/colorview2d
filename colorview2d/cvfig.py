@@ -61,6 +61,11 @@ class CvFig(object):
             # library in win and linux
             cfgpath = utils.resource_path('default.cv2d')
 
+        # The pipeline contains a dict of numbers and tuples with
+        # strings that are unique to IMod objects
+        # and their arguments
+        self._pipeline = []
+
         # Holds information on the plot layout, ticks, fonts etc.
         self.config = {}
 
@@ -78,30 +83,42 @@ class CvFig(object):
                     logging.warn('Config key %s not found.' % k)
 
         # Matplotlib figure object, contains the actual plot
-        # Initialized with one pixel
+        # Generated upon retrieval by property accessor
+        # Readonly, Initialized with one pixel
         plt.ioff()
-        self.fig = plt.figure(1, dpi=self.config['Dpi'])
+        self._fig = plt.figure(1, dpi=self.config['Dpi'])
 
-        # Q: Do we really need the message parsing system for this?
-        dispatcher.connect(self.handle_add_mod_to_pipeline,
-                           signal=signal.FIG_ADD_MOD_TO_PIPELINE,
-                           sender=dispatcher.Any)
-        dispatcher.connect(self.handle_remove_mod_from_pipeline,
-                           signal=signal.FIG_REMOVE_MOD_FROM_PIPELINE,
-                           sender=dispatcher.Any)
-
-        # The pipeline contains a list of tuples with strings that are unique to IMod objects
-        # and their arguments
-        self.pipeline = []
-
-        # We append the pipeline given by parameter.
+        # We use the setter to add the given pipeline.
         if pipeline is not None:
-            self.pipeline.append(pipeline)
+            self.pipeline = pipeline
 
         self.apply_pipeline()
 
     def __repr__(self):
         print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self.config, self.pipeline)
+
+    @property
+    def fig(self):
+        """Retrieve the matplotlib figure."""
+        self.draw_mpl_fig()
+        return self._fig
+
+    @property
+    def pipeline(self):
+        return self._pipeline
+
+    @pipeline.setter
+    def pipeline(self, pipeline):
+        """Overwrite the pipeline string. Note that this is used for initialization
+        and does not trigger any modifications to the datafile.
+
+        Args:
+            pipeline (list): A list of strings that are valid mod identifiers.
+        """
+        self._pipeline = []
+
+        for modstring in pipeline:
+            self.add_mod_to_pipeline(modstring)
 
     def show(self):
         """Show the figure in the GUI."""
@@ -137,67 +154,72 @@ class CvFig(object):
         self.datafile = datafile
         self.original_datafile = datafile.deep_copy()
 
-    def set_pipeline(self, pipeline):
-        """Overwrite the pipeline string. Note that this is used for initialization
-        and does not trigger any modifications to the datafile.
-
-        Args:
-            pipeline (list): A list of strings that are valid mod identifiers.
-        """
-        self.pipeline = pipeline
-
     def dump_pipeline_string(self):
         """This just returns a string representation of the pipeline."""
-        return "{}".format(self.pipeline)
+        return "{}".format(self._pipeline)
 
-    def find_mod(self, modstring):
-        """Check if a mod is available in the list of plugins.
+    def find_mod(self, modtype):
+        """Check if a modtype is available in the list of plugins.
 
         Args:
-            modstring (string): The name of the mod to search in the modlist.
+            modtype (string): The name of the mod to search in the modlist.
 
         Returns:
             a colorview2d.IMod
         """
         for mod in self.modlist:
-            if mod.title == modstring:
+            if mod.title == modtype:
                 return mod
 
         return None
 
-    def handle_add_mod_to_pipeline(self, modstring=None, modargs=None):
-        """Handle an event that is triggered when the GUI is used to
-        add a mod to the pipeline
-        """
-        self.add_mod_to_pipeline(modstring, modargs)
-
-    def add_mod_to_pipeline(self, title, args, do_apply=True):
+    def add_mod_to_pipeline(self, modstring, pos=-1, do_apply=True):
         """Adds a mod to the pipeline by its title string and its arguments.
 
         Args:
-            title (string): The identifier of the mod type
+            pos (int): Where to add the mod in the pipeline. Default is last.
+            modstring (tuple): Mod type string and arguments.
             args (tuple): A tuple containing the arguments of the mod.
         """
-        self.pipeline.append((title, args))
+        title = modstring[0]
+
+        if self.find_mod(title):
+            if pos == -1:
+                self._pipeline.append(modstring)
+            elif pos < len(self._pipeline) and pos >= 0:
+                self._pipeline.insert(pos, modstring)
+            else:
+                logging.warn('Position %d not available in pipeline.' % pos)
+        else:
+            logging.warn('Mod %s not available in mod plugin list.' % title)
 
         if do_apply:
             self.apply_pipeline()
 
-    def handle_remove_mod_from_pipeline(self, modstring=None):
-        """Handle an event that is triggered when the GUI is used to
-        remove a mod from the pipeline.
-        """
-        self.remove_mod_from_pipeline(modstring)
-
-    def remove_mod_from_pipeline(self, title, do_apply=True):
-        """Removes a mod from the pipeline by its title string.
+    def remove_mod_from_pipeline(self, pos=-1, modtype=None, do_apply=True):
+        """Removes the last mod from the pipeline, or the mod at position pos
+        or the last mod in the pipeline with the type modtype.
 
         Args:
-            title (string): The identifier of the mod type
+            modtype (string): The identifier of the mod type.
+            pos (int): The position of the mod in the pipeline.
+            do_apply (bool): Is the pipeline applied after the element is removed?
         """
-        for modtuple in self.pipeline:
-            if modtuple[0] == title:
-                self.pipeline.remove(modtuple)
+
+        if pos == -1 and not modtype:
+            self._pipeline.pop()
+        elif pos >= 0 and pos < len(self._pipeline):
+            del self._pipeline[pos]
+        elif modtype:
+            found = False
+            for modtuple in reversed(self._pipeline):
+                if modtuple[0] == modtype:
+                    self._pipeline.remove(modtuple)
+                    found = True
+            if not found:
+                logging.warn('Mod %s not in current pipeline.' % modtype)
+        else:
+                logging.warn('Pos = %d is not a valid position.' % pos)
 
         if do_apply:
             self.apply_pipeline()
@@ -219,20 +241,18 @@ class CvFig(object):
 
         self.datafile = self.original_datafile.deep_copy()
 
-        for modtuple in self.pipeline:
+        for pos, modtuple in enumerate(self._pipeline):
             mod = self.find_mod(modtuple[0])
             if mod:
-                mod.set_args(modtuple[1])
-                # if self.is_interactive():
-                #     mod.update_widget()
-                mod.apply(self.datafile)
+                # if apply returns false, the application failed and the
+                # mod is removed from the pipeline
+                if not mod.apply(self.datafile, modtuple[1]):
+                    logging.warning(
+                        'Application of mod %s at position %d failed.'
+                        'Removing mod from pipeline.' % (mod.title, pos))
+                    self.remove_mod_from_pipeline(pos)
             else:
                 logging.warning('No mod candidate found for %s.', modtuple[0])
-
-        # This should be removed. Orthogonality!
-        # if self.is_interactive():
-        #     dispatcher.send(signal.PLOT_UPDATE_DATAFILE)
-        #     dispatcher.send(signal.PANEL_UPDATE_COLORCTRL)
 
     def extract_ylinetraces(self, xfirst, xlast, xinterval, ystart, ystop):
         """Extract linetraces along a given y-axis range for
@@ -330,10 +350,13 @@ class CvFig(object):
             self.config = doclist.next()
             # The pipeline string is the second. It is optional.
             try:
-                self.pipeline = literal_eval(doclist.next())
                 logging.info('Pipeline string found: %s', self.pipeline)
+                pipeline = literal_eval(doclist.next())
+                # Note that the property setter is called
+                self.pipeline = pipeline
+
             except StopIteration:
-                self.pipeline = []
+                logging.info('No pipeline string found.')
 
         self.reset()
 
@@ -353,9 +376,9 @@ class CvFig(object):
     def plot_pdf(self, filename):
         """Redraw the figure and plot it to a pdf file."""
         self.draw_mpl_fig()
-        self.fig.set_size_inches(self.config['Width'], self.config['Height'])
-        self.fig.tight_layout()
-        self.fig.savefig(filename, dpi=self.config['Dpi'])
+        self._fig.set_size_inches(self.config['Width'], self.config['Height'])
+        self._fig.tight_layout()
+        self._fig.savefig(filename, dpi=self.config['Dpi'])
 
     def draw_mpl_fig(self):
         """Draw a matplotlib figure.
@@ -365,8 +388,8 @@ class CvFig(object):
         2d color plot with labels, ticks and colorbar as specified in the
         config dictionary..
         """
-        self.fig.clear()
-        self.axes = self.fig.add_subplot(111)
+        self._fig.clear()
+        self.axes = self._fig.add_subplot(111)
         self.apply_config_pre_plot()
 
         self.plot = self.axes.imshow(self.get_arraydata(),
@@ -380,7 +403,7 @@ class CvFig(object):
 
         self.apply_config_post_plot()
 
-        self.fig.tight_layout()
+        self._fig.tight_layout()
 
 
     def apply_config_post_plot(self):
@@ -393,11 +416,11 @@ class CvFig(object):
         self.axes.set_xlabel(self.config['Xlabel'])
 
         if not self.config['Cbtickformat'] == 'auto':
-            self.colorbar = self.fig.colorbar(
+            self.colorbar = self._fig.colorbar(
                 self.plot,
                 format=FormatStrFormatter(self.config['Cbtickformat']))
         else:
-            self.colorbar = self.fig.colorbar(self.plot)
+            self.colorbar = self._fig.colorbar(self.plot)
         self.colorbar.set_label(self.config['Cblabel'])
         if not self.config['Xtickformat'] == 'auto':
             self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.config['Xtickformat']))
@@ -420,3 +443,5 @@ class CvFig(object):
         plt.rcParams['font.size'] = self.config['Fontsize']
         plt.rcParams['xtick.major.size'] = self.config['Xticklength']
         plt.rcParams['ytick.major.size'] = self.config['Yticklength']
+
+    
