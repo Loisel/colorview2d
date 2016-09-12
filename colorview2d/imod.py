@@ -7,11 +7,12 @@ Interface to the mod plugin class.
 Specification of the minimum requirements of a plugin implementation.
 """
 
-from modwidget import ModWidget
-
 import logging
+import sys
 from yapsy.IPlugin import IPlugin
 import abc
+from modwidget import ModWidget
+
 
 
 class IMod(IPlugin):
@@ -19,11 +20,10 @@ class IMod(IPlugin):
     The interface class is an abstract base class.
     At present, none of the methods have to be overwritten, though.
 
-    The following attributes are defined:
-
-    :title (string): Title string of the plugin. Usually equal to the
+    Args:
+        title (string): Title string of the plugin. Usually equal to the
                   plugin/module name.
-    :default_args (tuple): A default set of arguments that works with the apply function.
+        default_args (tuple): A default set of arguments that works with the apply function.
     """
     __meta__ = abc.ABCMeta
     def __init__(self):
@@ -35,22 +35,6 @@ class IMod(IPlugin):
 
         self.title = self.__class__.__name__
         logging.info('Mod %s is initialized.' % self.title)
-
-
-    @staticmethod
-    def handle_modfail(function):
-        """This is a decorator for the apply function in the mod implementations.
-        It is bound to the calling signature of the apply method.
-        This enforces a correct implementation of mod.apply(self, datafile, args)
-        """
-        def decorated(self, datafile, args):
-            try:
-                function(self, datafile, args)
-                return True
-            except (ValueError, TypeError):
-                logging.warn('Mod %s failed. Args: %s' % (self.title, args))
-                return False
-        return decorated
 
 
     def create_widget(self, panel):
@@ -73,17 +57,38 @@ class IMod(IPlugin):
 
         return self.widget
         
-    @handle_modfail    
-    def apply(self,datafile):
+    def apply(self, datafile, modargs):
         """
-        This method has to be overwritten to provide some useful
-        functionality.
-        It should modify the :class:`Gpfile <colorview2d.gpfile.Gpfile>` object using the parameter in args.
+        This method provides a hook for do_apply which has to be
+        overwritten by any mod implementation to provide some useful functionality.
+        
+        ValueErrors and TypeErrors appearing in do_apply are caught and the CvFig object
+        is informed of the failure and deactivates the mod.
 
-        :param datafile: A :class:`Gpfile <colorview2d.gpfile.Gpfile>` object from the :mod:`gpfile` module.
-        :type datafiel: :class:`Gpfile <colorview2d.gpfile.Gpfile>`
+        Args:
+            datafile (colorview2d.Gpfile): A datafile object.
+            modargs (tuple): the arguments required to apply the mod.
         """
-        logging.warning('The apply method of the base class Mod should not be called directly.')
+
+        if 'do_apply' not in dir(self):
+            logging.warning('Mod %s has not implemented the do_apply method.' % self.title)
+        else:
+            try:
+                self.do_apply(datafile, modargs)
+                return True
+            except ValueError:
+                logging.warn(
+                    'Mod %s failed. Value Error. Probably you supplied unusable arguments. Args: %s' % (self.title, modargs))
+                return False
+            except TypeError:
+                logging.warn(
+                    'Mod %s failed. Type Error. Have you supplied the correct argument type? Args: %s' % (self.title, modargs))
+                return False
+            except MemoryError:
+                logging.warn(
+                    'Mod %s failed. Not enough memory. Try different parameters. Args: %s' % (self.title, modargs))
+                return False
+                
 
 
 
