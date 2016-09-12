@@ -1,0 +1,8 @@
+[Core]
+Name = Absolute
+Module = Absolute
+   
+[Documentation]
+Description = Calculate the absolute value.
+Author = Alois Dirnaichner
+Version = 1.0
