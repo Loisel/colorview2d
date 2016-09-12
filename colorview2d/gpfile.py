@@ -228,7 +228,7 @@ Y-axis range from {} to {}".format(self.Xleft,self.Xright,self.Ybottom,self.Ytop
         self.set_xyrange(self.Xrange,self.Yrange[::-1])
 
 
-    def crop(self,xleft,xright,ybottom,ytop):
+    def crop(self, xleft, xright, ybottom, ytop):
         """
         Crop the datafile to a subset of the array specifiying the corners of the subset in
         units of the axes ranges.
@@ -243,15 +243,18 @@ Y-axis range from {} to {}".format(self.Xleft,self.Xright,self.Ybottom,self.Ytop
         xright_idx = self.get_xrange_idx(xright)
         ybottom_idx = self.get_yrange_idx(ybottom)
         ytop_idx = self.get_yrange_idx(ytop)
-        
+
+        # import ipdb;ipdb.set_trace()
         try:
-            self.set_Zdata(self.Zdata[ybottom_idx:ytop_idx+1,xleft_idx:xright_idx+1])
-            self.set_xyrange(self.Xrange[xleft_idx:xright_idx+1],self.Yrange[ybottom_idx:ytop_idx+1])
+            self.set_Zdata(
+                self.Zdata[ybottom_idx:ytop_idx + 1, xleft_idx:xright_idx + 1])
+            self.set_xyrange(
+                self.Xrange[xleft_idx:xright_idx + 1], self.Yrange[ybottom_idx:ytop_idx + 1])
         except IndexError as e:
             print "Value not in data range: ",e
 
 
-    def get_xrange_idx(self,value):
+    def get_xrange_idx(self, value):
         """
         Return the nearest index of a value within the x axis range.
 
@@ -260,16 +263,17 @@ Y-axis range from {} to {}".format(self.Xleft,self.Xright,self.Ybottom,self.Ytop
 
         :returns: The closest index on the x axis range.
         """
-        idx = int(sp.rint(abs(value-self.Xleft)/abs(self.dX)))
+        idx = int(sp.rint(abs(value - self.Xleft) / abs(self.dX)))
 
         try:
             self.Xrange[idx]
         except IndexError:
-            print "Index {} deduced from value {} not within range.".format(idx,value)
+            print("Xrange index {} deduced from value {} not within range.".format(idx, value),
+                  "Xmin {}, Xmax {}".format(self.Xmin, self.Xmax))
         return idx
             
 
-    def get_yrange_idx(self,value):
+    def get_yrange_idx(self, value):
         """
         Return the nearest index of a value within the y axis range.
 
@@ -278,11 +282,12 @@ Y-axis range from {} to {}".format(self.Xleft,self.Xright,self.Ybottom,self.Ytop
 
         :returns: The closest index on the y axis range.
         """
-        idx = int(sp.rint(abs(value-self.Ybottom)/abs(self.dY)))
+        idx = int(sp.rint(abs(value - self.Ybottom) / abs(self.dY)))
         try:
             self.Yrange[idx]
         except IndexError:
-            print "Index {} deduced from value {} not within range.".format(idx,value)
+            print ("Yrange index {} deduced from value {} not within range.".format(idx, value), 
+                   "Ymin {}, Ymax {}".format(self.Ymin, self.Ymax))
         return idx
 
     def set_filename(self,filename):
