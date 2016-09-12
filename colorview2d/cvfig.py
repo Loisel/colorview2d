@@ -9,7 +9,6 @@ Example::
 
 """
 import logging
-import threading
 import os
 
 import numpy as np
@@ -17,9 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
 import yaml
-from pydispatch import dispatcher
 
-import colorview2d.signal as signal
 import colorview2d.mainapp as mainapp
 import colorview2d.gpfile as gpfile
 import colorview2d.utils as utils
@@ -183,6 +180,7 @@ class CvFig(object):
         """
         title = modstring[0]
 
+        logging.info('Add mod %s to pipeline with arguments %s' % (modstring[0], modstring[1]))
         if self.find_mod(title):
             if pos == -1:
                 self._pipeline.append(modstring)
@@ -223,12 +221,6 @@ class CvFig(object):
 
         if do_apply:
             self.apply_pipeline()
-
-    def reset(self):
-        """Reset all mods."""
-        if hasattr(self, 'modlist'):
-            for mod in self.modlist:
-                mod.reset()
 
     def apply_pipeline(self):
         """Applies the pipeline to the datafile in the parent frame.
@@ -337,7 +329,7 @@ class CvFig(object):
 
     def parse_config(self, cfgpath):
         """Load the configuration and the pipeline from the config file
-        specified in the YAML format. Resets all mods in the pipeline.
+        specified in the YAML format. 
 
         Args:
             cfgpath (string): The path to a cv2d configuration file.
@@ -358,7 +350,6 @@ class CvFig(object):
             except StopIteration:
                 logging.info('No pipeline string found.')
 
-        self.reset()
 
     def save_config(self, cfgpath):
         """Save the configuration and the pipeline to a config file specified by
