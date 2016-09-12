@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 
 from colorview2d import imod
 
@@ -16,9 +17,10 @@ class Log(imod.IMod):
     def __init__(self):
         imod.IMod.__init__(self)
         
-    def apply(self,datafile):
-
+    def do_apply(self, datafile, modargs):
         logdata = datafile.Zdata
-        logdata[logdata <= 0.] = np.amin(logdata[logdata > 0])
-        logdata = np.log(logdata)
-        datafile.set_Zdata(logdata)
+        if logdata.any() <= 0:
+            logging.warn('Can not apply log to negative valued array.')
+        else:
+            logdata = np.log(logdata)
+            datafile.set_Zdata(logdata)

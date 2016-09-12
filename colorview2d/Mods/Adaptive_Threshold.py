@@ -70,10 +70,10 @@ class Adaptive_ThresholdWidget(modwidget.ModWidget):
         :param event: The :class:`wx.EVT_CHECKBOX` event.
         """
         if self.chk.GetValue():
-            self.mod.set_args((self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
-            self.mod.activate()
+            self.mod.args((self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
+            self.add_mod()
         else:
-            self.mod.deactivate()
+            self.remove_mod()
 
     def update(self):
         """
@@ -92,9 +92,9 @@ class Adaptive_ThresholdWidget(modwidget.ModWidget):
         :type event: :class:`EVT_FLOATSPIN`
         """
         if self.mod.active:
-            self.mod.deactivate()
-            self.mod.set_args((self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
-            self.mod.activate()
+            self.remove_mod()
+            self.mod.args((self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
+            self.add_mod()
             
 
 class Adaptive_Threshold(imod.IMod):
@@ -106,9 +106,9 @@ class Adaptive_Threshold(imod.IMod):
     """
     def __init__(self):
         imod.IMod.__init__(self)
-        self.args = self.default_args = (2.,0.)
+        self.default_args = (2.,0.)
 
-    def apply(self,datafile):
+    def do_apply(self, datafile, modargs):
         """
         To apply the mod we use the adaptive threshold routine of
         the :module:`skimage.filter`.
@@ -120,11 +120,17 @@ class Adaptive_Threshold(imod.IMod):
         Note that the result is a binary image with values
         0 and 1.
 
-        :param datafile gpfile: The datafile.
+        Args
+            datafile (gpfile): The datafile.
+            modargs (tuple): First argument is the blocksize (integer), second
+                             argument ist the offset for the threshold (float)
         """
 
-        func = lambda arr: (1+self.args[1])*arr.mean()
-        newZ = img_as_float(threshold_adaptive(np.abs(datafile.Zdata),self.args[0],method='generic', param=func))
+        def func(arr):
+            return (1 + modargs[1]) * arr.mean()
+        
+        newZ = img_as_float(
+            threshold_adaptive(np.abs(datafile.Zdata), modargs[0], method='generic', param=func))
         
         # Only if the array contains at least two different values
         # we really apply the filter

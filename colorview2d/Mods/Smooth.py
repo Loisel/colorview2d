@@ -1,9 +1,9 @@
 from colorview2d import imod
 from colorview2d import modwidget
 
-import numpy as np
+import logging
 
-from wx.lib.masked import NumCtrl,EVT_NUM
+from wx.lib.masked import NumCtrl, EVT_NUM
 
 from scipy.ndimage.filters import gaussian_filter
 
@@ -18,7 +18,7 @@ class SmoothWidget(modwidget.ModWidget):
     Hosts two wx.lib.masked.NumCtrl widgets to specify the size of the
     filter window.
     """
-    def __init__(self,mod,panel):
+    def __init__(self, mod, panel):
         modwidget.ModWidget.__init__(self,mod,panel)
         self.num_smooth_xwidth = NumCtrl(self.panel,
                                           fractionWidth = 1,
@@ -36,21 +36,22 @@ class SmoothWidget(modwidget.ModWidget):
 
     def on_chk(self,event):
         if self.chk.GetValue():
-            self.mod.set_args((self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
-            self.mod.activate()
+            self.mod.args = (self.num_smooth_xwidth.GetValue(), self.num_smooth_ywidth.GetValue())
+            self.add_mod()
         else:
-            self.mod.deactivate()
+            self.remove_mod()
 
     def on_num_smooth(self,event):
-        if self.mod.active:
-            self.mod.deactivate()
-            self.mod.set_args((self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue()))
-            self.mod.activate()            
+        if self.chk.GetValue():
+            self.remove_mod()
+            self.mod.args = (self.num_smooth_xwidth.GetValue(),self.num_smooth_ywidth.GetValue())
+            self.add_mod()            
 
     def update(self):
         modwidget.ModWidget.update(self)
         # Note that we call ChangeValue instead of SetValue to not trigger a
         # EVT_NUM event
+
         self.num_smooth_xwidth.ChangeValue(self.mod.args[0])
         self.num_smooth_ywidth.ChangeValue(self.mod.args[1])
         
@@ -66,13 +67,16 @@ class Smooth(imod.IMod):
     """
     def __init__(self):
         imod.IMod.__init__(self)
-        self.args = self.default_args = (0.,0.)
+        self.default_args = (0., 0.)
 
-    def apply(self,datafile):
-        datafile.set_Zdata(gaussian_filter(datafile.Zdata,self.args))
+    def do_apply(self, datafile, args):
+        datafile.set_Zdata(gaussian_filter(datafile.Zdata, args))
         
     def create_widget(self,panel):
         self.panel = panel
         self.widget = SmoothWidget(self,self.panel)
         return self.widget
+
+
+
 

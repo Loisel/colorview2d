@@ -91,10 +91,10 @@ class CropWidget(modwidget.ModWidget):
         :param event: The :class:`wx.EVT_CHECKBOX` event.
         """
         if self.chk.GetValue():
-            self.mod.set_args((self.xrange_left_spin.GetValue(),self.xrange_right_spin.GetValue(),self.yrange_bottom_spin.GetValue(),self.yrange_top_spin.GetValue()))
-            self.mod.activate()
+            self.mod.args((self.xrange_left_spin.GetValue(),self.xrange_right_spin.GetValue(),self.yrange_bottom_spin.GetValue(),self.yrange_top_spin.GetValue()))
+            self.add_mod()
         else:
-            self.mod.deactivate()
+            self.remove_mod()
 
     def update(self):
         """
@@ -115,9 +115,9 @@ class CropWidget(modwidget.ModWidget):
         :type event: :class:`EVT_FLOATSPIN`
         """
         if self.mod.active:
-            self.mod.deactivate()
-            self.mod.set_args((self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
-            self.mod.activate()            
+            self.remove_mod()
+            self.mod.args((self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
+            self.add_mod()            
 
     def on_full_range_button(self,event):
         """
@@ -142,17 +142,16 @@ class Crop(imod.IMod):
     """
     def __init__(self):
         imod.IMod.__init__(self)
-        self.args = self.default_args = (0.,0.,0.,0.)
+        self.default_args = (0., 0., 0., 0.)
 
-    def apply(self,datafile):
+    def do_apply(self, datafile, modargs):
         """
         To apply the mod we use the builtin crop routine of the datafile,
         a :class:`gpfile`.
 
         :param datafile gpfile: The datafile.
         """
-        import pdb;pdb.set_trace()
-        datafile.crop(self.args[0],self.args[1],self.args[2],self.args[3])
+        datafile.crop(modargs[0], modargs[1], modargs[2], modargs[3])
         
     def create_widget(self,panel):
         """

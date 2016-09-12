@@ -37,10 +37,10 @@ class MedianWidget(modwidget.ModWidget):
 
     def on_chk(self,event):
         if self.chk.GetValue():
-            self.mod.set_args((self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
-            self.mod.activate()
+            self.mod.args((self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
+            self.add_mod()
         else:
-            self.mod.deactivate()
+            self.remove_mod()
 
     def update(self):
         modwidget.ModWidget.update(self)
@@ -51,9 +51,9 @@ class MedianWidget(modwidget.ModWidget):
 
     def on_num_median(self,event):
         if self.mod.active:
-            self.mod.deactivate()
-            self.mod.set_args((self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
-            self.mod.activate()            
+            self.remove_mod()
+            self.mod.args((self.num_median_xwidth.GetValue(),self.num_median_ywidth.GetValue()))
+            self.add_mod()            
             
 
 
@@ -67,10 +67,10 @@ class Median(imod.IMod):
     """
     def __init__(self):
         imod.IMod.__init__(self)
-        self.args = self.default_args = (0.,0.)
+        self.default_args = (0., 0.)
 
-    def apply(self,datafile):
-        datafile.set_Zdata(median_filter(datafile.Zdata,size=self.args))
+    def do_apply(self, datafile, modargs):
+        datafile.set_Zdata(median_filter(datafile.Zdata, size=modargs))
         
     def create_widget(self,panel):
         self.panel = panel

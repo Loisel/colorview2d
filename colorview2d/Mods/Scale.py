@@ -30,10 +30,10 @@ class ScaleWidget(modwidget.ModWidget):
     def on_chk(self,event):
         if self.chk.GetValue():
             self.panel.Validate()
-            self.mod.set_args(float(self.num_scale.GetValue()))
-            self.mod.activate()
+            self.mod.args(float(self.num_scale.GetValue()))
+            self.add_mod()
         else:
-            self.mod.deactivate()
+            self.remove_mod()
             
     def on_auto_scale_button(self,event):
         self.num_scale.SetValue(str(2.5812e4/view.State.datafile.dY))        
@@ -55,9 +55,8 @@ class Scale(imod.IMod):
         imod.IMod.__init__(self)
         self.args = self.default_args = 1.
 
-    def apply(self,datafile):
-        datafile.set_Zdata(datafile.Zdata*self.args)
-
+    def do_apply(self, datafile, args):
+        datafile.set_Zdata(datafile.Zdata * args)
         
     def create_widget(self,panel):
         self.panel = panel

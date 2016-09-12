@@ -31,12 +31,12 @@ class FlipWidget(modwidget.ModWidget):
     def on_chk(self,event):
         if self.chk.GetValue():
             if self.radio_lr.GetValue():
-                self.mod.set_args(True)
+                self.mod.args(True)
             else:
-                self.mod.set_args(False)
-            self.mod.activate()
+                self.mod.args(False)
+            self.add_mod()
         else:
-            self.mod.deactivate()
+            self.remove_mod()
 
     def update(self):
         modwidget.ModWidget.update(self)
@@ -47,9 +47,9 @@ class FlipWidget(modwidget.ModWidget):
 
     def on_radio(self,event):
         if self.mod.active:
-            self.mod.deactivate()
-            self.mod.set_args(self.radio_lr.GetValue())
-            self.mod.activate()            
+            self.remove_mod()
+            self.mod.args(self.radio_lr.GetValue())
+            self.add_mod()            
             
 
 
@@ -60,10 +60,10 @@ class Flip(imod.IMod):
 
     def __init__(self):
         imod.IMod.__init__(self)
-        self.args = self.default_args = True
+        self.default_args = True
         
-    def apply(self,datafile):
-        if self.args:
+    def do_apply(self, datafile, modargs):
+        if modargs:
             datafile.flip_lr()
         else:
             datafile.flip_ud()
