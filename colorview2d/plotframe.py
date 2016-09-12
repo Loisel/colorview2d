@@ -150,7 +150,7 @@ class PlotPanel(wx.Panel):
 
         #self.axes = self.fig.add_subplot(111)
 
-        self.plot = self.axes.imshow(self.cvfig.get_data(),
+        self.plot = self.axes.imshow(self.cvfig.get_arraydata(),
             extent=[self.cvfig.datafile.Xleft,self.cvfig.datafile.Xright,self.cvfig.datafile.Ybottom,self.cvfig.datafile.Ytop],
             aspect='auto',
             origin='lower',
