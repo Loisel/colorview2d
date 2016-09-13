@@ -130,12 +130,12 @@ class Adaptive_Threshold(imod.IMod):
             return (1 + modargs[1]) * arr.mean()
         
         newZ = img_as_float(
-            threshold_adaptive(np.abs(datafile.Zdata), modargs[0], method='generic', param=func))
+            threshold_adaptive(np.abs(datafile.zdata), modargs[0], method='generic', param=func))
         
         # Only if the array contains at least two different values
         # we really apply the filter
         if newZ.min() != newZ.max():
-            datafile.set_Zdata(newZ)
+            datafile.zdata = newZ
 
         
         

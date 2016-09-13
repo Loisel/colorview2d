@@ -155,11 +155,11 @@ class LineoutPanel(wx.Panel):
 
         datafile = self.cvfig.datafile
 
-        idx1 = self.closest_idx(self.x1,datafile.Xrange)
-        idx2 = self.closest_idx(self.x2,datafile.Xrange)
+        idx1 = self.closest_idx(self.x1,datafile.xrange)
+        idx2 = self.closest_idx(self.x2,datafile.xrange)
 
-        idy1 = self.closest_idx(self.y1,datafile.Yrange)
-        idy2 = self.closest_idx(self.y2,datafile.Yrange)
+        idy1 = self.closest_idx(self.y1,datafile.yrange)
+        idy2 = self.closest_idx(self.y2,datafile.yrange)
 
         
         if idx1 == idx2:
@@ -170,20 +170,20 @@ class LineoutPanel(wx.Panel):
             y_range_int = [idy1]            
         elif np.abs(idx2 - idx1) > np.abs(idy2 - idy1):
             # x_range = range(idx1,idx2+1,np.sign(idx2-idx1))
-            # y_range = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.Yrange) for xval in datafile.Xrange[x_range]])
-            x_range = np.linspace(datafile.Xrange[idx1],datafile.Xrange[idx2],abs(idx2-idx1)*self.resolution)
-            y_range_int = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.Yrange) for xval in x_range])
-            x_range_int = [self.closest_idx(x_val,datafile.Xrange) for x_val in x_range]
+            # y_range = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.yrange) for xval in datafile.xrange[x_range]])
+            x_range = np.linspace(datafile.xrange[idx1],datafile.xrange[idx2],abs(idx2-idx1)*self.resolution)
+            y_range_int = np.array([self.closest_idx(self.currentline.get_y(xval),datafile.yrange) for xval in x_range])
+            x_range_int = [self.closest_idx(x_val,datafile.xrange) for x_val in x_range]
             
         else:
             # y_range = range(idy1,idy2,np.sign(idy2-idy1))
-            # x_range = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.Xrange) for yval in datafile.Yrange[y_range]])
-            y_range = np.linspace(datafile.Yrange[idy1],datafile.Yrange[idy2],abs(idy2-idy1)*self.resolution)
-            x_range_int = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.Xrange) for yval in y_range])
-            y_range_int = [self.closest_idx(y_val,datafile.Yrange) for y_val in y_range]
+            # x_range = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.xrange) for yval in datafile.yrange[y_range]])
+            y_range = np.linspace(datafile.yrange[idy1],datafile.yrange[idy2],abs(idy2-idy1)*self.resolution)
+            x_range_int = np.array([self.closest_idx(self.currentline.get_x(yval),datafile.xrange) for yval in y_range])
+            y_range_int = [self.closest_idx(y_val,datafile.yrange) for y_val in y_range]
 
 
-        dataview = datafile.Zdata[y_range_int,x_range_int]
+        dataview = datafile.zdata[y_range_int,x_range_int]
 
         distance = np.linspace(0,np.sqrt(((y_range_int[-1]-y_range_int[0])*datafile.dY)**2+((x_range_int[-1]-x_range_int[0])*datafile.dX)**2),dataview.shape[0])
 

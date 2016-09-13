@@ -56,7 +56,7 @@ class Scale(imod.IMod):
         self.args = self.default_args = 1.
 
     def do_apply(self, datafile, args):
-        datafile.set_Zdata(datafile.Zdata * args)
+        datafile.zdata = datafile.zdata * args
         
     def create_widget(self,panel):
         self.panel = panel

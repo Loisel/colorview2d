@@ -38,7 +38,7 @@ class BinaryFitPanel(wx.Panel):
             "Offset: ")
 
         self.view = self.parent.parent.view
-        self.Xrange = self.view.datafile.Xrange
+        self.xrange = self.view.datafile.xrange
 
         maxval = self.view.get_data().max()
         minval = self.view.get_data().min()
@@ -113,9 +113,9 @@ class BinaryFitPanel(wx.Panel):
             self.ParBoxSizer.Add(phbox)
 
         self.delta_y_spin =  FloatSpin(self, name='delta_y',
-            value=self.parent.parent.view.datafile.Ymax - self.parent.parent.view.datafile.Ymin,
+            value=self.parent.parent.view.datafile.ymin - self.parent.parent.view.datafile.ymin,
             min_val=0,
-            max_val=self.parent.parent.view.datafile.Ymax - self.parent.parent.view.datafile.Ymin,
+            max_val=self.parent.parent.view.datafile.ymin - self.parent.parent.view.datafile.ymin,
             increment = self.parent.parent.view.datafile.dY,
             digits = 3)
 
@@ -187,8 +187,8 @@ class BinaryFitPanel(wx.Panel):
 
     def on_compile(self,event):
         self.axes.autoscale(False)
-        self.Xrange = self.view.datafile.Xrange
-        self.lineplot, = self.axes.plot(self.Xrange,np.zeros(self.Xrange.size))
+        self.xrange = self.view.datafile.xrange
+        self.lineplot, = self.axes.plot(self.xrange,np.zeros(self.xrange.size))
 
         fstring = self.formulactrl.GetValue()
         self.formula = parser.parse(fstring)
@@ -235,7 +235,7 @@ class BinaryFitPanel(wx.Panel):
 
     def draw_function(self):
 
-        self.func_y = np.array([ self.formula.eval(x) for x in self.Xrange])
+        self.func_y = np.array([ self.formula.eval(x) for x in self.xrange])
 
         self.lineplot.set_ydata(self.func_y)
         self.canvas.draw()
@@ -260,10 +260,10 @@ class BinaryFitPanel(wx.Panel):
         if y_indexrange <= 1:
             y_indexrange = 1
 
-        points_all = np.vstack(np.where(datafile.Zdata)).T
+        points_all = np.vstack(np.where(datafile.zdata)).T
         func_points = self.func_y[points_all[:,1]]
 
-        yrange = datafile.Yrange[::-1]
+        yrange = datafile.yrange[::-1]
         points_sel = points_all[abs(yrange[points_all[:,0]] - func_points) < delta_y]
 
         def residual(params,xrange,data):
@@ -273,7 +273,7 @@ class BinaryFitPanel(wx.Panel):
             return func_y - data
 
 
-        Min = Minimizer(residual, self.formula.pdict, fcn_args=(datafile.Xrange[points_sel[:,1]],yrange[points_sel[:,0]]))
+        Min = Minimizer(residual, self.formula.pdict, fcn_args=(datafile.xrange[points_sel[:,1]],yrange[points_sel[:,0]]))
 
         result = Min.fmin()
 

@@ -168,7 +168,7 @@ def get_data():
     Shortcut for the 2d data contained int the datafile. 
     Interface for plotting routine.
     """
-    return State.datafile.Zdata
+    return State.datafile.zdata
 
 def set_datafile(datafile):
     """

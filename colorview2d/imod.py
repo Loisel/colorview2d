@@ -66,7 +66,7 @@ class IMod(IPlugin):
         is informed of the failure and deactivates the mod.
 
         Args:
-            datafile (colorview2d.Gpfile): A datafile object.
+            datafile (colorview2d.Datafile): A datafile object.
             modargs (tuple): the arguments required to apply the mod.
         """
 

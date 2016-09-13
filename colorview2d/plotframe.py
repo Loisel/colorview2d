@@ -88,8 +88,8 @@ class PlotPanel(wx.Panel):
 
     def handle_autoscale_on(self, sender):
         self.axes.autoscale(True)
-        self.axes.set_xlim(self.cvfig.datafile.Xleft,self.cvfig.datafile.Xright)
-        self.axes.set_ylim(self.cvfig.datafile.Ybottom,self.cvfig.datafile.Ytop)
+        self.axes.set_xlim(self.cvfig.datafile.xleft,self.cvfig.datafile.xright)
+        self.axes.set_ylim(self.cvfig.datafile.ybottom,self.cvfig.datafile.ytop)
 
 
     def handle_autoscale_off(self, sender):
@@ -101,10 +101,10 @@ class PlotPanel(wx.Panel):
         self.update()
 
     def handle_update_datafile(self,sender):
-        self.plot.set_data(self.cvfig.datafile.Zdata)
-        self.plot.set_extent([self.cvfig.datafile.Xleft,self.cvfig.datafile.Xright,self.cvfig.datafile.Ybottom,self.cvfig.datafile.Ytop])
-        self.axes.set_xlim(self.cvfig.datafile.Xleft,self.cvfig.datafile.Xright)
-        self.axes.set_ylim(self.cvfig.datafile.Ybottom,self.cvfig.datafile.Ytop)
+        self.plot.set_data(self.cvfig.datafile.zdata)
+        self.plot.set_extent([self.cvfig.datafile.xleft,self.cvfig.datafile.xright,self.cvfig.datafile.ybottom,self.cvfig.datafile.ytop])
+        self.axes.set_xlim(self.cvfig.datafile.xleft,self.cvfig.datafile.xright)
+        self.axes.set_ylim(self.cvfig.datafile.ybottom,self.cvfig.datafile.ytop)
         self.update()
 
     def handle_update_canvas(self):
@@ -151,7 +151,7 @@ class PlotPanel(wx.Panel):
         #self.axes = self.fig.add_subplot(111)
 
         self.plot = self.axes.imshow(self.cvfig.get_arraydata(),
-            extent=[self.cvfig.datafile.Xleft,self.cvfig.datafile.Xright,self.cvfig.datafile.Ybottom,self.cvfig.datafile.Ytop],
+            extent=[self.cvfig.datafile.xleft,self.cvfig.datafile.xright,self.cvfig.datafile.ybottom,self.cvfig.datafile.ytop],
             aspect='auto',
             origin='lower',
             interpolation="nearest")        

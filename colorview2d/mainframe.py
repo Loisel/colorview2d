@@ -2,7 +2,7 @@ import wx
 import numpy as np
 import re
 import os
-import gpfile
+from colorview2d import Datafile
 
 import matplotlib
 matplotlib.use('WXAgg')
@@ -349,7 +349,7 @@ class MainFrame(wx.Frame):
             # The config is overwritten
             view.parse_config(path)
             # The datafile is replaced
-            view.set_datafile(gpfile.Gpfile(os.path.join(dirname,self.cvfig.datafile.filename),self.cvfig.config['datafilecolumns']))
+            view.set_datafile(Datafile(os.path.join(dirname, self.cvfig.datafile.filename), self.cvfig.config['datafilecolumns']))
             dispatcher.send(signal.PLOT_DRAW_ANEW,self)
             # ... and the pipeline is applied
             view.apply_pipeline()
@@ -408,7 +408,7 @@ class MainFrame(wx.Frame):
                 # We set the new datafile in the view
                 # By changing the datafile, the view notifies its observers
                 # and the plot is updated
-                view.set_datafile(gpfile.Gpfile(path,columns))
+                view.set_datafile(Datafile(path,columns))
 
                 dispatcher.send(signal.PLOT_DRAW_ANEW,self)
                 
@@ -642,28 +642,28 @@ class MainPanel(wx.Panel):
 
         # See if we have colorbar information in the config file.
         # If the config parameter does not fit within the range,
-        # we reset to Zmin and Zmax default values
+        # we reset to zmin and zmax default values
         try:
             maxval_config = float(self.cvfig.config['Cbmax'])
-            if maxval_config > self.cvfig.datafile.Zmax:
-                raise ValueError('The maximum value in the config ({}) is larger than Zmax ({}).'.format(maxval_config,self.cvfig.datafile.Zmax))
+            if maxval_config > self.cvfig.datafile.zmax:
+                raise ValueError('The maximum value in the config ({}) is larger than zmax ({}).'.format(maxval_config,self.cvfig.datafile.zmax))
         except (KeyError,ValueError) as e:
-            maxval_config = self.cvfig.datafile.Zmax
+            maxval_config = self.cvfig.datafile.zmax
             self.cvfig.config['Cbmax'] = maxval_config
             logging.info('Using default color range.')
 
         try:
             minval_config = float(self.cvfig.config['Cbmin'])
-            if minval_config < self.cvfig.datafile.Zmin:
-                raise ValueError('The minimum value in the config ({}) is smaller than Zmin ({}).'.format(minval_config,self.cvfig.datafile.Zmin))
+            if minval_config < self.cvfig.datafile.zmin:
+                raise ValueError('The minimum value in the config ({}) is smaller than zmin ({}).'.format(minval_config,self.cvfig.datafile.zmin))
         except (KeyError,ValueError) as e:
-            minval_config = self.cvfig.datafile.Zmin
+            minval_config = self.cvfig.datafile.zmin
             self.cvfig.config['Cbmin'] = minval_config
             logging.info('Using default color range.')
 
             
-        maxval = self.cvfig.datafile.Zmax
-        minval = self.cvfig.datafile.Zmin
+        maxval = self.cvfig.datafile.zmax
+        minval = self.cvfig.datafile.zmin
 
         
         spin_increment = (maxval-minval)/self.spin_divider

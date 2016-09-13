@@ -18,9 +18,9 @@ class Log(imod.IMod):
         imod.IMod.__init__(self)
         
     def do_apply(self, datafile, modargs):
-        logdata = datafile.Zdata
+        logdata = datafile.zdata
         if logdata.any() <= 0:
             logging.warn('Can not apply log to negative valued array.')
         else:
             logdata = np.log(logdata)
-            datafile.set_Zdata(logdata)
+            datafile.zdata = logdata

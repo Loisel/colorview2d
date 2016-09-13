@@ -18,7 +18,7 @@ from matplotlib.ticker import FormatStrFormatter
 import yaml
 
 import colorview2d.mainapp as mainapp
-import colorview2d.gpfile as gpfile
+from colorview2d import Datafile
 import colorview2d.utils as utils
 
 
@@ -28,7 +28,7 @@ class CvFig(object):
 
     Attributes:
         modlist (list): a list of all mods that could be found.
-        datafile (colorview2d.GpFile): the datafile object encapsulates the 2d data
+        datafile (colorview2d.Datafile): the datafile object encapsulates the 2d data
         pipeline (list): a list of tuples with mod identifiers (strings) 
             and their arguments (tuples).
         config (dict): the configuration of the plot details, colormap, fonts, etc.
@@ -40,10 +40,12 @@ class CvFig(object):
                  pipeline=None):
         self.create_modlist()
 
+        self._datafile = None
+        
         if isinstance(data, np.ndarray):
-            self.set_datafile(gpfile.Gpfile(data))
-        elif isinstance(data, gpfile.Gpfile):
-            self.set_datafile(data)
+            self.datafile = Datafile(data)
+        elif isinstance(data, Datafile):
+            self.datafile = data
         else:
             raise ValueError("Provide data or datafile to create a CvFig object.")
 
@@ -95,6 +97,21 @@ class CvFig(object):
         print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self.config, self.pipeline)
 
     @property
+    def datafile(self):
+        return self._datafile
+
+    @datafile.setter
+    def datafile(self, datafile):
+        """Sets the datafile.
+        The original datafile is replaced as well and the modlist is applied.
+
+        Args:
+            datafile (colorview2d.Datafile): a Datafile object
+        """
+        self._datafile = datafile
+        self._original_datafile = self._datafile.deep_copy()
+
+    @property
     def fig(self):
         """Retrieve the matplotlib figure."""
         self.draw_mpl_fig()
@@ -141,15 +158,6 @@ class CvFig(object):
 
         self.modlist = [pInfo.plugin_object for pInfo in modman.getAllPlugins()]
 
-    def set_datafile(self, datafile):
-        """Sets the datafile.
-        The original datafile is replaced as well and the modlist is applied.
-
-        Args:
-            datafile (colorview2d.Gpfile): a Gpfile object
-        """
-        self.datafile = datafile
-        self.original_datafile = datafile.deep_copy()
 
     def dump_pipeline_string(self):
         """This just returns a string representation of the pipeline."""
@@ -231,14 +239,14 @@ class CvFig(object):
         The main panel is signalled to update the color controls.
         """
 
-        self.datafile = self.original_datafile.deep_copy()
+        self._datafile = self._original_datafile.deep_copy()
 
         for pos, modtuple in enumerate(self._pipeline):
             mod = self.find_mod(modtuple[0])
             if mod:
                 # if apply returns false, the application failed and the
                 # mod is removed from the pipeline
-                if not mod.apply(self.datafile, modtuple[1]):
+                if not mod.apply(self._datafile, modtuple[1]):
                     logging.warning(
                         'Application of mod %s at position %d failed.'
                         'Removing mod from pipeline.' % (mod.title, pos))
@@ -274,8 +282,8 @@ class CvFig(object):
 
         while position * x_sign <= x_right_idx * x_sign:
             linecuts.append = np.vstack(
-                [self.datafile.Yrange[y_bottom_idx:y_top_idx:y_sign],
-                 self.datafile.Zdata[y_bottom_idx:y_top_idx:y_sign, position]])
+                [self.datafile.yrange[y_bottom_idx:y_top_idx:y_sign],
+                 self.datafile.zdata[y_bottom_idx:y_top_idx:y_sign, position]])
 
             position += x_step_idx * x_sign
             if x_sign == 0:
@@ -312,8 +320,8 @@ class CvFig(object):
         position = y_bottom_idx
         while position * y_sign <= y_top_idx * y_sign:
             linecuts.append = np.vstack(
-                [self.datafile.Xrange[x_left_idx:x_right_idx:x_sign],
-                 self.datafile.Zdata[position, x_left_idx:x_right_idx:x_sign]])
+                [self.datafile.xrange[x_left_idx:x_right_idx:x_sign],
+                 self.datafile.zdata[position, x_left_idx:x_right_idx:x_sign]])
 
             position += y_step_idx * y_sign
             if y_sign == 0:
@@ -325,7 +333,7 @@ class CvFig(object):
         """Shortcut for the 2d data contained int the datafile.
         Interface for plotting routine.
         """
-        return self.datafile.Zdata
+        return self.datafile.zdata
 
     def parse_config(self, cfgpath):
         """Load the configuration and the pipeline from the config file
@@ -384,10 +392,10 @@ class CvFig(object):
         self.apply_config_pre_plot()
 
         self.plot = self.axes.imshow(self.get_arraydata(),
-            extent=[self.datafile.Xleft,
-                    self.datafile.Xright,
-                    self.datafile.Ybottom,
-                    self.datafile.Ytop],
+            extent=[self.datafile.xleft,
+                    self.datafile.xright,
+                    self.datafile.ybottom,
+                    self.datafile.ytop],
             aspect='auto',
             origin='lower',
             interpolation="nearest")

@@ -17,9 +17,9 @@ class Derive(imod.IMod):
         imod.IMod.__init__(self)
 
     def do_apply(self, datafile, modargs):
-        dydata= datafile.Zdata
-        dydata[:-1] = np.diff(datafile.Zdata, axis=0)
+        dydata = datafile.zdata
+        dydata[:-1] = np.diff(datafile.zdata, axis=0)
 
         dydata[-1] = dydata[-2]
 
-        datafile.set_Zdata(dydata)
+        datafile.zdata = dydata

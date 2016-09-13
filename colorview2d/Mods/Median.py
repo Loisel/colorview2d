@@ -70,7 +70,7 @@ class Median(imod.IMod):
         self.default_args = (0., 0.)
 
     def do_apply(self, datafile, modargs):
-        datafile.set_Zdata(median_filter(datafile.Zdata, size=modargs))
+        datafile.zdata = median_filter(datafile.zdata, size=modargs)
         
     def create_widget(self,panel):
         self.panel = panel

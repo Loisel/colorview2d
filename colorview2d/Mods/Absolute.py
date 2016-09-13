@@ -16,4 +16,5 @@ class Absolute(imod.IMod):
         imod.IMod.__init__(self)
         
     def do_apply(self, datafile, modargs):
-        datafile.set_Zdata(np.absolute(datafile.Zdata))
+        """Replace the array by its absolute valued version."""
+        datafile.zdata = np.absolute(datafile.zdata)

@@ -70,7 +70,7 @@ class Smooth(imod.IMod):
         self.default_args = (0., 0.)
 
     def do_apply(self, datafile, args):
-        datafile.set_Zdata(gaussian_filter(datafile.Zdata, args))
+        datafile.zdata = gaussian_filter(datafile.zdata, args)
         
     def create_widget(self,panel):
         self.panel = panel

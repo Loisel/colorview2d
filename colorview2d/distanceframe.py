@@ -115,10 +115,10 @@ class DistancePanel(wx.Panel):
         self.lineindex = -1
 
         self.linelistbox.DeleteAllItems()
-        max_xval = self.cvfig.datafile.Xmax
-        min_xval = self.cvfig.datafile.Xmin
-        max_yval = self.cvfig.datafile.Ymax
-        min_yval = self.cvfig.datafile.Ymin
+        max_xval = self.cvfig.datafile.xmax
+        min_xval = self.cvfig.datafile.xmin
+        max_yval = self.cvfig.datafile.ymax
+        min_yval = self.cvfig.datafile.ymin
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
         self.x1spin.SetRange(min_xval,max_xval)
@@ -136,10 +136,10 @@ class DistancePanel(wx.Panel):
 
         self.pointwidgetlist = []
         
-        max_xval = self.cvfig.datafile.Xmax
-        min_xval = self.cvfig.datafile.Xmin
-        max_yval = self.cvfig.datafile.Ymax
-        min_yval = self.cvfig.datafile.Ymin
+        max_xval = self.cvfig.datafile.xmax
+        min_xval = self.cvfig.datafile.xmin
+        max_yval = self.cvfig.datafile.ymax
+        min_yval = self.cvfig.datafile.ymin
 
         incr_x = np.absolute(max_xval-min_xval)/1000
         incr_y = np.absolute(max_yval-min_yval)/1000
