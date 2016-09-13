@@ -1,17 +1,27 @@
+"""
+mods_test
+---------
+
+Module to test the mod framework.
+Applies all mods seperately and in a mix.
+"""
+
 import unittest
-import numpy as np
 import random
+import numpy as np
 
 import colorview2d
 
-import logging
-#logging.basicConfig(level="INFO")
-
 class ModTest(unittest.TestCase):
-    no_setUp = False
+    """Class with mod tests."""
+    no_setup = False
     
     def setUp(self):
-        if not self.no_setUp:
+        """Setup routine for all mod tests.
+        This routine is normally called before the execution of each test.
+        We suppress this behavior for the test of multiple mods using the no_setUp flag.
+        """
+        if not self.no_setup:
             self.width = np.random.randint(10, 1000)
             self.height = np.random.randint(10, 1000)
             print "figsize ({}, {})".format(self.width, self.height)
