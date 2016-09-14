@@ -38,11 +38,20 @@ def load_gpfile(path, columns=None):
     if columns is None:
         columns = (0, 1, 2)
 
-    data = np.loadtxt(path, usecols=columns)
+    data = np.genfromtxt(path, usecols=columns, invalid_raise=False)
+
+    # If the array only consists of a single line we reshape explicitly
+    # to 2d array
+    if len(data.shape) == 1:
+        data.shape = (1, 3)
+
     nlines = data.shape[0]
 
-    bnum = 0
+    bsize = 1
 
+    # Note that the first block is the primer.
+    # If the data structure of the first block is not equal to
+    # the other blocks, we can not continue.
     for i in range(1, data.shape[0]):
         if data[i,0] != data[i-1,0]:
             bsize = i
@@ -50,9 +59,21 @@ def load_gpfile(path, columns=None):
 
     bnum = nlines / bsize
     lnum = bsize * bnum
+
+    # Check integrity
+    # first column, the same value has to appear within each block
+    for blocknum in range(1, bnum):
+        assert np.all(data[blocknum * bsize:(blocknum + 1) * bsize, 0] == data[blocknum * bsize, 0]), \
+            "First column of file %s is corrupt in block %d." % (path, blocknum)
+
+    # second column, the same range has to appear for each block
+    for blocknum in range(bnum):
+        assert np.all(data[blocknum * bsize:(blocknum + 1) * bsize, 1] == data[:bsize, 1]), \
+            "Second column of file %s is corrupt in block %d." % (path, blocknum)
+        
     # Store the data
 
-    zdata = (np.resize(data[:lnum, 2], (bnum, bsize)).T)
+    zdata = np.resize(data[:lnum, 2], (bnum, bsize)).T
     xyrange = (data[bsize - 1::bsize, 0], data[:bsize, 1])
 
     return colorview2d.Datafile(zdata, xyrange)
