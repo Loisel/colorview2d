@@ -1,6 +1,6 @@
 #!/bin/python
 """
-A module to handle 3D datafiles.
+A module to handle 3D datafiles with axes.
 
 A datafile consists of a 2d array and x and y axes.
 The class provides methods to rotate, flipp, copy and save
@@ -23,7 +23,6 @@ import copy
 import logging
 import numpy as np
 
-
 class Datafile(object):
     """
     A data file object.
@@ -37,8 +36,8 @@ class Datafile(object):
 
         zdata (numpy.array):  The two dimensional numpy arrray containing the actual data.
 
-        xrange (numpy.array): A one dimensional array representing the x axis range.
-        yrange (numpy.array): A one dimensional array representing the y axis range.
+        x_range (numpy.array): A one dimensional array representing the x axis range.
+        y_range (numpy.array): A one dimensional array representing the y axis range.
 
     Properties:
     xleft: The value on the left of the x axis.
@@ -53,16 +52,16 @@ class Datafile(object):
     xmax: The max values of the x axis range.
     ymin: The min values of the y axis range.
     ymax: The max values of the y axis range.
-      
+
     """
 
     def __init__(self, data, ranges=None):
         """Initialize a datafile object.
-        
+
         Args:
             data (numpy.array): the two-dimensional array holding the data.
             ranges (tuple): x and y ranges, numpy.arrays
-        
+
         """
 
         self._zdata = data
@@ -74,7 +73,7 @@ class Datafile(object):
         except (IndexError, ValueError, TypeError):
             logging.warn('Ranges are not specified correctly. Using default ranges.')
             self.xyrange = (np.arange(self._zdata.shape[1]), np.arange(self._zdata.shape[0]))
-            
+
 
     @property
     def xleft(self):
@@ -133,29 +132,29 @@ class Datafile(object):
         self._zdata = zdata
 
     @property
-    def yrange(self):
+    def y_range(self):
         return self._yrange
 
-    @yrange.setter
-    def yrange(self, yrange):
-        if yrange.size != self._zdata.shape[0]:
+    @y_range.setter
+    def y_range(self, y_range):
+        if y_range.size != self._zdata.shape[0]:
             raise ValueError("Provided yrange is not compatible with the datafile.")
-        self._yrange = yrange
+        self._yrange = y_range
 
     @property
-    def xrange(self):
+    def x_range(self):
         return self._xrange
-    
-    @xrange.setter
-    def xrange(self, xrange):
-        if xrange.size != self._zdata.shape[1]:
+
+    @x_range.setter
+    def x_range(self, x_range):
+        if x_range.size != self._zdata.shape[1]:
             raise ValueError("Provided xrange is not compatible with the datafile.")
-        self._xrange = xrange
+        self._xrange = x_range
 
     @property
     def xyrange(self):
         return (self._xrange, self._yrange)
-    
+
     @xyrange.setter
     def xyrange(self, ranges):
         """
@@ -169,8 +168,8 @@ class Datafile(object):
         :type yrange: :class:`numpy.ndarray`
         """
 
-        self.xrange = ranges[0]
-        self.yrange = ranges[1]
+        self.x_range = ranges[0]
+        self.y_range = ranges[1]
 
     def report(self):
         """
@@ -193,8 +192,8 @@ class Datafile(object):
 
         tmp = copy.deepcopy(self)
         tmp.zdata = np.copy(self._zdata)
-        tmp.xrange = np.copy(self._xrange)
-        tmp.yrange = np.copy(self._yrange)
+        tmp.x_range = np.copy(self._xrange)
+        tmp.y_range = np.copy(self._yrange)
 
         return tmp
 
@@ -203,14 +202,14 @@ class Datafile(object):
         """
         Rotate the datafile clockwise. The axes are updated as well.
         """
-        self.zdata = np.rot90(self._zdata,k=1)
+        self.zdata = np.rot90(self._zdata, k=1)
         self.xyrange = (self._yrange, self._xrange[::-1])
 
     def rotate_ccw(self):
         """
         Rotate the datafile counter-clockwise. The axes are updated as well.
         """
-        self.zdata = np.rot90(self._zdata,k=3)
+        self.zdata = np.rot90(self._zdata, k=3)
         self.xyrange = (self._yrange[::-1], self._xrange)
 
     def flip_lr(self):
@@ -237,22 +236,22 @@ class Datafile(object):
         :param xright:
         :param ybottom:
         :param ytop:
-       
+
         """
-        xleft_idx = self.get_xrange_idx(xleft)
-        xright_idx = self.get_xrange_idx(xright)
-        ybottom_idx = self.get_yrange_idx(ybottom)
-        ytop_idx = self.get_yrange_idx(ytop)
+        xleft_idx = self.x_range_idx_by_val(xleft)
+        xright_idx = self.x_range_idx_by_val(xright)
+        ybottom_idx = self.y_range_idx_by_val(ybottom)
+        ytop_idx = self.y_range_idx_by_val(ytop)
 
         # import ipdb;ipdb.set_trace()
         try:
             self.zdata = self._zdata[ybottom_idx:ytop_idx + 1, xleft_idx:xright_idx + 1]
             self.xyrange = (
                 self._xrange[xleft_idx:xright_idx + 1], self._yrange[ybottom_idx:ytop_idx + 1])
-        except IndexError as ie:
-            print "Value not in data range: ", ie
+        except IndexError as error:
+            print "Value not in data range: ", error
 
-    def get_xrange_idx(self, value):
+    def x_range_idx_by_val(self, value):
         """
         Return the nearest index of a value within the x axis range.
 
@@ -261,9 +260,9 @@ class Datafile(object):
 
         Returns: The closest index on the x axis range.
         """
-        return (np.abs(self._xrange - value)).argmin()   
+        return (np.abs(self._xrange - value)).argmin()
 
-    def get_yrange_idx(self, value):
+    def y_range_idx_by_val(self, value):
         """
         Return the nearest index of a value within the y axis range.
 
@@ -274,13 +273,137 @@ class Datafile(object):
         """
         return (np.abs(self._yrange - value)).argmin()
 
+    def idx_by_val_coordinate(self, coordinate):
+        """Return the nearest index pair for a coordinate pair along the
+        two axes.
+        
+        Args:
+            coordinate (tuple): y-axis value, x-axis value (inverse order!)
+        Returns:
+            (y-axis index, x-axis index)
+        """
+        return (self.y_range_idx_by_val(coordinate[0]), self.x_range_idx_by_val(coordinate[1]))
+
+    def extract_ylinetrace(self, xval, ystartval, ystopval):
+        """Extract a linetrace along a given y-axis range vor a specific
+        value on the x axis.
+
+        Args:
+            xval (float): Position of the linecut along the x-axis.
+            ystartval, ystopval (float): First and last value of the range along the y-axis.
+
+        Returns:
+            (linecutdata, y-axis range)
+        """
+
+        y_start_idx = self.y_range_idx_by_val(ystartval)
+        y_stop_idx = self.y_range_idx_by_val(ystopval)
+
+        assert y_start_idx != y_stop_idx,\
+                              'Startindex and stopindex %d are equal for ylinetrace.' % y_start_idx
+
+        sign = np.sign(y_stop_idx - y_start_idx)
+
+        if sign == 1:
+            return np.vstack(
+                (self.zdata[y_start_idx:y_stop_idx + 1, self.x_range_idx_by_val(xval)],
+                 self.y_range[y_start_idx:y_stop_idx + 1]))
+
+        else:
+            data = self.zdata[y_stop_idx:y_start_idx + 1, self.x_range_idx_by_val(xval)]
+            y_range = self.y_range[y_stop_idx:y_start_idx + 1]
+            return np.vstack((data[::-1], y_range[::-1]))
+
+    def extract_xlinetrace(self, yval, xstartval, xstopval):
+        """Extract a linetrace along a given y-axis range vor a specific
+        value on the x axis.
+
+        Args:
+            yval (float): Position of the linecut along the y-axis.
+            xstartval, xstopval (float): First and last value of the range along the x-axis.
+
+        Returns:
+            (linecutdata, x-axis range)
+        """
+
+        x_start_idx = self.x_range_idx_by_val(xstartval)
+        x_stop_idx = self.x_range_idx_by_val(xstopval)
+
+        assert x_start_idx != x_stop_idx,\
+                              'Startindex and stopindex %d are equal for xlinetrace.' % x_start_idx
+
+        sign = np.sign(x_stop_idx - x_start_idx)
+
+        if sign == 1:
+            return np.vstack(
+                (self.zdata[self.y_range_idx_by_val(yval), x_start_idx:x_stop_idx + 1],
+                 self.x_range[x_start_idx:x_stop_idx + 1]))
+        else:
+            data = self.zdata[self.y_range_idx_by_val(yval), x_stop_idx:x_start_idx + 1]
+            x_range = self.x_range[x_stop_idx:x_start_idx + 1]
+            return np.vstack((data[::-1], x_range[::-1]))
+
+    def extract_ylinetrace_series(self, x_first, x_last, x_interval, ystart, ystop):
+        """Extract linetraces along a given y-axis range for
+        values on the x axis within a given range and separated by
+        a given interval.
+
+        Args:
+            x_first, x_last (float): the values of the boundaries on the x-axis.
+            x_interval (float): the (positive) interval between two linecuts on the x-axis.
+            ystart, ystop (float): the y-axis range that is extracted.
+
+        Returns:
+            a list of tuples with the format (linecut_data, y_range)
+        """
 
 
+        result_array = self.extract_ylinetrace(x_first, ystart, ystop)
+        if self.x_range_idx_by_val(x_first) == self.x_range_idx_by_val(x_last):
+            return result_array
 
+        result_range = result_array[1]
+        result_array = result_array[0]
 
+        x_sign = np.sign(x_last - x_first)
+        x_pos = x_first + x_interval * x_sign
 
+        while x_pos * x_sign <= x_last * x_sign:
+            result_array = np.vstack((result_array, self.extract_ylinetrace(x_pos, ystart, ystop)[0]))
 
+            x_pos += x_interval * x_sign
 
+        return np.vstack((result_array, result_range))
 
+    def extract_xlinetrace_series(self, y_first, y_last, y_interval, xstart, xstop):
+        """Extract linetraces along a given x-axis range for
+        values on the y axis within a given range and separated by
+        a given interval.
 
+        Args:
+            y_first, y_last (float): the values of the boundaries on the y-axis.
+            y_interval (float): the interval between two linecuts on the y-axis.
+            xstart, xstop (float): the x-axis range that is extracted.
 
+        Returns:
+            Array of linetraces and the range array.
+            Order: First to last. The range information is added as last row.
+        """
+
+        result_array = self.extract_xlinetrace(y_first, xstart, xstop)
+        if self.y_range_idx_by_val(y_first) == self.y_range_idx_by_val(y_last):
+            return result_array
+
+        y_sign = np.sign(y_last - y_first)
+        y_pos = y_first + y_interval * y_sign
+        # For now we remove the range axis
+        result_range = result_array[1]
+        result_array = result_array[0]
+
+        while y_pos * y_sign <= y_last * y_sign:
+            # add the next linetrace to the other linetraces
+            result_array = np.vstack((result_array, self.extract_xlinetrace(y_pos, xstart, xstop)[0]))
+
+            y_pos += y_interval * y_sign
+
+        return np.vstack((result_array, result_range))

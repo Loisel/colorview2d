@@ -17,8 +17,8 @@ class DatafileTest(unittest.TestCase):
     def setUp(self):
         """Create a Datafile for the test."""
 
-        width = np.random.randint(10, 1000)
-        height = np.random.randint(10, 1000)
+        width = np.random.randint(10, 100)
+        height = np.random.randint(10, 100)
         print "arraysize ({}, {})".format(width, height)
 
         self.datafile = colorview2d.Datafile(np.random.random((width, height)))
@@ -28,8 +28,8 @@ class DatafileTest(unittest.TestCase):
 
         self.datafile.crop(0., 0., 0., 0.)
         self.assertEqual(self.datafile.zdata, np.array([self.datafile.zdata[0, 0]]))
-        self.assertEqual(self.datafile.xrange, np.array([0.]))
-        self.assertEqual(self.datafile.yrange, np.array([0.]))
+        self.assertEqual(self.datafile.x_range, np.array([0.]))
+        self.assertEqual(self.datafile.y_range, np.array([0.]))
 
     def test_crop_all(self):
         """Test where cropping leaves the whole file intact."""
@@ -59,9 +59,76 @@ class DatafileTest(unittest.TestCase):
         self.assertEqual(
             self.datafile.zdata.shape,
             (old_height - diff_height, old_width - diff_width))
-        self.assertEqual(self.datafile.xrange.size, old_width - diff_width)
-        self.assertEqual(self.datafile.yrange.size, old_height - diff_height)
+        self.assertEqual(self.datafile.x_range.size, old_width - diff_width)
+        self.assertEqual(self.datafile.y_range.size, old_height - diff_height)
 
+    def test_ylinetrace(self):
+        """Extract a linecut along the y-axis."""
+
+        # Extract a single linecut
+        x_index = np.random.randint(self.datafile.x_range.size)
+        x_val = self.datafile.x_range[x_index]
+
+        y_startindex = np.random.randint(self.datafile.y_range.size)
+        y_stopindex =  np.random.randint(self.datafile.y_range.size)
+
+        y_startval = self.datafile.y_range[y_startindex]
+        y_stopval = self.datafile.y_range[y_stopindex]
+
+        data = self.datafile.extract_ylinetrace(x_val, y_startval, y_stopval)[0]
+        y_range = self.datafile.extract_ylinetrace(x_val, y_startval, y_stopval)[1]
+
+        if y_startindex <= y_stopindex:
+            self.assertEqual(data.tolist(), self.datafile.zdata[y_startindex:y_stopindex + 1, x_index].tolist())
+            self.assertEqual(y_range.tolist(), self.datafile.y_range[y_startindex:y_stopindex + 1].tolist())
+        else:
+            self.assertEqual(data[::-1].tolist(), self.datafile.zdata[y_stopindex:y_startindex + 1, x_index].tolist())
+            self.assertEqual(y_range[::-1].tolist(), self.datafile.y_range[y_stopindex:y_startindex + 1].tolist())
+
+    def test_xlinetrace(self):
+        """Extract a linecut along the x-axis."""
+
+        # Extract a single linecut
+        y_index = np.random.randint(self.datafile.y_range.size)
+        y_val = self.datafile.y_range[y_index]
+
+        x_startindex = np.random.randint(self.datafile.x_range.size)
+        x_stopindex =  np.random.randint(self.datafile.x_range.size)
+
+        x_startval = self.datafile.x_range[x_startindex]
+        x_stopval = self.datafile.x_range[x_stopindex]
+
+        data = self.datafile.extract_xlinetrace(y_val, x_startval, x_stopval)[0]
+        x_range = self.datafile.extract_xlinetrace(y_val, x_startval, x_stopval)[1]
+
+        if x_startindex <= x_stopindex:
+            self.assertEqual(data.tolist(), self.datafile.zdata[y_index, x_startindex:x_stopindex + 1].tolist())
+            self.assertEqual(x_range.tolist(), self.datafile.x_range[x_startindex:x_stopindex + 1].tolist())
+        else:
+            self.assertEqual(data[::-1].tolist(), self.datafile.zdata[y_index, x_stopindex:x_startindex + 1].tolist())
+            self.assertEqual(x_range[::-1].tolist(), self.datafile.x_range[x_stopindex:x_startindex + 1].tolist())
+
+    def test_linetrace_series_all(self):
+        """Test the extraction of a series of linecuts for the whole datafile."""
+
+        # We extract the whole datafile as linecuts in x-direction
+        result_array_x = self.datafile.extract_xlinetrace_series(
+            self.datafile.ybottom,
+            self.datafile.ytop,
+            1,
+            self.datafile.xleft,
+            self.datafile.xright)[:-1]
+
+        # and in y-direction
+        result_array_y = self.datafile.extract_ylinetrace_series(
+            self.datafile.xleft,
+            self.datafile.xright,
+            1,
+            self.datafile.ybottom,
+            self.datafile.ytop)[:-1]
+
+        self.assertEqual(self.datafile.zdata.tolist(), result_array_x.tolist())
+        self.assertEqual(self.datafile.zdata.tolist(), result_array_y.T.tolist())
 
 class FileloaderTest(unittest.TestCase):
     """Test methods of the fileloader module."""
@@ -81,8 +148,8 @@ class FileloaderTest(unittest.TestCase):
         datafile = fl.load_gpfile(self.fname)
 
         self.assertEqual(datafile.zdata[0, 0], testdata[0, 2])
-        self.assertEqual(datafile.xrange[0], testdata[0, 0])
-        self.assertEqual(datafile.yrange[0], testdata[0, 1])
+        self.assertEqual(datafile.x_range[0], testdata[0, 0])
+        self.assertEqual(datafile.y_range[0], testdata[0, 1])
             
     def test_gpfile_twoline(self):
         """Create a twoline gnuplot-style file and load
@@ -109,8 +176,8 @@ class FileloaderTest(unittest.TestCase):
         self.assertEqual(datafile.zdata.shape, (1, 2))
 
         self.assertTrue(np.all(datafile.zdata == testdata[:, 2]))
-        self.assertTrue(np.all(datafile.xrange == testdata[:, 0]))
-        self.assertEqual(datafile.yrange[0], testdata[0, 1])
+        self.assertTrue(np.all(datafile.x_range == testdata[:, 0]))
+        self.assertEqual(datafile.y_range[0], testdata[0, 1])
 
     def test_gpfile_twoline_broken(self):
         """Create a twoline gnuplot-style file and load
