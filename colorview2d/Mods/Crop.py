@@ -151,7 +151,7 @@ class Crop(imod.IMod):
 
         :param datafile gpfile: The datafile.
         """
-        datafile.crop(modargs[0], modargs[1], modargs[2], modargs[3])
+        datafile.crop(modargs)
         
     def create_widget(self,panel):
         """

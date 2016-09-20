@@ -55,65 +55,72 @@ class Datafile(object):
 
     """
 
-    def __init__(self, data, ranges=None):
+    def __init__(self, data, range_bounds=None):
         """Initialize a datafile object.
 
         Args:
             data (numpy.array): the two-dimensional array holding the data.
-            ranges (tuple): x and y ranges, numpy.arrays
+            range_bounds (tuple of tuples): y-range boundaries as a tuple (bottom, top),
+                                            x-range boundaries as a tuple (left, right)
 
         """
 
         self._zdata = data
-        self._xrange = None
-        self._yrange = None
+        self._xrange_bounds = None
+        self._yrange_bounds = None
 
         try:
-            self.xyrange = ranges
-        except (IndexError, ValueError, TypeError):
-            logging.warn('Ranges are not specified correctly. Using default ranges.')
-            self.xyrange = (np.arange(self._zdata.shape[1]), np.arange(self._zdata.shape[0]))
+            self.xrange_bounds = range_bounds[1]
+            self.yrange_bounds = range_bounds[0]
+        except (AssertionError, IndexError, TypeError):
+            logging.warn('Ranges not specified correctly. '
+                         'Should be ((y_bottom, y_top), (x_left, x_right)). '
+                         'Using index dimensions as ranges.')
+            self._xrange_bounds = (0., float(self._zdata.shape[1] - 1))
+            self._yrange_bounds = (0., float(self._zdata.shape[0] - 1))
 
 
     @property
     def xleft(self):
-        return self._xrange[0]
+        return self._xrange_bounds[0]
 
     @property
     def xright(self):
-        return self._xrange[-1]
+        return self._xrange_bounds[1]
 
     @property
     def ytop(self):
-        return self._yrange[-1]
+        return self._yrange_bounds[1]
 
     @property
     def ybottom(self):
-        return self._yrange[0]
+        return self._yrange_bounds[0]
 
     @property
     def xmin(self):
-        return np.amin(self._xrange)
+        return min(self._xrange_bounds)
 
     @property
     def xmax(self):
-        return np.amax(self._xrange)
+        return max(self._xrange_bounds)
 
     @property
     def dx(self):
-        return (self._xrange[-1] - self._xrange[0])/(self._xrange.size-1)
+        return (self._xrange_bounds[1] - self._xrange_bounds[0]) /\
+            (self._zdata.shape[1] - 1)
 
     @property
     def dy(self):
-        return (self._yrange[-1] - self._yrange[0])/(self._yrange.size-1)
+        return (self._yrange_bounds[1] - self._yrange_bounds[0]) /\
+            (self._zdata.shape[0] - 1)
 
     @property
     def ymin(self):
-        return np.amin(self._yrange)
+        return min(self._yrange_bounds)
 
     @property
     def ymax(self):
-        return np.amax(self._yrange)
+        return max(self._yrange_bounds)
 
     @property
     def zmin(self):
@@ -127,49 +134,55 @@ class Datafile(object):
     def zdata(self):
         return self._zdata
 
+    @property
+    def xwidth(self):
+        return self._zdata.shape[1]
+
+    @property
+    def ywidth(self):
+        return self._zdata.shape[0]
+
     @zdata.setter
-    def zdata(self, zdata):
-        self._zdata = zdata
+    def zdata(self, data):
+        """Set a new 2d array."""
+        assert isinstance(data, np.ndarray), \
+            'Not a numpy array. Please provide a numpy array for datafile creation.'
+        assert len(data.shape) == 2, 'Provide a two-dimensional array for datafile creation.'
+        self._zdata = data
 
     @property
     def y_range(self):
-        return self._yrange
-
-    @y_range.setter
-    def y_range(self, y_range):
-        if y_range.size != self._zdata.shape[0]:
-            raise ValueError("Provided yrange is not compatible with the datafile.")
-        self._yrange = y_range
+        """Generate a linear yrange from the boundaries."""
+        return np.linspace(
+            self._yrange_bounds[0], self._yrange_bounds[1], self.zdata.shape[0])
 
     @property
     def x_range(self):
-        return self._xrange
+        """Generate a linear x-range from the boundaries."""
+        return np.linspace(
+            self._xrange_bounds[0], self._xrange_bounds[1], self.zdata.shape[1])
 
-    @x_range.setter
-    def x_range(self, x_range):
-        if x_range.size != self._zdata.shape[1]:
-            raise ValueError("Provided xrange is not compatible with the datafile.")
-        self._xrange = x_range
 
     @property
-    def xyrange(self):
-        return (self._xrange, self._yrange)
+    def xrange_bounds(self):
+        return self._xrange_bounds
+    
+    @xrange_bounds.setter
+    def xrange_bounds(self, range_boundaries):
+        assert len(range_boundaries) == 2, 'Boundaries of x-axis range not specified correctly.'
 
-    @xyrange.setter
-    def xyrange(self, ranges):
-        """
-        Specify the x and y ranges of the datafile.
+        self._xrange_bounds = (float(range_boundaries[0]), float(range_boundaries[1]))
 
-        :param xrange: One dimensional numpy array
-                       with the same length as the width of the data.
-        :type xrange: :class:`numpy.ndarray`
-        :param yrange: One dimensional numpy array
-                       with the same length as the height of the data.
-        :type yrange: :class:`numpy.ndarray`
-        """
+    @property
+    def yrange_bounds(self):
+        return self._yrange_bounds
 
-        self.x_range = ranges[0]
-        self.y_range = ranges[1]
+    @yrange_bounds.setter
+    def yrange_bounds(self, range_boundaries):
+        assert len(range_boundaries) == 2, 'Boundaries of y-axis range not specified correctly.'
+
+        self._yrange_bounds = (float(range_boundaries[0]), float(range_boundaries[1]))
+
 
     def report(self):
         """
@@ -192,8 +205,6 @@ class Datafile(object):
 
         tmp = copy.deepcopy(self)
         tmp.zdata = np.copy(self._zdata)
-        tmp.x_range = np.copy(self._xrange)
-        tmp.y_range = np.copy(self._yrange)
 
         return tmp
 
@@ -203,53 +214,77 @@ class Datafile(object):
         Rotate the datafile clockwise. The axes are updated as well.
         """
         self.zdata = np.rot90(self._zdata, k=1)
-        self.xyrange = (self._yrange, self._xrange[::-1])
+        old_xrange_boundaries = self._xrange_bounds
+        old_yrange_boundaries = self._yrange_bounds
+        self._xrange_bounds = old_yrange_boundaries
+        self._yrange_bounds = old_xrange_boundaries[::-1]
+
 
     def rotate_ccw(self):
         """
         Rotate the datafile counter-clockwise. The axes are updated as well.
         """
         self.zdata = np.rot90(self._zdata, k=3)
-        self.xyrange = (self._yrange[::-1], self._xrange)
+        old_xrange_boundaries = self._xrange_bounds
+        old_yrange_boundaries = self._yrange_bounds
+        self._xrange_bounds = old_yrange_boundaries[::-1]
+        self._yrange_bounds = old_xrange_boundaries
+
 
     def flip_lr(self):
         """
         Flip the left and the right side of the datafile. The axes are updated as well.
         """
         self.zdata = np.fliplr(self._zdata)
-        self.xyrange = (self._xrange[::-1], self._yrange)
+        self._xrange_bounds = self._xrange_bounds[::-1]
+
 
     def flip_ud(self):
         """
         Flip the up and the down side of the datafile. The axes are updated as well.
         """
         self.zdata = np.flipud(self._zdata)
-        self.xyrange = (self._xrange, self._yrange[::-1])
+        self._yrange_bounds = self._yrange_bounds[::-1]
 
+    def is_within_xbounds(self, val):
+        """Check if the given value is within the xrange."""
+        return val >= self.xmin or val <= self.xmax
 
-    def crop(self, xleft, xright, ybottom, ytop):
+    def is_within_ybounds(self, val):
+        """Check if the given value is within the xrange."""
+        return val >= self.ymin or val <= self.ymax
+
+    def is_within_bounds(self, coordinate):
+        """Check if the given coordinate is within the ranges
+        of the axes.
+        """
+        return self.is_within_xbounds(coordinate[1]) or self.is_within_ybounds(coordinate[0])
+
+    def crop(self, boundaries):
         """
         Crop the datafile to a subset of the array specifiying the corners of the subset in
         units of the axes ranges.
 
-        :param xleft:
-        :param xright:
-        :param ybottom:
-        :param ytop:
-
+        Args:
+            boundaries (tuple of tuples): ((bottom boundary, top boundary),
+                                           (left boundary, right boundary))
         """
-        xleft_idx = self.x_range_idx_by_val(xleft)
-        xright_idx = self.x_range_idx_by_val(xright)
-        ybottom_idx = self.y_range_idx_by_val(ybottom)
-        ytop_idx = self.y_range_idx_by_val(ytop)
+        yrange_boundaries = boundaries[0]
+        xrange_boundaries = boundaries[1]
+        assert self.is_within_bounds((yrange_boundaries[0], xrange_boundaries[0])),\
+            'crop: Bottom left edge not within boundaries.'
+        assert self.is_within_bounds((yrange_boundaries[1], xrange_boundaries[1])),\
+            'crop: Top right edge not within boundaries.'
 
-        # import ipdb;ipdb.set_trace()
-        try:
-            self.zdata = self._zdata[ybottom_idx:ytop_idx + 1, xleft_idx:xright_idx + 1]
-            self.xyrange = (
-                self._xrange[xleft_idx:xright_idx + 1], self._yrange[ybottom_idx:ytop_idx + 1])
-        except IndexError as error:
-            print "Value not in data range: ", error
+
+        xleft_idx = self.x_range_idx_by_val(xrange_boundaries[0])
+        xright_idx = self.x_range_idx_by_val(xrange_boundaries[1])
+        ybottom_idx = self.y_range_idx_by_val(yrange_boundaries[0])
+        ytop_idx = self.y_range_idx_by_val(yrange_boundaries[1])
+        self._xrange_bounds = xrange_boundaries
+        self._yrange_bounds = yrange_boundaries
+
+        self.zdata = self._zdata[ybottom_idx:ytop_idx + 1, xleft_idx:xright_idx + 1]
 
     def x_range_idx_by_val(self, value):
         """
@@ -260,7 +295,8 @@ class Datafile(object):
 
         Returns: The closest index on the x axis range.
         """
-        return (np.abs(self._xrange - value)).argmin()
+        assert self.is_within_xbounds(value), 'Value %f out of xrange.' % value
+        return int(round(abs(self.xleft - value) / self.dx))
 
     def y_range_idx_by_val(self, value):
         """
@@ -271,7 +307,8 @@ class Datafile(object):
 
         Returns: The closest index on the y axis range.
         """
-        return (np.abs(self._yrange - value)).argmin()
+        assert self.is_within_ybounds(value), 'Value %f out of yrange.' % value
+        return int(round(abs(self.ybottom - value) / self.dy))
 
     def idx_by_val_coordinate(self, coordinate):
         """Return the nearest index pair for a coordinate pair along the

@@ -29,6 +29,10 @@ def load_gpfile(path, columns=None):
 
     The last, third, column specifies the actual data for the x and y coordinate given.
 
+    Important: We assume that the ranges on x and y-axes are increasing linearly.
+               Only the first and last block is used for the x-axis range and
+               the first and the last line of the first block is used for the y-axis.
+
     Args:
         path (string): Path to the gnuplot-style datafile.
         columns (tuple): A triple of integers specifying the three columns to use.
@@ -70,13 +74,17 @@ def load_gpfile(path, columns=None):
     for blocknum in range(bnum):
         assert np.all(data[blocknum * bsize:(blocknum + 1) * bsize, 1] == data[:bsize, 1]), \
             "Second column of file %s is corrupt in block %d." % (path, blocknum)
-        
+
     # Store the data
 
     zdata = np.resize(data[:lnum, 2], (bnum, bsize)).T
-    xyrange = (data[bsize - 1::bsize, 0], data[:bsize, 1])
+    # xyrange = (data[bsize - 1::bsize, 0], data[:bsize, 1])
 
-    return colorview2d.Datafile(zdata, xyrange)
+    # the first and the last block define the x-range
+    xleft, xright = (data[0, 0], data[-1, 0])
+    # the first and the last line of the first block in the second column define the y-range
+    ybottom, ytop = (data[0, 1], data[bsize-1, 1])
+    return colorview2d.Datafile(zdata, ((ybottom, ytop), (xleft, xright)))
 
 
 def save_gpfile(fname, datafile, comment=""):

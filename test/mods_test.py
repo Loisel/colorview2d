@@ -22,8 +22,8 @@ class ModTest(unittest.TestCase):
         We suppress this behavior for the test of multiple mods using the no_setUp flag.
         """
         if not self.no_setup:
-            self.width = np.random.randint(10, 1000)
-            self.height = np.random.randint(10, 1000)
+            self.width = np.random.randint(10, 500)
+            self.height = np.random.randint(10, 500)
             print "figsize ({}, {})".format(self.width, self.height)
 
             self.fig = colorview2d.CvFig(np.random.random((self.width, self.height)))
@@ -43,7 +43,7 @@ class ModTest(unittest.TestCase):
         bottom_edge = np.random.randint(0, diff_height)
         top_edge = self.fig.datafile.ymax - (diff_height - bottom_edge)
 
-        self.fig.add_mod_to_pipeline(('Crop', (left_edge, right_edge, bottom_edge, top_edge)))
+        self.fig.add_mod_to_pipeline(('Crop', ((bottom_edge, top_edge), (left_edge, right_edge))))
 
     def test_smooth(self):
         """Test of the smooth mod."""
