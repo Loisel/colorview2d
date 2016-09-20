@@ -160,6 +160,33 @@ class DatafileTest(unittest.TestCase):
         self.assertEqual(self.datafile.zdata[idx_one], linetrace[0])
         self.assertEqual(self.datafile.zdata[idx_two], linetrace[-1])
 
+    def test_resize(self):
+        """Interpolate the array to a new size of up to double the old size."""
+        new_xwidth = self.datafile.xwidth + np.random.randint(self.datafile.xwidth)
+        new_ywidth = self.datafile.ywidth + np.random.randint(self.datafile.ywidth)
+
+        # save old range boundaries
+        old_xleft, old_xright = (self.datafile.xleft, self.datafile.xright)
+        old_ybottom, old_ytop = (self.datafile.ybottom, self.datafile.ytop)
+        # save old corner values
+        old_zbottom = (self.datafile.zdata[0, 0], self.datafile.zdata[0, -1])
+        old_ztop = (self.datafile.zdata[-1, 0], self.datafile.zdata[-1, -1])
+
+        self.datafile.resize(new_ywidth, new_xwidth)
+
+        # Check new shape
+        self.assertEqual(self.datafile.zdata.shape, (new_ywidth, new_xwidth))
+        # Check x and y ranges
+        self.assertEqual(self.datafile.ywidth, new_ywidth)
+        self.assertEqual(self.datafile.xwidth, new_xwidth)
+        self.assertEqual((self.datafile.y_range[0], self.datafile.y_range[-1]),\
+                         (old_ybottom, old_ytop))
+        self.assertEqual((self.datafile.x_range[0], self.datafile.x_range[-1]),\
+                         (old_xleft, old_xright))
+        # Check corner values
+        self.assertEqual(old_zbottom, (self.datafile.zdata[0, 0], self.datafile.zdata[0, -1]))
+        self.assertEqual(old_ztop, (self.datafile.zdata[-1, 0], self.datafile.zdata[-1, -1]))
+
 class FileloaderTest(unittest.TestCase):
     """Test methods of the fileloader module."""
     fname = 'testdata.dat'

@@ -469,3 +469,20 @@ class Datafile(object):
                  for xidx in np.arange(linetrace_size) * axis_sign])
 
         return linetrace
+
+    def resize(self, new_ywidth, new_xwidth, order=1):
+        """Interpolate the array to a new, larger size.
+        Uses scipy.misc.imresize.
+        The ranges are interpolated accordingly.
+        """
+        # Check if scipy is available
+        try:
+            from scipy.ndimage import zoom
+        except ImportError:
+            logging.error(
+                'Module scipy is not available. scipy.misc.imresize is used for interpolation.')
+            return
+
+        xfactor = float(new_xwidth) / self.xwidth
+        yfactor = float(new_ywidth) / self.ywidth
+        self._zdata = zoom(self._zdata, (yfactor, xfactor), order=order)
