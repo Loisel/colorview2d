@@ -130,6 +130,36 @@ class DatafileTest(unittest.TestCase):
         self.assertEqual(self.datafile.zdata.tolist(), result_array_x.tolist())
         self.assertEqual(self.datafile.zdata.tolist(), result_array_y.T.tolist())
 
+    def test_linetrace_arbitrary(self):
+        """Extract a linetrace between two arbitrary points in the datafile."""
+
+        xone = np.random.random() * self.datafile.xmax
+        xtwo = np.random.random() * self.datafile.xmax
+
+        yone = np.random.random() * self.datafile.ymax
+        ytwo = np.random.random() * self.datafile.ymax
+
+        print "Extracting arbitrary linetrace from ({}, {}) to ({}, {})."\
+            .format(yone, xone, ytwo, xtwo)
+
+        #import ipdb;ipdb.set_trace()
+        linetrace = self.datafile.extract_arbitrary_linetrace((yone, xone), (ytwo, xtwo))
+
+        # we check if the length of the extracted array is valid
+        idx_one = self.datafile.idx_by_val_coordinate((yone, xone))
+        idx_two = self.datafile.idx_by_val_coordinate((ytwo, xtwo))
+        # the longer of the two diffs is the primary axis that determines
+        # the length of the linetrace
+        if abs(idx_one[0] - idx_two[0]) > abs(idx_one[1] - idx_two[1]):
+            linetrace_length = abs(idx_one[0] - idx_two[0]) + 1
+        else:
+            linetrace_length = abs(idx_one[1] - idx_two[1]) + 1
+        self.assertEqual(linetrace.size, linetrace_length)
+
+        # see if start and endpoints are included correctly
+        self.assertEqual(self.datafile.zdata[idx_one], linetrace[0])
+        self.assertEqual(self.datafile.zdata[idx_two], linetrace[-1])
+
 class FileloaderTest(unittest.TestCase):
     """Test methods of the fileloader module."""
     fname = 'testdata.dat'

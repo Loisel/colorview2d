@@ -284,6 +284,7 @@ class Datafile(object):
         """
         return (self.y_range_idx_by_val(coordinate[0]), self.x_range_idx_by_val(coordinate[1]))
 
+
     def extract_ylinetrace(self, xval, ystartval, ystopval):
         """Extract a linetrace along a given y-axis range vor a specific
         value on the x axis.
@@ -407,3 +408,64 @@ class Datafile(object):
             y_pos += y_interval * y_sign
 
         return np.vstack((result_array, result_range))
+
+    def extract_arbitrary_linetrace(self, coordinate_one, coordinate_two):
+        """Extract a linetrace between two arbitrary points.
+
+        Args:
+            coordinate_one, coordinate_two (tuple): coordinates in the coordinate system of the
+                x and y axes. The order is (yval, xval)!
+        
+        Returns:
+            Array with the linetrace. No axis range is supplied since it does not make sense
+            along any arbitrary direction.
+        """
+
+        # we transform to the grid
+        idx_one = self.idx_by_val_coordinate(coordinate_one)
+        idx_two = self.idx_by_val_coordinate(coordinate_two)
+
+        assert idx_one != idx_two, (
+            'Coordinate one and two are equal: (y=%d, x=%d).' % (idx_one[0], idx_one[1]),\
+            'Can not extract linetrace of zero length.')
+
+        # if one of the two coordinate axis has zero difference,
+        # we call the orthogonal version
+        # y axis difference is zero:
+        if idx_one[0] == idx_two[0]:
+            return self.extract_xlinetrace(
+                coordinate_one[0], coordinate_one[1], coordinate_two[1])[0]
+        # x axis difference is zero:
+        elif idx_one[1] == idx_two[1]:
+            return self.extract_ylinetrace(
+                coordinate_one[1], coordinate_one[0], coordinate_two[0])[0]
+
+        # which is the primary axis of the linetrace?
+        if abs(idx_one[0] - idx_two[0]) > abs(idx_one[1] - idx_two[1]):
+            primary_axis_index, secondary_axis_index = (0, 1)
+        else:
+            primary_axis_index, secondary_axis_index = (1, 0)
+
+        linetrace_slope = float(idx_two[secondary_axis_index] - idx_one[secondary_axis_index]) /\
+                          float(idx_two[primary_axis_index] - idx_one[primary_axis_index])
+        # Note that the linetrace has one more points than its length
+        linetrace_size = abs(idx_two[primary_axis_index] - idx_one[primary_axis_index]) + 1
+        axis_sign = np.sign(idx_two[primary_axis_index] - idx_one[primary_axis_index])
+
+        # go along primary axis and extract closest point
+        # if the primary axis is y-axis
+        if primary_axis_index == 0:
+            # dy and dx are positive: increment on both axis postive (trivial case)
+            # dy > 0, dx < 0: increment on first axis positive, slope negative -> increment
+            # on second axis negative.
+            # dy < 0, dx > 0: increment on y negative, slope negative -> dx positive
+            # dy < 0, dx < 0: increment negative, slope positive -> dx negative
+            linetrace = np.array(
+                [self.zdata[yidx + idx_one[0], int(round(yidx * linetrace_slope + idx_one[1]))]
+                 for yidx in np.arange(linetrace_size) * axis_sign])
+        else:
+            linetrace = np.array(
+                [self.zdata[int(round(xidx * linetrace_slope + idx_one[0])), xidx + idx_one[1]]
+                 for xidx in np.arange(linetrace_size) * axis_sign])
+
+        return linetrace
