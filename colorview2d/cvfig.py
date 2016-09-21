@@ -38,6 +38,7 @@ class CvFig(object):
                  cfgfile=None,
                  config=None,
                  pipeline=None):
+        self._modlist = {}
         self.create_modlist()
 
         self._datafile = None
@@ -97,6 +98,10 @@ class CvFig(object):
         print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self.config, self.pipeline)
 
     @property
+    def modlist(self):
+        return self._modlist
+        
+    @property
     def datafile(self):
         return self._datafile
 
@@ -143,40 +148,31 @@ class CvFig(object):
 
     def create_modlist(self):
         """
-        Creates the list of plugins in the Mods/ folder and adds them
-        to the modlist attribute of the State class.
+        Creates the list of mods from the mods/ folder and adds them
+        to the private modlist attribute.
 
-        The widgets of the mods are added to the MainPanel by sending
-        'PANEL_ADD_MODWIDGETS'.
+        We check if the module (with arbitrary name) contains a class
+        which inherits from colorview2d.IMod
         """
-        from yapsy.PluginManager import PluginManager
-        modman = PluginManager()
-        modpath = utils.resource_path('Mods')
-        modman.setPluginPlaces([modpath])
+        import pkgutil
+        import inspect
 
-        modman.collectPlugins()
+        import colorview2d.mods
 
-        self.modlist = [pInfo.plugin_object for pInfo in modman.getAllPlugins()]
+        package = colorview2d.mods
+        for importer, modname, ispckg in pkgutil.iter_modules(package.__path__):
+            mod = importer.find_module(modname).load_module(modname)
+            for name, obj in inspect.getmembers(mod):
+                if inspect.isclass(obj):
+                    if issubclass(obj, colorview2d.IMod):
+                        self._modlist[name] = obj()
+        # import ipdb;ipdb.set_trace()
 
 
     def dump_pipeline_string(self):
         """This just returns a string representation of the pipeline."""
         return "{}".format(self._pipeline)
 
-    def find_mod(self, modtype):
-        """Check if a modtype is available in the list of plugins.
-
-        Args:
-            modtype (string): The name of the mod to search in the modlist.
-
-        Returns:
-            a colorview2d.IMod
-        """
-        for mod in self.modlist:
-            if mod.title == modtype:
-                return mod
-
-        return None
 
     def add_mod_to_pipeline(self, modstring, pos=-1, do_apply=True):
         """Adds a mod to the pipeline by its title string and its arguments.
@@ -189,7 +185,7 @@ class CvFig(object):
         title = modstring[0]
 
         logging.info('Add mod %s to pipeline with arguments %s' % (modstring[0], modstring[1]))
-        if self.find_mod(title):
+        if self._modlist[title]:
             if pos == -1:
                 self._pipeline.append(modstring)
             elif pos < len(self._pipeline) and pos >= 0:
@@ -242,7 +238,7 @@ class CvFig(object):
         self._datafile = self._original_datafile.deep_copy()
 
         for pos, modtuple in enumerate(self._pipeline):
-            mod = self.find_mod(modtuple[0])
+            mod = self._modlist[modtuple[0]]
             if mod:
                 # if apply returns false, the application failed and the
                 # mod is removed from the pipeline

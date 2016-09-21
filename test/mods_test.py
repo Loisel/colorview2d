@@ -8,6 +8,8 @@ Applies all mods seperately and in a mix.
 
 import unittest
 import random
+import string
+import os
 import numpy as np
 
 import colorview2d
@@ -104,3 +106,28 @@ class ModTest(unittest.TestCase):
 
         self.no_setup = False
 
+
+class ModFrameworkTest(unittest.TestCase):
+    """Test the exploration of the mod modules."""
+    def test_add_find_mod(self):
+        """Create a minimal mod file. Check if it is found by the
+        mod framework.
+        """
+        modname = ''.join(
+            [random.choice(string.ascii_letters) for n in xrange(np.random.randint(10))])
+        filename = ''.join(
+            [random.choice(string.ascii_letters) \
+             for n in xrange(np.random.randint(10))]) + '.py'
+        modpath = os.path.join('colorview2d/mods/', filename)
+        with open(modpath, 'w+') as fh:
+            fh.write('import colorview2d\n'
+                     'class %s(colorview2d.IMod):\n'
+                     '    def do_apply(self, datafile, modargs):\n'
+                     '        print "do something to the modfile"\n' % modname)
+
+        fig = colorview2d.CvFig(np.random.random((10, 10)))
+
+        self.assertTrue(fig.modlist[modname])
+
+        os.remove(modpath)
+        

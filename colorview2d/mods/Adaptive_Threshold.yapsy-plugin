@@ -1,8 +1,0 @@
-[Core]
-Name = Adaptive_Threshold
-Module = Adaptive_Threshold
-   
-[Documentation]
-Description = Apply an adaptive threshold filter to the datafile.
-Author = Alois Dirnaichner
-Version = 1.0

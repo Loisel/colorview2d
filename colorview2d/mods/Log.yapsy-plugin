@@ -1,8 +1,0 @@
-[Core]
-Name = Log		
-Module = Log
-   
-[Documentation]
-Description = Log scale the Z-axis.
-Author = Alois Dirnaichner
-Version = 1.0
