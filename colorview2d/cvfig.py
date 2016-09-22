@@ -17,38 +17,70 @@ from matplotlib.ticker import FormatStrFormatter
 
 import yaml
 
-import colorview2d.mainapp as mainapp
 from colorview2d import Datafile
 import colorview2d.utils as utils
 
+# setup logging
+
+LOGGER = logging.getLogger('colorview2d')
+LOGGER.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+FHAND = logging.FileHandler('spam.log')
+FHAND.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+CHAND = logging.StreamHandler()
+CHAND.setLevel(logging.ERROR)
+# create formatter and add it to the handlers
+FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+FHAND.setFormatter(FORMATTER)
+CHAND.setFormatter(FORMATTER)
+# add the handlers to the logger
+LOGGER.addHandler(FHAND)
+LOGGER.addHandler(CHAND)
+
 
 class CvFig(object):
-    """Colorview2d figure.
-    In some respect similar to a matplotlib figure.
+    """
+    .. class:: CvFig(data[, axes_bounds])
+
+    A class to handle a 2d :class:`numpy.ndarray` with (linearly scaled) axes, apply a (extendable)
+    range of filters (mods) to the data while keeping track of the
+    modifications.
+
+    Hosts a :class:`matplotlib.pyplot.Figure`. Customization of this figure
+    is simplified with respect to the matplotlib library.
 
     Attributes:
-        modlist (list): a list of all mods that could be found.
-        datafile (colorview2d.Datafile): the datafile object encapsulates the 2d data
-        pipeline (list): a list of tuples with mod identifiers (strings) 
-            and their arguments (tuples).
-        config (dict): the configuration of the plot details, colormap, fonts, etc.
+        modlist (list): a list of all mods that can be found in the mods/ subfolder.
+        datafile (:class:`colorview2d.Datafile`): the colorview2d datafile object encapsulates the 2d data.
+        pipeline (dict): a dictionary with mod identifiers (strings) and their arguments (tuples).
+        _config (dict): the configuration of the _plot details, colormap, fonts, etc.
+        fig (:class:`matplotlib.pyplot.Figure`): The matplotlib figure of the data with axes.
+
+    Example::
+        datafile = np.random.random((100, 100))
+        fig = colorview2d.cvfig.CvFig(datafile)
+        fig.plot_pdf('Test.pdf')
+
 
     """
     def __init__(self, data=None,
                  cfgfile=None,
                  config=None,
                  pipeline=None):
+
         self._modlist = {}
-        self.create_modlist()
+        self._create_modlist()
 
         self._datafile = None
         
         if isinstance(data, np.ndarray):
-            self.datafile = Datafile(data)
+            self._datafile = Datafile(data)
         elif isinstance(data, Datafile):
             self.datafile = data
         else:
             raise ValueError("Provide data or datafile to create a CvFig object.")
+        self._original_datafile = self._datafile.deep_copy()
 
         if cfgfile:
             # If a config file is provided, we load that one.
@@ -67,7 +99,7 @@ class CvFig(object):
         self._pipeline = []
 
         # Holds information on the plot layout, ticks, fonts etc.
-        self.config = {}
+        self._config = {}
 
         # The config file is parsed,
         # modlist is a string variable that is given to the view
@@ -78,7 +110,7 @@ class CvFig(object):
         if config:
             for k, v in config:
                 try:
-                    self.config[k] = v
+                    self._config[k] = v
                 except KeyError:
                     logging.warn('Config key %s not found.' % k)
 
@@ -86,7 +118,7 @@ class CvFig(object):
         # Generated upon retrieval by property accessor
         # Readonly, Initialized with one pixel
         plt.ioff()
-        self._fig = plt.figure(1, dpi=self.config['Dpi'])
+        self._fig = plt.figure(1, dpi=self._config['Dpi'])
 
         # We use the setter to add the given pipeline.
         if pipeline is not None:
@@ -95,7 +127,7 @@ class CvFig(object):
         self.apply_pipeline()
 
     def __repr__(self):
-        print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self.config, self.pipeline)
+        print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self._config, self.pipeline)
 
     @property
     def modlist(self):
@@ -114,12 +146,27 @@ class CvFig(object):
             datafile (colorview2d.Datafile): a Datafile object
         """
         self._datafile = datafile
-        self._original_datafile = self._datafile.deep_copy()
+        self._datafile_changed()
+
+
+    def _datafile_changed(self):
+        """Called when the datafile is modified."""
+
+        if hasattr(self, '_plot'):
+            self._plot.set_data(self._datafile.zdata)
+            self._plot.set_extent([self._datafile.xleft, self._datafile.xright,
+                                   self._datafile.ybottom, self._datafile.ytop])
+            self.axes.set_xlim(self._datafile.xleft, self._datafile.xright)
+            self.axes.set_ylim(self._datafile.ybottom, self._datafile.ytop)
+            self._plot.changed()
+        return
+
 
     @property
     def fig(self):
         """Retrieve the matplotlib figure."""
-        self.draw_mpl_fig()
+        if not hasattr(self, '_plot'):
+            self.draw_plot()
         return self._fig
 
     @property
@@ -137,16 +184,77 @@ class CvFig(object):
         self._pipeline = []
 
         for modstring in pipeline:
-            self.add_mod_to_pipeline(modstring)
+            self.add_mod(modstring)
 
+    @property
+    def config(self):
+        return self._config
+    
+    @config.setter
+    def config(self, config_dict):
+        """Change the config. If there is a plot object (because the session is interactive)
+        we update the plot accordingly.
+
+        Be careful when overwriting the config because there is no error checking.
+        """
+        if not set(config_dict.keys()).issubset(set(self._config.keys())):
+            raise KeyError('Not a valid configuration dict. Check the spelling of the keys.')
+        else:
+            self._config.update(config_dict)
+
+        # When there is no plot we do not care at the moment.
+        if not hasattr(self, '_plot'):
+            return
+            
+        # If config_dict only contains changes that update the colorbar we
+        # apply them and return
+        colorbar_keys = set(['Colormap', 'Cbmin', 'Cbmax'])
+        if set(config_dict.keys()).issubset(colorbar_keys):
+            self._plot.set_cmap(self._config['Colormap'])
+            if self._config['Cbmin'] == 'auto':
+                self._plot.set_clim(vmin=self._datafile.zmin)
+            else:
+                self._plot.set_clim(vmin=self._config['Cbmin'])
+            if self._config['Cbmax'] == 'auto':
+                self._plot.set_clim(vmax=self._datafile.zmax)
+            else:
+                self._plot.set_clim(vmax=self._config['Cbmax'])
+            self._plot.changed()
+            return
+
+        # If config_dict only contains changes that do not need a redrawing
+        # of the plot we apply them and return
+        soft_keys = set(['Xlabel', 'Ylabel', 'Xtickformat', 'Ytickformat', 'Cblabel'])
+        if set(config_dict.keys()).issubset(soft_keys):
+            self._apply_config_post_plot()
+            return
+
+        # If the font parameters or the ticksize is changed, we have to redraw the plot
+        self.draw_plot()
+
+        
     def show(self):
-        """Show the figure in the GUI."""
+        """Show the figure in the GUI.
+        Can be used only if wxpython is installed.
+        """
 
+        try:
+            import colorview2d.mainapp as mainapp
+        except ImportError:
+            logging.error('Cannot start the GUI. Is wxpython installed?')
+            return
+        
         logging.info("Initializing the GUI.")
         self.mainapp = mainapp.MainApp(self)
         self.mainapp.MainLoop()
 
-    def create_modlist(self):
+    def show_plt_fig(self):
+        """Show the interactive :class:`matplotlib.pyplot.Figure`."""
+        self.draw_plot()
+        plt.ion()
+        self._fig.show()
+
+    def _create_modlist(self):
         """
         Creates the list of mods from the mods/ folder and adds them
         to the private modlist attribute.
@@ -174,7 +282,7 @@ class CvFig(object):
         return "{}".format(self._pipeline)
 
 
-    def add_mod_to_pipeline(self, modstring, pos=-1, do_apply=True):
+    def add_mod(self, modstring, pos=-1, do_apply=True):
         """Adds a mod to the pipeline by its title string and its arguments.
 
         Args:
@@ -198,7 +306,7 @@ class CvFig(object):
         if do_apply:
             self.apply_pipeline()
 
-    def remove_mod_from_pipeline(self, pos=-1, modtype=None, do_apply=True):
+    def remove_mod(self, pos=-1, modtype=None, do_apply=True):
         """Removes the last mod from the pipeline, or the mod at position pos
         or the last mod in the pipeline with the type modtype.
 
@@ -246,7 +354,8 @@ class CvFig(object):
                     logging.warning(
                         'Application of mod %s at position %d failed.'
                         'Removing mod from pipeline.' % (mod.title, pos))
-                    self.remove_mod_from_pipeline(pos)
+                    self.remove_mod(pos)
+                self._datafile_changed()
             else:
                 logging.warning('No mod candidate found for %s.', modtuple[0])
 
@@ -269,7 +378,7 @@ class CvFig(object):
         with open(cfgpath) as cfgfile:
             doclist = yaml.load_all(cfgfile)
             # The config dict is the first yaml document
-            self.config = doclist.next()
+            self._config = doclist.next()
             # The pipeline string is the second. It is optional.
             try:
                 logging.info('Pipeline string found: %s', self.pipeline)
@@ -290,18 +399,18 @@ class CvFig(object):
         """
         with open(cfgpath, 'w') as stream:
             # We write first the config dict
-            yaml.dump(self.config, stream, explicit_start=True)
+            yaml.dump(self._config, stream, explicit_start=True)
             # ... and second the pipeline string
             yaml.dump(self.dump_pipeline_string(), stream, explicit_start=True)
 
     def plot_pdf(self, filename):
         """Redraw the figure and plot it to a pdf file."""
-        self.draw_mpl_fig()
-        self._fig.set_size_inches(self.config['Width'], self.config['Height'])
+        self.draw_plot()
+        self._fig.set_size_inches(self._config['Width'], self._config['Height'])
         self._fig.tight_layout()
-        self._fig.savefig(filename, dpi=self.config['Dpi'])
+        self._fig.savefig(filename, dpi=self._config['Dpi'])
 
-    def draw_mpl_fig(self):
+    def draw_plot(self):
         """Draw a matplotlib figure.
 
         The figure is stored in the fig attribute.
@@ -311,9 +420,9 @@ class CvFig(object):
         """
         self._fig.clear()
         self.axes = self._fig.add_subplot(111)
-        self.apply_config_pre_plot()
+        self._apply_config_pre_plot()
 
-        self.plot = self.axes.imshow(self.get_arraydata(),
+        self._plot = self.axes.imshow(self.get_arraydata(),
             extent=[self.datafile.xleft,
                     self.datafile.xright,
                     self.datafile.ybottom,
@@ -322,35 +431,36 @@ class CvFig(object):
             origin='lower',
             interpolation="nearest")
 
-        self.apply_config_post_plot()
+        if not self._config['Cbtickformat'] == 'auto':
+            self.colorbar = self._fig.colorbar(
+                self._plot,
+                format=FormatStrFormatter(self._config['Cbtickformat']))
+        else:
+            self.colorbar = self._fig.colorbar(self._plot)
+
+        self._apply_config_post_plot()
 
         self._fig.tight_layout()
 
 
-    def apply_config_post_plot(self):
+    def _apply_config_post_plot(self):
         """
         The function applies the rest of the configuration to the plot.
         Note that the colorbar is created in this function because
         colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter(string)) does not work properly.
         """
-        self.axes.set_ylabel(self.config['Ylabel'])
-        self.axes.set_xlabel(self.config['Xlabel'])
+        self.axes.set_ylabel(self._config['Ylabel'])
+        self.axes.set_xlabel(self._config['Xlabel'])
 
-        if not self.config['Cbtickformat'] == 'auto':
-            self.colorbar = self._fig.colorbar(
-                self.plot,
-                format=FormatStrFormatter(self.config['Cbtickformat']))
-        else:
-            self.colorbar = self._fig.colorbar(self.plot)
-        self.colorbar.set_label(self.config['Cblabel'])
-        if not self.config['Xtickformat'] == 'auto':
-            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self.config['Xtickformat']))
-        if not self.config['Ytickformat'] == 'auto':
-            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self.config['Ytickformat']))
-        self.plot.set_cmap(self.config['Colormap'])
+        self.colorbar.set_label(self._config['Cblabel'])
+        if not self._config['Xtickformat'] == 'auto':
+            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self._config['Xtickformat']))
+        if not self._config['Ytickformat'] == 'auto':
+            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self._config['Ytickformat']))
+        self._plot.set_cmap(self._config['Colormap'])
 
 
-    def apply_config_pre_plot(self):
+    def _apply_config_pre_plot(self):
         """
         Applies the ticks and labels stored in the MainFrame.
         This function is called before the actual plot is drawn.
@@ -358,11 +468,11 @@ class CvFig(object):
         attribute can not be changed after the plot is drawn.
         """
 
-        logging.info("Font now {}".format(self.config['Font']))
+        logging.info("Font now {}".format(self._config['Font']))
         
-        plt.rcParams['font.family'] = self.config['Font']
-        plt.rcParams['font.size'] = self.config['Fontsize']
-        plt.rcParams['xtick.major.size'] = self.config['Xticklength']
-        plt.rcParams['ytick.major.size'] = self.config['Yticklength']
+        plt.rcParams['font.family'] = self._config['Font']
+        plt.rcParams['font.size'] = self._config['Fontsize']
+        plt.rcParams['xtick.major.size'] = self._config['Xticklength']
+        plt.rcParams['ytick.major.size'] = self._config['Yticklength']
 
     
