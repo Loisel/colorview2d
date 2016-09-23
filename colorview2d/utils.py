@@ -4,6 +4,76 @@ import re
 import wx
 import logging
 
+class ConfigDict(dict):
+    def __init__(self, cvfig, *args, **kwargs):
+        self.update(*args, **kwargs)
+        self.cvfig = cvfig
+
+    def __setitem__(self, key, value):
+        if key not in self.cvfig._config.keys():
+            raise KeyError('Not a valid configuration key %s.' % key)
+
+        super(ConfigDict, self).__setitem__(key, value)
+        # When there is no plot we do not care at the moment.
+        if not self.cvfig.plotting:
+            return
+            
+        if key == 'Colormap':
+            self.cvfig._plot.set_cmap(self.cvfig._config['Colormap'])
+        elif key == 'Cbmin':
+            if value == 'auto':
+                self.cvfig._plot.set_clim(vmin=self.cvfig._datafile.zmin)
+            else:
+                self.cvfig._plot.set_clim(vmin=self.cvfig._config['Cbmin'])
+        elif key == 'Cbmax':
+            if value == 'auto':
+                self.cvfig._plot.set_clim(vmax=self.cvfig._datafile.zmax)
+            else:
+                self.cvfig._plot.set_clim(vmax=self.cvfig._config['Cbmax'])
+
+        if key in ['Colormap', 'Cbmin', 'Cbmax']:
+            self.cvfig._plot.changed()
+            return
+
+        # If config_dict only contains changes that do not need a redrawing
+        # of the plot we apply them and return
+        if key in ['Xlabel', 'Ylabel', 'Xtickformat', 'Ytickformat', 'Cblabel']:
+            self.cvfig._apply_config_post_plot()
+            return
+
+        # If the font parameters, the ticksize or the format of the colorbar ticks
+        # is changed, we have to redraw the plot
+        self.cvfig.draw_plot()
+
+        
+    def update_raw(self, *args, **kwargs):
+        if args:
+            if len(args) > 1:
+                raise TypeError("update expected at most 1 arguments, "
+                                "got %d" % len(args))
+            other = dict(args[0])
+            for key in other:
+                super(ConfigDict, self).__setitem__(key, other[key])
+
+        for key in kwargs:
+            super(ConfigDict, self).__setitem__(key, kwargs[key])
+
+
+    def update(self, *args, **kwargs):
+        if args:
+            if len(args) > 1:
+                raise TypeError("update expected at most 1 arguments, "
+                                "got %d" % len(args))
+            other = dict(args[0])
+            for key in other:
+                self[key] = other[key]
+        for key in kwargs:
+            self[key] = kwargs[key]
+
+    def setdefault(self, key, value=None):
+        if key not in self:
+            self[key] = value
+        return self[key]
 
 class Line():
     """
