@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-The cvfig module hosts the CvFig class, the central object of cv2d.
-
-Example::
-    data = np.random.random((100, 100))
-    fig = colorview2d.cvfig.CvFig(data)
-    fig.show()
+.. module:: colorview2d.cvfig
+    :synopsis: The cvfig module hosts the CvFig class, the central object of cv2d.
 
 """
 import logging
@@ -99,7 +95,7 @@ class CvFig(object):
         self._pipeline = []
 
         # Holds information on the plot layout, ticks, fonts etc.
-        self._config = {}
+        self._config = utils.ConfigDict(self)
 
         # The config file is parsed,
         # modlist is a string variable that is given to the view
@@ -108,12 +104,8 @@ class CvFig(object):
 
         # if the config argument is not empty we replace the values
         if config:
-            for k, v in config:
-                try:
-                    self._config[k] = v
-                except KeyError:
-                    logging.warn('Config key %s not found.' % k)
-
+            self._config.update_raw(config)
+        
         # Matplotlib figure object, contains the actual plot
         # Generated upon retrieval by property accessor
         # Readonly, Initialized with one pixel
@@ -152,7 +144,7 @@ class CvFig(object):
     def _datafile_changed(self):
         """Called when the datafile is modified."""
 
-        if hasattr(self, '_plot'):
+        if self.plotting:
             self._plot.set_data(self._datafile.zdata)
             self._plot.set_extent([self._datafile.xleft, self._datafile.xright,
                                    self._datafile.ybottom, self._datafile.ytop])
@@ -161,6 +153,23 @@ class CvFig(object):
             self._plot.changed()
         return
 
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, config_dict):
+        """Change the config. Note that it is a custom :class:`colorview2d.utils.ConfigDict` class.
+        We use the update routine to prevent overwriting the private attribute with
+        an ordinary :class:`dict`
+
+        Anyways: Be careful when overwriting the config because there is no error checking
+        on the values given!
+
+        Args:
+            config_dict (dict): dictionary with configuration items.
+        """
+        self._config.update(config_dict)
 
     @property
     def fig(self):
@@ -187,51 +196,11 @@ class CvFig(object):
             self.add_mod(modstring)
 
     @property
-    def config(self):
-        return self._config
-    
-    @config.setter
-    def config(self, config_dict):
-        """Change the config. If there is a plot object (because the session is interactive)
-        we update the plot accordingly.
-
-        Be careful when overwriting the config because there is no error checking.
-        """
-        if not set(config_dict.keys()).issubset(set(self._config.keys())):
-            raise KeyError('Not a valid configuration dict. Check the spelling of the keys.')
-        else:
-            self._config.update(config_dict)
-
-        # When there is no plot we do not care at the moment.
-        if not hasattr(self, '_plot'):
-            return
-            
-        # If config_dict only contains changes that update the colorbar we
-        # apply them and return
-        colorbar_keys = set(['Colormap', 'Cbmin', 'Cbmax'])
-        if set(config_dict.keys()).issubset(colorbar_keys):
-            self._plot.set_cmap(self._config['Colormap'])
-            if self._config['Cbmin'] == 'auto':
-                self._plot.set_clim(vmin=self._datafile.zmin)
-            else:
-                self._plot.set_clim(vmin=self._config['Cbmin'])
-            if self._config['Cbmax'] == 'auto':
-                self._plot.set_clim(vmax=self._datafile.zmax)
-            else:
-                self._plot.set_clim(vmax=self._config['Cbmax'])
-            self._plot.changed()
-            return
-
-        # If config_dict only contains changes that do not need a redrawing
-        # of the plot we apply them and return
-        soft_keys = set(['Xlabel', 'Ylabel', 'Xtickformat', 'Ytickformat', 'Cblabel'])
-        if set(config_dict.keys()).issubset(soft_keys):
-            self._apply_config_post_plot()
-            return
-
-        # If the font parameters or the ticksize is changed, we have to redraw the plot
-        self.draw_plot()
-
+    def plotting(self):
+        """Determine if we are showing any plot at the moment."""
+        # We use the existence of the private _plot attribute
+        # as a primer.
+        return hasattr(self, '_plot')
         
     def show(self):
         """Show the figure in the GUI.
@@ -249,10 +218,51 @@ class CvFig(object):
         self.mainapp.MainLoop()
 
     def show_plt_fig(self):
-        """Show the interactive :class:`matplotlib.pyplot.Figure`."""
+        """Show the interactive :class:`matplotlib.pyplot.Figure`.
+
+        Note: Due to a bug in matplotlib it is not possible to re-show
+        a figure once it was hidden with Tk as backend.
+        """
         self.draw_plot()
         plt.ion()
-        self._fig.show()
+
+        # in order to successively open and close the
+        # interactive figure, we have to
+        # create a dummy figure and use its
+        # manager to display "fig"
+
+        if not self.plt_fig_is_active():
+            dummy_fig = plt.figure()
+            self._fig_manager = dummy_fig.canvas.manager
+            self._fig_manager.canvas.figure = self._fig
+            self._fig.set_canvas(self._fig_manager.canvas)
+            self._fig.show()
+
+
+    def plt_fig_is_active(self):
+        """Check if there is an active canvas manager.
+        If there is, we are (hopefully) running an active matplotlib.pyplot window
+        with an interactive plot.
+        """
+        return hasattr(self, '_fig_manager')
+
+
+    def hide_plt_fig(self):
+        """Hide the interactive :class`matplotlib.pyplot.Figure`.
+        The method deletes the canvas.manager of the current figure
+        and the plot object if present.
+
+        Note: Due to a bug in matplotlib it is not possible to re-show
+        a figure once it was hidden with Tk as backend.
+        """
+        # To this end we have to destroy the figure manager.
+        # See maptlotlib.pyplot.close().
+        if self.plt_fig_is_active():
+            plt._pylab_helpers.Gcf.destroy(self._fig_manager.num)
+            delattr(self, '_fig_manager')
+        # we delete _plot which indicates that we are not plotting
+        if hasattr(self, '_plot'):
+            delattr(self, '_plot')
 
     def _create_modlist(self):
         """
@@ -378,7 +388,9 @@ class CvFig(object):
         with open(cfgpath) as cfgfile:
             doclist = yaml.load_all(cfgfile)
             # The config dict is the first yaml document
-            self._config = doclist.next()
+            self._config.update_raw(doclist.next())
+            if self.plotting:
+                self.draw_plot()
             # The pipeline string is the second. It is optional.
             try:
                 logging.info('Pipeline string found: %s', self.pipeline)
@@ -438,8 +450,14 @@ class CvFig(object):
         else:
             self.colorbar = self._fig.colorbar(self._plot)
 
+        # we set the correct colorbar settings
+        # this call seems redundant but invokes the update
+        # of the colorbar
+        self.config = {'Cbmin':self.config['Cbmin'], 'Cbmax':self.config['Cbmax']}
+
         self._apply_config_post_plot()
 
+        self._plot.changed()
         self._fig.tight_layout()
 
 
@@ -458,6 +476,7 @@ class CvFig(object):
         if not self._config['Ytickformat'] == 'auto':
             self.axes.yaxis.set_major_formatter(FormatStrFormatter(self._config['Ytickformat']))
         self._plot.set_cmap(self._config['Colormap'])
+
 
 
     def _apply_config_pre_plot(self):
