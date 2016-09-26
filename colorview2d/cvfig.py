@@ -201,21 +201,23 @@ class CvFig(object):
         # We use the existence of the private _plot attribute
         # as a primer.
         return hasattr(self, '_plot')
-        
-    def show(self):
-        """Show the figure in the GUI.
-        Can be used only if wxpython is installed.
-        """
 
-        try:
-            import colorview2d.mainapp as mainapp
-        except ImportError:
-            logging.error('Cannot start the GUI. Is wxpython installed?')
-            return
-        
-        logging.info("Initializing the GUI.")
-        self.mainapp = mainapp.MainApp(self)
-        self.mainapp.MainLoop()
+    # def show(self):
+    #     """Show the figure in the GUI.
+    #     Can be used only if wxpython is installed.
+
+    #     The GUI is not yet functional.
+    #     """
+
+    #     try:
+    #         import colorview2d.mainapp as mainapp
+    #     except ImportError:
+    #         logging.error('Cannot start the GUI. Is wxpython installed?')
+    #         return
+
+    #     logging.info("Initializing the GUI.")
+    #     self.mainapp = mainapp.MainApp(self)
+    #     self.mainapp.MainLoop()
 
     def show_plt_fig(self):
         """Show the interactive :class:`matplotlib.pyplot.Figure`.
