@@ -100,7 +100,7 @@ class CvFig(object):
         # The config file is parsed,
         # modlist is a string variable that is given to the view
         # to create the mod pipeline
-        self.parse_config(cfgpath)
+        self.load_config(cfgpath)
 
         # if the config argument is not empty we replace the values
         if config:
@@ -381,7 +381,12 @@ class CvFig(object):
         """
         return self.datafile.zdata
 
-    def parse_config(self, cfgpath):
+    def save_config(self, cfgpath):
+        """Save the config to a plain text file."""
+        pass
+
+
+    def load_config(self, cfgpath):
         """Load the configuration and the pipeline from the config file
         specified in the YAML format. 
 

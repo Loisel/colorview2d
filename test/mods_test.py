@@ -26,9 +26,12 @@ class ModTest(unittest.TestCase):
         if not self.no_setup:
             self.width = np.random.randint(10, 300)
             self.height = np.random.randint(10, 300)
+            x_range = (0., np.random.random())
+            y_range = (0., np.random.random())
             print "figsize ({}, {})".format(self.width, self.height)
-
-            self.fig = colorview2d.CvFig(np.random.random((self.width, self.height)))
+            
+            self.fig = colorview2d.CvFig(np.random.random((self.width, self.height)),
+                                         (y_range, x_range))
 
     def test_add_remove_mod(self):
         """Add mod by name, remove mod by postion and by name."""
@@ -114,9 +117,6 @@ class ModTest(unittest.TestCase):
 
         testsequence = np.random.randint(0, len(testarray) - 1, 5)
         print "Multimodtest sequence {}".format([testarray[num] for num in testsequence])
-        # import ipdb;ipdb.set_trace()
-
-        #self.setUp()
         self.no_setup = True
 
         for num in testsequence:

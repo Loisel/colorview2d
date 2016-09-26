@@ -36,22 +36,22 @@ class Datafile(object):
 
         zdata (numpy.array):  The two dimensional numpy arrray containing the actual data.
 
-        x_range (numpy.array): A one dimensional array representing the x axis range.
-        y_range (numpy.array): A one dimensional array representing the y axis range.
+        x_range_bounds (tuple): left and right bounds of the x axis range.
+        y_range_bounds (tuple): bottom and top bounds of the y axis range.
 
     Properties:
-    xleft: The value on the left of the x axis.
-    xright: The value on the right of the x axis.
-    ytop: The values on the top of the y axis.
-    ybottom: The values on the bottom of the y axis.
+        xleft: The value on the left of the x axis.
+        xright: The value on the right of the x axis.
+        ytop: The values on the top of the y axis.
+        ybottom: The values on the bottom of the y axis.
 
-    zmin: The min values of the 2d array.
-    zmax: The max values of the 2d array.
+        zmin: The min values of the 2d array.
+        zmax: The max values of the 2d array.
 
-    xmin: The min values of the x axis range.
-    xmax: The max values of the x axis range.
-    ymin: The min values of the y axis range.
-    ymax: The max values of the y axis range.
+        xmin: The min values of the x axis range.
+        xmax: The max values of the x axis range.
+        ymin: The min values of the y axis range.
+        ymax: The max values of the y axis range.
 
     """
 
