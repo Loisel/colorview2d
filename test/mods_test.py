@@ -17,7 +17,7 @@ import colorview2d
 class ModTest(unittest.TestCase):
     """Class with mod tests."""
     no_setup = False
-    
+
     def setUp(self):
         """Setup routine for all mod tests.
         This routine is normally called before the execution of each test.
@@ -42,8 +42,9 @@ class ModTest(unittest.TestCase):
         self.assertFalse('Derive' in [mod[0] for mod in self.fig.pipeline])
 
         # remove mod by position
-        import ipdb;ipdb.set_trace()
+
         self.fig.remove_mod(pos=1)
+
         self.assertFalse('Smooth' in [mod[0] for mod in self.fig.pipeline])
 
 
@@ -108,6 +109,7 @@ class ModTest(unittest.TestCase):
         """
         testarray = dir(self)
         testarray.remove('test_multiple')
+        testarray.remove('test_add_remove_mod')
         testarray = [testname for testname in testarray if 'test_' in testname]
 
         testsequence = np.random.randint(0, len(testarray) - 1, 5)
