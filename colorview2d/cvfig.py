@@ -296,9 +296,11 @@ class CvFig(object):
         """Adds a mod to the pipeline by its title string and its arguments.
 
         Args:
+            modname (string): The type of the mod.
+            modargs (tuple): A tuple containing the arguments of the mod.
             pos (int): Where to add the mod in the pipeline. Default is last.
-            modstring (tuple): Mod type string and arguments.
-            args (tuple): A tuple containing the arguments of the mod.
+            do_apply (boolean): Trigger modification of the datafile (True) or just add
+                mod to the pipeline.
         """
 
         logging.info('Add mod %s to pipeline with arguments %s' % (modname, modargs))

@@ -54,14 +54,14 @@ class PltFigTest(unittest.TestCase):
         """Select some random mod tests and run them."""
 
         # Derive
-        self.fig.add_mod(('Derive', ()))
+        self.fig.add_mod('Derive')
         # Crop
-        self.fig.add_mod(('Crop',((np.random.randint(self.fig.datafile.ywidth / 3),
+        self.fig.add_mod('Crop',((np.random.randint(self.fig.datafile.ywidth / 3),
                               np.random.randint(2 * self.fig.datafile.ywidth / 3, self.fig.datafile.ywidth)),
                              (np.random.randint(self.fig.datafile.xwidth / 3),
-                              np.random.randint(2 * self.fig.datafile.xwidth / 3, self.fig.datafile.xwidth)))))
+                              np.random.randint(2 * self.fig.datafile.xwidth / 3, self.fig.datafile.xwidth))))
         # Smooth
-        self.fig.add_mod(('Smooth', (1., 1.)))
+        self.fig.add_mod('Smooth', (1., 1.))
         
         # is the window there?
         self.fig._fig.show()

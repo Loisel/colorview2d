@@ -266,23 +266,23 @@ class Datafile(object):
         units of the axes ranges.
 
         Args:
-            boundaries (tuple of tuples): ((bottom boundary, top boundary),
-                                           (left boundary, right boundary))
+            boundaries (tuple of tuples): (bottom boundary, top boundary,
+                                           left boundary, right boundary)
         """
-        yrange_boundaries = boundaries[0]
-        xrange_boundaries = boundaries[1]
-        assert self.is_within_bounds((yrange_boundaries[0], xrange_boundaries[0])),\
+        bottom_boundary, top_boundary = (boundaries[0], boundaries[1])
+        left_boundary, right_boundary = (boundaries[2], boundaries[3])
+        assert self.is_within_bounds((bottom_boundary, left_boundary)),\
             'crop: Bottom left edge not within boundaries.'
-        assert self.is_within_bounds((yrange_boundaries[1], xrange_boundaries[1])),\
+        assert self.is_within_bounds((top_boundary, right_boundary)),\
             'crop: Top right edge not within boundaries.'
 
 
-        xleft_idx = self.x_range_idx_by_val(xrange_boundaries[0])
-        xright_idx = self.x_range_idx_by_val(xrange_boundaries[1])
-        ybottom_idx = self.y_range_idx_by_val(yrange_boundaries[0])
-        ytop_idx = self.y_range_idx_by_val(yrange_boundaries[1])
-        self._xrange_bounds = xrange_boundaries
-        self._yrange_bounds = yrange_boundaries
+        xleft_idx = self.x_range_idx_by_val(left_boundary)
+        xright_idx = self.x_range_idx_by_val(right_boundary)
+        ybottom_idx = self.y_range_idx_by_val(bottom_boundary)
+        ytop_idx = self.y_range_idx_by_val(top_boundary)
+        self._xrange_bounds = (left_boundary, right_boundary)
+        self._yrange_bounds = (bottom_boundary, top_boundary)
 
         self.zdata = self._zdata[ybottom_idx:ytop_idx + 1, xleft_idx:xright_idx + 1]
 

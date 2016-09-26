@@ -26,7 +26,7 @@ class DatafileTest(unittest.TestCase):
     def test_crop_one(self):
         """Test to crop to array size one."""
 
-        self.datafile.crop(((0., 0.), (0., 0.)))
+        self.datafile.crop((0., 0., 0., 0.))
         self.assertEqual(self.datafile.zdata, np.array([self.datafile.zdata[0, 0]]))
         self.assertEqual(self.datafile.x_range, np.array([0.]))
         self.assertEqual(self.datafile.y_range, np.array([0.]))
@@ -35,8 +35,8 @@ class DatafileTest(unittest.TestCase):
         """Test where cropping leaves the whole file intact."""
 
         old_dfile = self.datafile.deep_copy()
-        self.datafile.crop(((0., self.datafile.zdata.shape[0] - 1),
-                            (0., self.datafile.zdata.shape[1] - 1)))
+        self.datafile.crop((0., self.datafile.zdata.shape[0] - 1,
+                            0., self.datafile.zdata.shape[1] - 1))
 
         self.assertEqual(self.datafile.zdata.all(), old_dfile.zdata.all())
 
@@ -55,7 +55,7 @@ class DatafileTest(unittest.TestCase):
         bottom_edge = np.random.randint(0, diff_height)
         top_edge = self.datafile.ymax - (diff_height - bottom_edge)
 
-        self.datafile.crop(((bottom_edge, top_edge), (left_edge, right_edge)))
+        self.datafile.crop((bottom_edge, top_edge, left_edge, right_edge))
 
         self.assertEqual(
             self.datafile.zdata.shape,

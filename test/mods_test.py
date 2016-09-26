@@ -42,6 +42,7 @@ class ModTest(unittest.TestCase):
         self.assertFalse('Derive' in [mod[0] for mod in self.fig.pipeline])
 
         # remove mod by position
+        import ipdb;ipdb.set_trace()
         self.fig.remove_mod(pos=1)
         self.assertFalse('Smooth' in [mod[0] for mod in self.fig.pipeline])
 
@@ -62,7 +63,7 @@ class ModTest(unittest.TestCase):
         bottom_edge = np.random.randint(0, diff_height)
         top_edge = self.fig.datafile.ymax - (diff_height - bottom_edge)
 
-        self.fig.add_mod('Crop', ((bottom_edge, top_edge), (left_edge, right_edge)))
+        self.fig.add_mod('Crop', (bottom_edge, top_edge, left_edge, right_edge))
 
     def test_smooth(self):
         """Test of the smooth mod."""
