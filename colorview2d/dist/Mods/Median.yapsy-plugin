@@ -1,8 +1,0 @@
-[Core]
-Name = Median
-Module = Median
-   
-[Documentation]
-Description = Convolute the dataset with a Gaussian
-Author = Alois Dirnaichner
-Version = 1.0

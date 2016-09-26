@@ -1,8 +1,0 @@
-[Core]
-Name = Scale
-Module = Scale
-   
-[Documentation]
-Description = Scale the z-axis of the datafile
-Author = Alois Dirnaichner
-Version = 1.0

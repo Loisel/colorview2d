@@ -1,8 +1,0 @@
-[Core]
-Name = Smooth
-Module = Smooth
-   
-[Documentation]
-Description = Apply a 2d median filter to the datafile.
-Author = Alois Dirnaichner
-Version = 1.0
