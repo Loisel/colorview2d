@@ -193,7 +193,7 @@ class CvFig(object):
         self._pipeline = []
 
         for modstring in pipeline:
-            self.add_mod(modstring)
+            self.add_mod(modstring[0], modstring[1])
 
     @property
     def plotting(self):
@@ -292,7 +292,7 @@ class CvFig(object):
         return "{}".format(self._pipeline)
 
 
-    def add_mod(self, modstring, pos=-1, do_apply=True):
+    def add_mod(self, modname, modargs=(),  pos=-1, do_apply=True):
         """Adds a mod to the pipeline by its title string and its arguments.
 
         Args:
@@ -300,14 +300,15 @@ class CvFig(object):
             modstring (tuple): Mod type string and arguments.
             args (tuple): A tuple containing the arguments of the mod.
         """
-        title = modstring[0]
 
-        logging.info('Add mod %s to pipeline with arguments %s' % (modstring[0], modstring[1]))
-        if self._modlist[title]:
+        logging.info('Add mod %s to pipeline with arguments %s' % (modname, modargs))
+        modstring = (modname, modargs)
+
+        if self._modlist[modname]:
             if pos == -1:
                 self._pipeline.append(modstring)
-            elif pos < len(self._pipeline) and pos >= 0:
-                self._pipeline.insert(pos, modstring)
+            elif pos < len(self._pipeline) and pos >= 1:
+                self._pipeline.insert(pos - 1, modstring)
             else:
                 logging.warn('Position %d not available in pipeline.' % pos)
         else:
