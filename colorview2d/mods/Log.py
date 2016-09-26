@@ -1,11 +1,9 @@
+"""This mod calculates the logarithm of the datafile.zdata array.
+"""
 import numpy as np
-import logging
 
 from colorview2d import imod
 
-"""
-This mod performs a derivation of the datafile with respect to the y-axis.
-"""
 
 
 class Log(imod.IMod):
@@ -16,11 +14,11 @@ class Log(imod.IMod):
 
     def __init__(self):
         imod.IMod.__init__(self)
-        
+
     def do_apply(self, datafile, modargs):
-        logdata = datafile.zdata
-        if logdata.any() <= 0:
-            logging.warn('Can not apply log to negative valued array.')
-        else:
-            logdata = np.log(logdata)
-            datafile.zdata = logdata
+        """Calculate the natural logarithm of the data. Please make sure the
+        datafile array does not contain negative values.
+        """
+        datafile.zdata = np.log(datafile.zdata)
+
+

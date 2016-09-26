@@ -1,19 +1,3 @@
-from colorview2d import imod
-from colorview2d import modwidget
-from colorview2d import floatspin #FloatSpin,EVT_FLOATSPIN
-
-import logging
-import numpy as np
-
-import wx
-
-try:
-    from skimage.filter import threshold_adaptive
-    from skimage import img_as_float
-except ImportError:
-    logging.info('The skimage package is missing. You can not use the adaptive threshold mod.')
-
-
 """
 Adaptive_Threshold
 ~~~~~~~~~~~~~~~~~~
@@ -24,78 +8,18 @@ to specify the size of the region where the peak value is compared to
 and a minimum height of a possible peak.
 
 """
+import numpy as np
+import logging
+from colorview2d import imod
 
-class Adaptive_ThresholdWidget(modwidget.ModWidget):
-    """
-    The widget hosting the FloatSpin controls and the labels.
-
-    :ival blocksize: integer speciying the size of the disk
-    :ival offset: float that determines the minimum offset
-    """
-    def __init__(self,mod,panel):
-        modwidget.ModWidget.__init__(self,mod,panel)
-
-        self.widgetlist = []
-        self.blocksize_label = wx.StaticText(self.panel, wx.ID_ANY,
-            "Blocksize: ")
-        self.widgetlist.append(self.blocksize_label)
-        self.blocksize_spin = floatspin.FloatSpin(self.panel, name='blocksize',
-                                                    value = 0,
-                                                    digits = 0
-                                                )
-
-        self.widgetlist.append(self.blocksize_spin)
-        self.offset_label = wx.StaticText(self.panel, wx.ID_ANY,
-            " Rel. offset: ")
-        self.offset_spin = floatspin.FloatSpin(self.panel, name='offset',
-            digits = 3
-            )
-        self.offset_spin.SetFormat("%e")
-        self.widgetlist.append(self.offset_label)
-        self.widgetlist.append(self.offset_spin)
-
-        for widget in self.widgetlist:
-            self.Add(widget,0,flag=self.flags)
+try:
+    from skimage.filter import threshold_adaptive
+    from skimage import img_as_float
+except ImportError:
+    logging.info('The skimage package is missing. You can not use the adaptive threshold mod.')
 
 
-        self.panel.Bind(floatspin.EVT_FLOATSPIN,self.on_floatspin)
 
-
-    def on_chk(self,event):
-        """
-        Handles event fired when the checkbox is clicked.
-        The values in the :class:`FloatSpin` controls are transfered to the mod.
-        The mod is activated.
-
-        :param event: The :class:`wx.EVT_CHECKBOX` event.
-        """
-        if self.chk.GetValue():
-            self.mod.args((self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
-            self.add_mod()
-        else:
-            self.remove_mod()
-
-    def update(self):
-        """
-        Updates the widget with the arguments of the mod.
-        The super class' update is called. 
-        """
-        modwidget.ModWidget.update(self)
-        self.blocksize_spin.SetValue(self.mod.args[0])
-        self.offset_spin.SetValue(self.mod.args[1])
-        
-    def on_floatspin(self,event):
-        """
-        Handles changes to the floatspin widget in case the mod is active.
-
-        :param event: The event
-        :type event: :class:`EVT_FLOATSPIN`
-        """
-        if self.mod.active:
-            self.remove_mod()
-            self.mod.args((self.blocksize_spin.GetValue(),self.offset_spin.GetValue()))
-            self.add_mod()
-            
 
 class Adaptive_Threshold(imod.IMod):
     """
@@ -136,17 +60,3 @@ class Adaptive_Threshold(imod.IMod):
         # we really apply the filter
         if newZ.min() != newZ.max():
             datafile.zdata = newZ
-
-        
-        
-    def create_widget(self,panel):
-        """
-        The widget is created and returned.
-
-        :param panel wx.Panel: The panel the widget is created on.
-        :returns: The widget.
-        :rtype: :class:`CropWidget`
-        """
-        self.panel = panel
-        self.widget = Adaptive_ThresholdWidget(self,self.panel)
-        return self.widget
