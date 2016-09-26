@@ -5,7 +5,7 @@ Use colorview2d to visualize and analize 2d data with (linear) axes.
 
 
 Features:
-~~~~~~~~~
+------------
 
 * Wide range of adjustable filters (mods) that can be extended easily.
   - interpolation,
@@ -24,7 +24,7 @@ Features:
  
 
 Installation
-~~~~~~~~~~~~
+-----------------
 
 You can use the python package index via pip
 
@@ -39,7 +39,7 @@ or easy_install
  manager that is shipped with your linux distribution.
 
 Usage
-~~~~~
+-------
 
 I stronlgy recommend to use ipython interactive shell for this tutorial.
 We initialize some random data with x and y ranges:
