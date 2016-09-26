@@ -24,15 +24,33 @@ class ModTest(unittest.TestCase):
         We suppress this behavior for the test of multiple mods using the no_setUp flag.
         """
         if not self.no_setup:
-            self.width = np.random.randint(10, 500)
-            self.height = np.random.randint(10, 500)
+            self.width = np.random.randint(10, 300)
+            self.height = np.random.randint(10, 300)
             print "figsize ({}, {})".format(self.width, self.height)
 
             self.fig = colorview2d.CvFig(np.random.random((self.width, self.height)))
 
+    def test_add_remove_mod(self):
+        """Add mod by name, remove mod by postion and by name."""
+        modname = 'Derive'
+        modargs = ()
+        self.fig.add_mod((modname, modargs))
+        self.fig.add_mod(('Smooth', (1, 1)))
+        self.fig.add_mod(('Median', (1, 1)))
+        # remove by name
+        self.fig.remove_mod(modname)
+
+        self.assertFalse(modname in [mod[0] for mod in self.fig.pipeline])
+
+        # remove mod by position
+        self.fig.remove_mod(pos=1)
+        self.assertFalse('Smooth' in [mod[0] for mod in self.fig.pipeline])
+
+
+
     def test_derive(self):
         """Test of the derive mod."""
-        self.fig.add_mod_to_pipeline(('Derive', ()))
+        self.fig.add_mod(('Derive', ()))
 
     def test_crop(self):
         """Test of the crop mod."""
@@ -45,36 +63,36 @@ class ModTest(unittest.TestCase):
         bottom_edge = np.random.randint(0, diff_height)
         top_edge = self.fig.datafile.ymax - (diff_height - bottom_edge)
 
-        self.fig.add_mod_to_pipeline(('Crop', ((bottom_edge, top_edge), (left_edge, right_edge))))
+        self.fig.add_mod(('Crop', ((bottom_edge, top_edge), (left_edge, right_edge))))
 
     def test_smooth(self):
         """Test of the smooth mod."""
         xwidth = np.random.randint(1, self.width)
         ywidth = np.random.randint(1, self.height)
 
-        self.fig.add_mod_to_pipeline(('Smooth', (xwidth, ywidth)))
+        self.fig.add_mod(('Smooth', (xwidth, ywidth)))
 
     def test_rotate(self):
         """Test of the rotate mod."""
-        self.fig.add_mod_to_pipeline(('Rotate', (bool(random.getrandbits(1)))))
+        self.fig.add_mod(('Rotate', (bool(random.getrandbits(1)))))
 
     def test_flip(self):
         """Test of the flip mod."""
-        self.fig.add_mod_to_pipeline(('Flip', (bool(random.getrandbits(1)))))
+        self.fig.add_mod(('Flip', (bool(random.getrandbits(1)))))
 
     def test_absolute(self):
         """Test of the absolute mod."""
-        self.fig.add_mod_to_pipeline(('Absolute', ()))
+        self.fig.add_mod(('Absolute', ()))
 
     def test_median(self):
         """Test of the median mod."""
         width = np.random.randint(1, min(self.width, self.height) / 2)
 
-        self.fig.add_mod_to_pipeline(('Median', (width)))
+        self.fig.add_mod(('Median', (width)))
 
     def test_log(self):
         """Test of the log mod."""
-        self.fig.add_mod_to_pipeline(('Log', ()))
+        self.fig.add_mod(('Log', ()))
 
     def test_adaptiveThreshold(self):
         """Test of the adaptive_threshold mod."""
@@ -82,7 +100,7 @@ class ModTest(unittest.TestCase):
         max_threshold = self.fig.datafile.zmax / np.mean(self.fig.datafile.zdata)
         threshold = np.random.randint(0, max_threshold)
 
-        self.fig.add_mod_to_pipeline(('Adaptive_Threshold', (blocksize, threshold)))
+        self.fig.add_mod(('Adaptive_Threshold', (blocksize, threshold)))
 
     def test_multiple(self):
         """Tests a sequence of 5 randomly selected mods. The setUp routine is supressed so that
@@ -96,7 +114,7 @@ class ModTest(unittest.TestCase):
         print "Multimodtest sequence {}".format([testarray[num] for num in testsequence])
         # import ipdb;ipdb.set_trace()
 
-        self.setUp()
+        #self.setUp()
         self.no_setup = True
 
         for num in testsequence:

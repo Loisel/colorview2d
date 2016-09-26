@@ -316,7 +316,7 @@ class CvFig(object):
         if do_apply:
             self.apply_pipeline()
 
-    def remove_mod(self, pos=-1, modtype=None, do_apply=True):
+    def remove_mod(self, modtype=None, pos=-1,  do_apply=True):
         """Removes the last mod from the pipeline, or the mod at position pos
         or the last mod in the pipeline with the type modtype.
 
@@ -328,8 +328,8 @@ class CvFig(object):
 
         if pos == -1 and not modtype:
             self._pipeline.pop()
-        elif pos >= 0 and pos < len(self._pipeline):
-            del self._pipeline[pos]
+        elif pos >= 1 and pos <= len(self._pipeline):
+            del self._pipeline[pos - 1]
         elif modtype:
             found = False
             for modtuple in reversed(self._pipeline):
