@@ -101,11 +101,11 @@ def save_gpfile(fname, datafile, comment=""):
 
     fh.write(comment + "\n")
 
-    for i in range(datafile.xrange.size):
+    for i in range(datafile.xwidth):
         np.savetxt(
             fh, np.vstack(
-                (datafile.xrange[i] * np.ones(datafile.yrange.shape[0]),
-                 datafile.yrange,
+                (datafile.x_range[i] * np.ones(datafile.ywidth),
+                 datafile.y_range,
                  datafile.zdata[:, i])).T)
         fh.write("\n")
 

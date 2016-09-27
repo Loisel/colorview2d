@@ -101,7 +101,6 @@ class PltFigTest(unittest.TestCase):
 
         self.fig._fig.show()
         raw_input("Test: cbmin of 0.2, ylabel foo, fontsize 18 (Ubuntu) and smoothing applied...")
-
-
+        os.remove(filename)
 
 

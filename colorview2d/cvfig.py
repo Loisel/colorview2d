@@ -54,7 +54,7 @@ class CvFig(object):
         fig (:class:`matplotlib.pyplot.Figure`): The matplotlib figure of the data with axes.
 
     Example::
-        datafile = np.random.random((100, 100))
+        datafile = colroview2d.Datafile(np.random.random((100, 100)))
         fig = colorview2d.cvfig.CvFig(datafile)
         fig.plot_pdf('Test.pdf')
 
@@ -142,6 +142,13 @@ class CvFig(object):
                                    self._datafile.ybottom, self._datafile.ytop])
             self.axes.set_xlim(self._datafile.xleft, self._datafile.xright)
             self.axes.set_ylim(self._datafile.ybottom, self._datafile.ytop)
+
+            if self._config['Cbmin'] == 'auto':
+                # re-setting the value triggers update of the plot
+                self._config['Cbmin'] = 'auto'
+            if self._config['Cbmax'] == 'auto':
+                # re-setting the value triggers update of the plot
+                self._config['Cbmax'] = 'auto'
             self._plot.changed()
         return
 
@@ -442,7 +449,6 @@ class CvFig(object):
         # is changed, we have to redraw the plot
         self.draw_plot()
 
-
     def plot_pdf(self, filename):
         """Redraw the figure and plot it to a pdf file."""
         self.draw_plot()
@@ -516,8 +522,11 @@ class CvFig(object):
         """
 
         logging.info("Font now {}".format(self._config['Font']))
-        
-        plt.rcParams['font.family'] = self._config['Font']
+
+        if self._config['Font'] is 'default':
+            plt.rcParams.update(plt.rcParamsDefault)
+        else:
+            plt.rcParams['font.family'] = self._config['Font']
         plt.rcParams['font.size'] = self._config['Fontsize']
         plt.rcParams['xtick.major.size'] = self._config['Xticklength']
         plt.rcParams['ytick.major.size'] = self._config['Yticklength']
