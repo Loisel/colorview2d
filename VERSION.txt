@@ -1,3 +1,10 @@
+--- Version BETA 0.6
+
+- Major code refactoring. Removed GUI.
+- This is a new program with respect to v0.55.
+- Tested command line interface available.
+
+
 --- Version BETA 0.55
 
 - Minor bugfixes: Colorbar min and max now work as expected. 

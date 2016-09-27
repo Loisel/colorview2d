@@ -10,6 +10,6 @@ setup(name='colorview2d',
       author_email='alo.dir@gmail.com',
       url='https://github.com/Loisel/colorview2d',
       packages=['colorview2d', 'test'],
-      package_data={'':['demo.dat', 'default.cv2d'], },
+      package_data={'':['default.cv2d'], },
       include_package_data=True,
       install_requires=['pyyaml'])
