@@ -56,10 +56,10 @@ class PltFigTest(unittest.TestCase):
         # Derive
         self.fig.add_mod('Derive')
         # Crop
-        self.fig.add_mod('Crop',((np.random.randint(self.fig.datafile.ywidth / 3),
-                              np.random.randint(2 * self.fig.datafile.ywidth / 3, self.fig.datafile.ywidth)),
-                             (np.random.randint(self.fig.datafile.xwidth / 3),
-                              np.random.randint(2 * self.fig.datafile.xwidth / 3, self.fig.datafile.xwidth))))
+        self.fig.add_mod('Crop', (np.random.randint(self.fig.datafile.ywidth),
+                                  self.fig.datafile.ywidth,
+                                  np.random.randint(self.fig.datafile.xwidth),
+                                  self.fig.datafile.xwidth))
         # Smooth
         self.fig.add_mod('Smooth', (1., 1.))
         
@@ -90,4 +90,18 @@ class PltFigTest(unittest.TestCase):
 
         self.fig._fig.show()
         raw_input("We should notice a colorbar minimum of 0.2, ylabel foo and fontsize 18 in Ubuntu...")
+
+        # add a mod to test the pipeline dump
+        self.fig.add_mod('Smooth', (1, 1))
+
+        # Save config to file and reload it
+        filename = 'testconfig.cv2d'
+        self.fig.save_config(filename)
+        self.fig.load_config(filename)
+
+        self.fig._fig.show()
+        raw_input("Test: cbmin of 0.2, ylabel foo, fontsize 18 (Ubuntu) and smoothing applied...")
+
+
+
 

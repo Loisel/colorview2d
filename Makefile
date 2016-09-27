@@ -3,7 +3,7 @@
 VERBOSITY = -v
 UNITTEST = python -m unittest $(VERBOSITY)
 
-testall: testmod testdatafile testmodframework
+testall: testmod testdatafile testmodframework testcvfig
 
 testmods:
 	$(eval MODULE = $(UNITTEST) test.mods_test)
@@ -18,3 +18,7 @@ testdatafile:
 	$(MODULE).DatafileTest
 	$(MODULE).FileloaderTest
 
+testcvfig:
+	$(eval MODULE = $(UNITTEST) test.cvfig_test)
+	$(MODULE).PltFigTest
+	
