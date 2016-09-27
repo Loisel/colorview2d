@@ -78,48 +78,40 @@ class CvFig(object):
             raise ValueError("Provide data or datafile to create a CvFig object.")
         self._original_datafile = self._datafile.deep_copy()
 
-        if cfgfile:
-            # If a config file is provided, we load that one.
-            # All other parameters are ignored.
-            # Note: The filename must be removed from the config file
-            cfgpath = os.path.join(os.getcwd(), cfgfile)
-        else:
-            # The name of the default config file is hard coded.
-            # utils.resource_path adds the path to the
-            # library in win and linux
-            cfgpath = utils.resource_path('default.cv2d')
-
+        # Holds information on the plot layout, ticks, fonts etc.
+        self._config = utils.Config()
+        # overwrite the on_change hook of the Config class.
+        # this way we can react to changes in the config appropriately.
+        self._config.on_change = self._on_config_change
+            
         # The pipeline contains a dict of numbers and tuples with
         # strings that are unique to IMod objects
         # and their arguments
         self._pipeline = []
 
-        # Holds information on the plot layout, ticks, fonts etc.
-        self._config = utils.ConfigDict(self)
+        if cfgfile:
+            # If a config file is provided, we load that one.
+            # All other parameters are ignored.
+            # Note: The filename must be removed from the config file
+            self.load_config(os.path.join(os.getcwd(), cfgfile))
 
-        # The config file is parsed,
-        # modlist is a string variable that is given to the view
-        # to create the mod pipeline
-        self.load_config(cfgpath)
 
         # if the config argument is not empty we replace the values
         if config:
             self._config.update_raw(config)
-        
+
         # Matplotlib figure object, contains the actual plot
         # Generated upon retrieval by property accessor
         # Readonly, Initialized with one pixel
         plt.ioff()
         self._fig = plt.figure(1, dpi=self._config['Dpi'])
 
-        # We use the setter to add the given pipeline.
+        # We use the property setter to add the given pipeline.
         if pipeline is not None:
             self.pipeline = pipeline
 
         self.apply_pipeline()
 
-    def __repr__(self):
-        print "CvFig(data=%r, config=%r, pipeline=%r)" % (self.data, self._config, self.pipeline)
 
     @property
     def modlist(self):
@@ -289,11 +281,6 @@ class CvFig(object):
         # import ipdb;ipdb.set_trace()
 
 
-    def dump_pipeline_string(self):
-        """This just returns a string representation of the pipeline."""
-        return "{}".format(self._pipeline)
-
-
     def add_mod(self, modname, modargs=(),  pos=-1, do_apply=True):
         """Adds a mod to the pipeline by its title string and its arguments.
 
@@ -381,10 +368,6 @@ class CvFig(object):
         """
         return self.datafile.zdata
 
-    def save_config(self, cfgpath):
-        """Save the config to a plain text file."""
-        pass
-
 
     def load_config(self, cfgpath):
         """Load the configuration and the pipeline from the config file
@@ -398,6 +381,7 @@ class CvFig(object):
         with open(cfgpath) as cfgfile:
             doclist = yaml.load_all(cfgfile)
             # The config dict is the first yaml document
+
             self._config.update_raw(doclist.next())
             if self.plotting:
                 self.draw_plot()
@@ -406,6 +390,7 @@ class CvFig(object):
                 logging.info('Pipeline string found: %s', self.pipeline)
                 pipeline = literal_eval(doclist.next())
                 # Note that the property setter is called
+                # applying the mods one by one
                 self.pipeline = pipeline
 
             except StopIteration:
@@ -421,9 +406,42 @@ class CvFig(object):
         """
         with open(cfgpath, 'w') as stream:
             # We write first the config dict
-            yaml.dump(self._config, stream, explicit_start=True)
+            yaml.dump(self._config.dict, stream, explicit_start=True)
             # ... and second the pipeline string
-            yaml.dump(self.dump_pipeline_string(), stream, explicit_start=True)
+            yaml.dump(repr(self._pipeline), stream, explicit_start=True)
+
+    def _on_config_change(self, key, value):
+        # When there is no plot we do not care at the moment.
+        if not self.plotting:
+            return
+            
+        if key == 'Colormap':
+            self._plot.set_cmap(self._config['Colormap'])
+        elif key == 'Cbmin':
+            if value == 'auto':
+                self._plot.set_clim(vmin=self._datafile.zmin)
+            else:
+                self._plot.set_clim(vmin=self._config['Cbmin'])
+        elif key == 'Cbmax':
+            if value == 'auto':
+                self._plot.set_clim(vmax=self._datafile.zmax)
+            else:
+                self._plot.set_clim(vmax=self._config['Cbmax'])
+
+        if key in ['Colormap', 'Cbmin', 'Cbmax']:
+            self._plot.changed()
+            return
+
+        # If config_dict only contains changes that do not need a redrawing
+        # of the plot we apply them and return
+        if key in ['Xlabel', 'Ylabel', 'Xtickformat', 'Ytickformat', 'Cblabel']:
+            self._apply_config_post_plot()
+            return
+
+        # If the font parameters, the ticksize or the format of the colorbar ticks
+        # is changed, we have to redraw the plot
+        self.draw_plot()
+
 
     def plot_pdf(self, filename):
         """Redraw the figure and plot it to a pdf file."""
