@@ -8,10 +8,8 @@ Specification of the minimum requirements of a plugin implementation.
 """
 
 import logging
-import sys
-from yapsy.IPlugin import IPlugin
 import abc
-from modwidget import ModWidget
+
 
 
 
