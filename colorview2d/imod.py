@@ -11,9 +11,7 @@ import logging
 import abc
 
 
-
-
-class IMod(IPlugin):
+class IMod(object):
     """
     The interface class is an abstract base class.
     At present, none of the methods have to be overwritten, though.
@@ -34,26 +32,6 @@ class IMod(IPlugin):
         self.title = self.__class__.__name__
         logging.info('Mod %s is initialized.' % self.title)
 
-
-    def create_widget(self, panel):
-        """
-        Create a widget for the plugin. This Method has to be overwritten
-        to create a custom widget, i.e., a widget that contains more
-        than a simple checkbox.
-
-        Note that the widget is not added to a sizer on the panel but
-        is returned as a box sizer.
-
-        :param panel: The panel object to create the widget on.
-        :type panel: `wx.Panel <http://www.wxpython.org/docs/api/wx.Panel-class.html>`_
-        
-        :returns: The widget object.
-        :rtype: :class:`ModWidget <colorview2d.ModWidget.ModWidget>`
-        """
-        self.panel = panel
-        self.widget = ModWidget(self,self.panel)
-
-        return self.widget
         
     def apply(self, datafile, modargs):
         """
