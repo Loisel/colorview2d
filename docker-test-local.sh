@@ -11,4 +11,4 @@ docker run -ti \
         --user="cvuser" \
 	-v /home/al/git/colorview2d:/colorview2d \
 	colorview2d /bin/bash \
-	-c "cd colorview2d;make testall"
+	-c "cd colorview2d;make testlocal"

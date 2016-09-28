@@ -1,10 +1,10 @@
-.PHONY: testmod testdatafile testall
-
 VERBOSITY = -v
 UNITTEST = python -m unittest $(VERBOSITY)
 
 
-testall: testmod testdatafile testmodframework testcvfig
+testall: testmods testdatafile testmodframework testcvfig testdeploy-local
+testpip: testmods testdatafile testcvfig
+testlocal: testmods testdatafile testmodframework testcvfig
 
 testmods:
 	$(eval MODULE = $(UNITTEST) test.mods_test)
@@ -24,4 +24,6 @@ testcvfig:
 	$(MODULE).PltFigTest
 
 testdeploy-local:
-	./run_docker.sh
+	./docker-test-local.sh
+testdeploy-pip:
+	./docker-test-pip.sh

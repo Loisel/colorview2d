@@ -60,13 +60,13 @@ class ModTest(unittest.TestCase):
 
     def test_crop(self):
         """Test of the crop mod."""
-        diff_width = np.random.randint(0, self.fig.datafile.xmax - 1)
-        diff_height = np.random.randint(0, self.fig.datafile.ymax - 1)
+        diff_width = np.random.random() * self.fig.datafile.xmax
+        diff_height = np.random.random() * self.fig.datafile.ymax
 
-        left_edge = np.random.randint(0, diff_width)
+        left_edge = np.random.random() * diff_width
         right_edge = self.fig.datafile.xmax - (diff_width - left_edge)
 
-        bottom_edge = np.random.randint(0, diff_height)
+        bottom_edge = np.random.random() * diff_height
         top_edge = self.fig.datafile.ymax - (diff_height - bottom_edge)
 
         self.fig.add_mod('Crop', (bottom_edge, top_edge, left_edge, right_edge))
