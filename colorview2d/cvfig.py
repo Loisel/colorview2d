@@ -6,6 +6,7 @@
 """
 import logging
 import os
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -284,7 +285,12 @@ class CvFig(object):
             for name, obj in inspect.getmembers(mod):
                 if inspect.isclass(obj):
                     if issubclass(obj, colorview2d.IMod):
-                        self._modlist[name] = obj()
+                        try:
+                            self._modlist[name] = obj()
+                        except:
+                            error = sys.exc_info()[0]
+                            logging.error('Can not import mod %s.', name)
+                            logging.error('Error: %s.', error)
         # import ipdb;ipdb.set_trace()
 
 
