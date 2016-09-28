@@ -29,9 +29,11 @@ class ModTest(unittest.TestCase):
             x_range = (0., np.random.random())
             y_range = (0., np.random.random())
             print "figsize ({}, {})".format(self.width, self.height)
-            
-            self.fig = colorview2d.CvFig(np.random.random((self.width, self.height)),
-                                         (y_range, x_range))
+
+            self.datafile = colorview2d.Datafile(
+                np.random.random((self.width, self.height)),
+                (y_range, x_range))
+            self.fig = colorview2d.CvFig(self.datafile)
 
     def test_add_remove_mod(self):
         """Add mod by name, remove mod by postion and by name."""
@@ -129,25 +131,29 @@ class ModTest(unittest.TestCase):
 
 class ModFrameworkTest(unittest.TestCase):
     """Test the exploration of the mod modules."""
-    def test_add_find_mod(self):
-        """Create a minimal mod file. Check if it is found by the
-        mod framework.
-        """
-        modname = ''.join(
+    def setUp(self):
+        self.modname = ''.join(
             [random.choice(string.ascii_letters) for n in xrange(np.random.randint(10))])
         filename = ''.join(
             [random.choice(string.ascii_letters) \
              for n in xrange(np.random.randint(10))]) + '.py'
-        modpath = os.path.join('colorview2d/mods/', filename)
-        with open(modpath, 'w+') as fh:
+        self.modpath = os.path.join('colorview2d/mods/', filename)
+        with open(self.modpath, 'w+') as fh:
             fh.write('import colorview2d\n'
                      'class %s(colorview2d.IMod):\n'
                      '    def do_apply(self, datafile, modargs):\n'
-                     '        print "do something to the modfile"\n' % modname)
+                     '        print "do something to the modfile"\n' % self.modname)
+    def tearDown(self):
+        os.remove(self.modpath)
+        os.remove(self.modpath + 'c')
+
+    def test_add_find_mod(self):
+        """Create a minimal mod file. Check if it is found by the
+        mod framework.
+        """
 
         fig = colorview2d.CvFig(np.random.random((10, 10)))
 
-        self.assertTrue(fig.modlist[modname])
+        self.assertTrue(fig.modlist[self.modname])
 
-        os.remove(modpath)
-        
+

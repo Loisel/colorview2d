@@ -3,6 +3,7 @@
 VERBOSITY = -v
 UNITTEST = python -m unittest $(VERBOSITY)
 
+
 testall: testmod testdatafile testmodframework testcvfig
 
 testmods:
@@ -21,4 +22,6 @@ testdatafile:
 testcvfig:
 	$(eval MODULE = $(UNITTEST) test.cvfig_test)
 	$(MODULE).PltFigTest
-	
+
+testdeploy-local:
+	./run_docker.sh
