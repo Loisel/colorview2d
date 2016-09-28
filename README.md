@@ -34,9 +34,14 @@ or easy_install
 
     sudo easy_install --upgrade colorview2d
 
- Note that numpy can not be installed via the
- python package index. Please install these packages via the package
- manager that is shipped with your linux distribution.
+Note that numpy can not be installed via the
+python package index. Please install these packages via the package
+manager that is shipped with your linux distribution.
+
+If you are considering writing your own mods then installation into
+the userspace is preferable (access to colorview2d/mods to place the mod file).
+
+    pip2.7 install --user <username> --upgrade colorview2
 
 Usage
 -------
