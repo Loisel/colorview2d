@@ -281,16 +281,16 @@ class CvFig(object):
 
         package = colorview2d.mods
         for importer, modname, ispckg in pkgutil.iter_modules(package.__path__):
-            mod = importer.find_module(modname).load_module(modname)
-            for name, obj in inspect.getmembers(mod):
-                if inspect.isclass(obj):
-                    if issubclass(obj, colorview2d.IMod):
-                        try:
+            try:    
+                mod = importer.find_module(modname).load_module(modname)
+                for name, obj in inspect.getmembers(mod):
+                    if inspect.isclass(obj):
+                        if issubclass(obj, colorview2d.IMod):
                             self._modlist[name] = obj()
-                        except:
-                            error = sys.exc_info()[0]
-                            logging.error('Can not import mod %s.', name)
-                            logging.error('Error: %s.', error)
+            except:
+                error = sys.exc_info()[0]
+                logging.error('Can not import mod %s.', modname)
+                logging.error('Error: %s.', error)
         # import ipdb;ipdb.set_trace()
 
 

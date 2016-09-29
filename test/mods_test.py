@@ -133,7 +133,7 @@ class ModFrameworkTest(unittest.TestCase):
     """Test the exploration of the mod modules."""
     def setUp(self):
         self.modname = ''.join(
-            [random.choice(string.ascii_letters) for n in xrange(np.random.randint(10))])
+            [random.choice(string.ascii_letters) for n in xrange(np.random.randint(1, 10))])
         filename = ''.join(
             [random.choice(string.ascii_letters) \
              for n in xrange(np.random.randint(10))]) + '.py'

@@ -9,16 +9,11 @@ and a minimum height of a possible peak.
 
 """
 import numpy as np
-import logging
+
 from colorview2d import imod
 
-try:
-    from skimage.filter import threshold_adaptive
-    from skimage import img_as_float
-except ImportError:
-    logging.info('The skimage package is missing. You can not use the adaptive threshold mod.')
-
-
+from skimage.filter import threshold_adaptive
+from skimage import img_as_float
 
 
 class Adaptive_Threshold(imod.IMod):

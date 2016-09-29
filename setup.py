@@ -13,6 +13,6 @@ setup(name='colorview2d',
       packages=['colorview2d', 'test'],
       package_data={'':['default.cv2d'], },
       include_package_data=True,
-      install_requires=['pyyaml'],
+      install_requires=['pyyaml', 'scikit-image', 'matplotlib'],
       keywords=['plotting', 'colorplot', 'scientific', 'numpy', 'matplotlib'],
       classifiers=[],)

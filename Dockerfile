@@ -6,6 +6,8 @@ python-pip \
 python-scipy \
 python-matplotlib \
 ipython \
+python-skimage \
+python-yaml \
 sudo
 
 RUN pip install PyYAML
