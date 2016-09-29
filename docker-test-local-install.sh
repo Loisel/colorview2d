@@ -9,9 +9,8 @@ docker run -ti \
         --env="XAUTHORITY=${XAUTH}" \
         --env="DISPLAY" \
         --user="cvuser" \
-	-v /home/al/git/colorview2d/Makefile:/home/cvuser/Makefile \
-	-v /home/al/git/colorview2d/test:/home/cvuser/test \
-	-v /home/al/git/colorview2d/:/colorview2d/ \
+        -v ~/git/colorview2d/:/colorview2d/ \
+        -v ~/git/colorview2d/Makefile:/home/cvuser/Makefile \
+        -v ~/git/colorview2d/test:/home/cvuser/test \
 	colorview2d /bin/bash \
-	-c "pip install --upgrade pip;pip install --upgrade --user --index-url https://testpypi.python.org/pypi/ colorview2d;cd;make testpip"
-
+	-c "cd colorview2d;python setup.py install --user;cd;make testlocal"

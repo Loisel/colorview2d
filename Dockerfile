@@ -24,3 +24,6 @@ RUN useradd -m $USERNAME && \
         usermod  --uid 1000 $USERNAME && \
         groupmod --gid 1000 $USERNAME
 RUN mkdir /colorview2d;chown cvuser colorview2d
+
+
+
