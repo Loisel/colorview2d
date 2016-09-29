@@ -34,10 +34,6 @@ or easy_install
 
     sudo easy_install --upgrade colorview2d
 
-Note that numpy can not be installed via the
-python package index. Please install these packages via the package
-manager that is shipped with your linux distribution.
-
 If you are considering writing your own mods then installation into
 the userspace is preferable (access to colorview2d/mods to place the mod file).
 
@@ -49,12 +45,14 @@ Usage
 I stronlgy recommend to use ipython interactive shell for this tutorial.
 We initialize some random data with x and y ranges:
 
+    import numpy as np
     data = np.random.random((100, 100))
     xrange = (0., np.random.random())
     yrange = (0., np.random.random())
 
 Obtain a colorview2d.Datafile to initialize the colorview2d.CvFig object:
 
+    import colorview2d
     datafile = colorview2d.Datafile(data, (yrange, xrange))
     cvfig = colorview2d.CvFig(datafile)
 
@@ -107,7 +105,7 @@ Have a look at the `mods/` folder for other mods and documentation on the argume
 It is also straightforward to create your own mod there. Just have a look at the other mods
 in the folder.
 
-We are interested especially in the Nicyness between 0.0 and 0.1. 
+We are interested especially in the nicyness between 0.0 and 0.1. 
 
     cvfig.config.update({'Cbmin':0.0, 'Cbmax':0.1})
 
@@ -116,8 +114,41 @@ the data to a gnuplot-style plain text file.
 
     colorview2d.fileloaders.save_gpfile('Nice_smooth_and_derived.dat', cvfig.datafile)
 
-This tutorial only covers a part of the features.
-More documentation on colorview2d will be added soon.
 
-26.9.2015, Alois Dirnaichner
+
+Extending colorview2d
+------------------------------
+
+### fileloaders
+
+Have a look at the `colorview2d.Datafile` definition in the datafile module.
+To create a `Datafile` we have to provide the 2d array and the bounds of the y and x ranges.
+
+    datafile = colorview2d.Datafile(
+        array,
+        ((bottom_on_y_axis, top_on_y_axis),
+        (left_on_x_axis, right_on_x_axis)))
+
+To save data, just use the datafile attributes, e.g.
+
+    my_array = my_cvfig.datafile.zdata # 2d numpy.array
+    my_x_range = my_cvfig.datafile.x_range # 1d numpy.array (left-to-right)
+    my_y_range = my_cvfig.datafile.y_range # 1d numpy.array (bottom-to-top)
+
+### mods
+
+If you want to apply your own modifications to the datafile, just put a module
+inside the `colorview2d/mods` directory (or package, if you wish).
+The module should contain a class which inherits from `colorview2d.IMod` and implements
+the method `do_apply(self, datafile, modargs)`.
+
+You can modifiy the datafile freely, there is no error-checking done on the consistency
+of the data (axes bounds, dimensions).
+Have a look at the `mods/Derive.py` module for a *minimal* example.
+
+To see if your mod is added successfully, have a look at `my_cvfig.modlist`.
+26.9.2015, A. Dirnaichner
+
+
+
 
