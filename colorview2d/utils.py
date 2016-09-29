@@ -97,8 +97,23 @@ class Config(yaml.YAMLObject):
         return self._dict
 
 
+def fontlist():
+    """Obtain a list of the fonts that are found by matplotlib."""
+    import matplotlib.font_manager as fm
+
+    flist = fm.findSystemFonts()
+
+    fontliststrings = [fm.FontProperties(fname=fname).get_name() for fname in flist]
+    # remove duplicates
+    fontliststrings = list(set(fontliststrings))
+    return fontliststrings.sort()
 
 
+def colormaplist():
+    """Obtain a list of colormaps which are available in matplotlib."""
+    from matplotlib.pyplot import cm
+    maps = [m for m in cm.datad if not m.endswith("_r")]
+    return maps.sort()
 
 
 
