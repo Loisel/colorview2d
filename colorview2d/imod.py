@@ -51,14 +51,23 @@ class IMod(object):
         else:
             try:
                 self.do_apply(datafile, modargs)
+                if len(datafile.zdata.shape) != 2:
+                    logging.warn(
+                        'Mod %s failed. The mod changed the dimensionality of the datafile.zdata array.',
+                        self.title)
+                    return False
                 return True
             except ValueError:
                 logging.warn(
-                    'Mod %s failed. Value Error. Probably you supplied unusable arguments. Args: %s' % (self.title, modargs))
+                    'Mod %s failed. Value Error. Probably you supplied unusable arguments. Args: %s',
+                    self.title,
+                    modargs)
                 return False
             except TypeError:
                 logging.warn(
-                    'Mod %s failed. Type Error. Have you supplied the correct argument type? Args: %s' % (self.title, modargs))
+                    'Mod %s failed. Type Error. Have you supplied the correct argument type? Args: %s',
+                    self.title,
+                    modargs)
                 return False
             except MemoryError:
                 logging.warn(
