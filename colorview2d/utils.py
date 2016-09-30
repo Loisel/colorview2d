@@ -3,7 +3,8 @@ import os
 import sys
 import logging
 import yaml
-import copy
+
+import six
 
 def resource_path(relative_path):
     """Return the absolute path to a resource"""
@@ -29,7 +30,7 @@ class Config(yaml.YAMLObject):
         with open(self._default_config_file_path) as cfgfile:
             doclist = yaml.load_all(cfgfile)
             # The config dict is the first yaml document
-            self._dict = dict(doclist.next())
+            self._dict = dict(six.advance_iterator(doclist))
 
 
         self.update(*args, **kwargs)

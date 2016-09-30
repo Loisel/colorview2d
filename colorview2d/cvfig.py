@@ -7,7 +7,7 @@
 import logging
 import os
 import sys
-
+import six
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
@@ -395,13 +395,15 @@ class CvFig(object):
             doclist = yaml.load_all(cfgfile)
             # The config dict is the first yaml document
 
-            self._config.update_raw(doclist.next())
+            # Note that the advance_iterator does doclist.next()
+            # and is a 2to3 compatibility issue
+            self._config.update_raw(six.advance_iterator(doclist))
             if self.plotting:
                 self.draw_plot()
             # The pipeline string is the second. It is optional.
             try:
                 logging.info('Pipeline string found: %s', self.pipeline)
-                pipeline = literal_eval(doclist.next())
+                pipeline = literal_eval(six.advance_iterator(doclist))
                 # Note that the property setter is called
                 # applying the mods one by one
                 self.pipeline = pipeline
