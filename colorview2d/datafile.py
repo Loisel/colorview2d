@@ -190,11 +190,11 @@ class Datafile(object):
         """
 
         print(
-            "There are {} lines and {} columns in the datafile.\n"
+            "There are {0} lines and {1} columns in the datafile.\n"
             .format(self._zdata.shape[0], self._zdata.shape[1]))
         print(
-            "X-axis range from {} to {}".format(self.xleft, self.xright),
-            "Y-axis range from {} to {}".format(self.ybottom, self.ytop))
+            "X-axis range from {0} to {1}".format(self.xleft, self.xright),
+            "Y-axis range from {0} to {1}".format(self.ybottom, self.ytop))
 
     def deep_copy(self):
         """

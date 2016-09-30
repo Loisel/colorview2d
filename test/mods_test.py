@@ -28,7 +28,7 @@ class ModTest(unittest.TestCase):
             self.height = np.random.randint(10, 300)
             x_range = (0., np.random.random())
             y_range = (0., np.random.random())
-            print "figsize ({}, {})".format(self.width, self.height)
+            print("figsize ({0}, {1})".format(self.width, self.height))
 
             self.datafile = colorview2d.Datafile(
                 np.random.random((self.width, self.height)),
@@ -118,12 +118,12 @@ class ModTest(unittest.TestCase):
         testarray = [testname for testname in testarray if 'test_' in testname]
 
         testsequence = np.random.randint(0, len(testarray) - 1, 5)
-        print "Multimodtest sequence {}".format([testarray[num] for num in testsequence])
+        print("Multimodtest sequence {0}".format([testarray[num] for num in testsequence]))
         self.no_setup = True
 
         for num in testsequence:
             call = "self." + testarray[num] + "()"
-            print call
+            print(call)
             eval(call)
 
         self.no_setup = False
@@ -133,19 +133,22 @@ class ModFrameworkTest(unittest.TestCase):
     """Test the exploration of the mod modules."""
     def setUp(self):
         self.modname = ''.join(
-            [random.choice(string.ascii_letters) for n in xrange(np.random.randint(1, 10))])
+            [random.choice(string.ascii_letters) for n in range(np.random.randint(1, 10))])
         filename = ''.join(
             [random.choice(string.ascii_letters) \
-             for n in xrange(np.random.randint(10))]) + '.py'
+             for n in range(np.random.randint(10))]) + '.py'
         self.modpath = os.path.join('colorview2d/mods/', filename)
         with open(self.modpath, 'w+') as fh:
             fh.write('import colorview2d\n'
                      'class %s(colorview2d.IMod):\n'
                      '    def do_apply(self, datafile, modargs):\n'
-                     '        print "do something to the modfile"\n' % self.modname)
+                     '        print("do something to the modfile")\n' % self.modname)
     def tearDown(self):
         os.remove(self.modpath)
-        os.remove(self.modpath + 'c')
+        try:
+            os.remove(self.modpath + 'c')
+        except FileNotFoundError:
+            pass
 
     def test_add_find_mod(self):
         """Create a minimal mod file. Check if it is found by the

@@ -1,8 +1,9 @@
 VERBOSITY = -v
-UNITTEST = python -m unittest $(VERBOSITY)
+PYTHON_VERSION = 2.7
+UNITTEST = python$(PYTHON_VERSION) -m unittest $(VERBOSITY)
 
 
-testall: testmods testdatafile testmodframework testcvfig testdeploy-local
+testall: testmods testdatafile testmodframework testcvfig
 testpip: testmods testdatafile testcvfig
 testlocal: testmods testdatafile testmodframework testcvfig
 

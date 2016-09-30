@@ -97,7 +97,7 @@ def save_gpfile(fname, datafile, comment=""):
         comment (string): A comment on the data.
     """
 
-    fh = open(fname, 'w')
+    fh = open(fname, 'wb')
 
     fh.write(comment + "\n")
 

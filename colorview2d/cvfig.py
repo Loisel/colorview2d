@@ -281,7 +281,7 @@ class CvFig(object):
 
         package = colorview2d.mods
         for importer, modname, ispckg in pkgutil.iter_modules(package.__path__):
-            try:    
+            try:
                 mod = importer.find_module(modname).load_module(modname)
                 for name, obj in inspect.getmembers(mod):
                     if inspect.isclass(obj):

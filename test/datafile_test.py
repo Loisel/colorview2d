@@ -19,7 +19,7 @@ class DatafileTest(unittest.TestCase):
 
         width = np.random.randint(10, 100)
         height = np.random.randint(10, 100)
-        print "arraysize ({}, {})".format(width, height)
+        print("arraysize ({0}, {1})".format(width, height))
 
         self.datafile = colorview2d.Datafile(np.random.random((width, height)))
 
@@ -145,8 +145,8 @@ class DatafileTest(unittest.TestCase):
         yone = np.random.random() * self.datafile.ymax
         ytwo = np.random.random() * self.datafile.ymax
 
-        print "Extracting arbitrary linetrace from ({}, {}) to ({}, {})."\
-            .format(yone, xone, ytwo, xtwo)
+        print("Extracting arbitrary linetrace from ({0}, {1}) to ({2}, {3})."\
+            .format(yone, xone, ytwo, xtwo))
 
         #import ipdb;ipdb.set_trace()
         linetrace = self.datafile.extract_arbitrary_linetrace((yone, xone), (ytwo, xtwo))
@@ -206,7 +206,8 @@ class FileloaderTest(unittest.TestCase):
         """
 
         testdata = np.random.random((1, 3))
-        np.savetxt(self.fname, testdata)
+        with open(self.fname, 'wb') as fhand:
+            np.savetxt(fhand, testdata)
 
         datafile = fl.load_gpfile(self.fname)
 
@@ -224,13 +225,16 @@ class FileloaderTest(unittest.TestCase):
         # The same value in each block for the y-axis
         testdata[:, 1] = np.random.random()
 
-        with open(self.fname, 'w') as testfile:
+        with open(self.fname, 'wb') as testfile:
             np.savetxt(testfile, testdata[0].reshape(1, 3))
         with open(self.fname, 'a') as testfile:
             testfile.write('\n')
+        with open(self.fname, 'ab') as testfile:
             np.savetxt(testfile, testdata[1].reshape(1, 3))
             #add a third broken line            
+        with open(self.fname, 'a') as testfile:
             testfile.write('\n')
+        with open(self.fname, 'ab') as testfile:
             np.savetxt(testfile, np.random.random((1, 2)))
             
 
@@ -253,7 +257,8 @@ class FileloaderTest(unittest.TestCase):
         # NOT The same value in each block for the y-axis
         testdata = np.random.random((2, 3))
 
-        np.savetxt(self.fname, testdata)
+        with open(self.fname, 'wb') as testfile:
+            np.savetxt(testfile, testdata)
 
         with self.assertRaises(AssertionError):
             datafile = fl.load_gpfile(self.fname)
