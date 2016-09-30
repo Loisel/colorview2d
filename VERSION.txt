@@ -1,3 +1,13 @@
+--- Version BETA 0.6.2
+
+- now python3 compatible.
+
+--- Version BETA 0.6.1
+
+- Changed versioning scheme.
+- Added deploy tests with docker.
+- Working pip version.
+
 --- Version BETA 0.6
 
 - Major code refactoring. Removed GUI.
