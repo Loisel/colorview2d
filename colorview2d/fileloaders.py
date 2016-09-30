@@ -61,7 +61,7 @@ def load_gpfile(path, columns=None):
             bsize = i
             break
 
-    bnum = nlines / bsize
+    bnum = nlines // bsize
     lnum = bsize * bnum
 
     # Check integrity

@@ -92,7 +92,7 @@ class ModTest(unittest.TestCase):
 
     def test_median(self):
         """Test of the median mod."""
-        width = np.random.randint(1, min(self.width, self.height) / 2)
+        width = np.random.randint(1, min(self.width, self.height) // 2)
 
         self.fig.add_mod('Median', (width))
 
@@ -102,7 +102,7 @@ class ModTest(unittest.TestCase):
 
     def test_adaptiveThreshold(self):
         """Test of the adaptive_threshold mod."""
-        blocksize = np.random.randint(1, min(self.width, self.height)) / 2
+        blocksize = np.random.randint(1, min(self.width, self.height)) // 2
         max_threshold = self.fig.datafile.zmax / np.mean(self.fig.datafile.zdata)
         threshold = np.random.randint(0, max_threshold)
 
