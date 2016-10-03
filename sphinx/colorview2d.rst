@@ -1,26 +1,12 @@
-colorview2d package
-===================
-
-.. automodule:: colorview2d.__init__
-
-This documentation is not complete. It includes only the central
-classes of colorview2d, which are
-
-- the :class:`colorview2d.CvFig` class which hosts the *pipeline*, the *datafile* and the *configuration* objects.
-- the :class:`colorview2d.Datafile` class which hosts the 2d numpy array and the axes bounds.
-
-
-Classes
--------
 
 CvFig: The colorview2d figure.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 .. autoclass:: colorview2d.CvFig
    :members:
 
 Datafile: A container for the array and the axes bounds.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------
 
 .. autoclass:: colorview2d.Datafile
     :members:

@@ -3,14 +3,24 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to colorview2d's documentation!
-=======================================
 
-Contents:
+colorview2d documentation
+=========================
 
-.. toctree::
-   :maxdepth: 3
+.. automodule:: colorview2d.__init__
 
+This documentation is not complete. It includes only the central
+classes of colorview2d, which are
+
+- the :class:`colorview2d.CvFig` class which hosts the *pipeline*, the *datafile* and the *configuration* objects.
+- the :class:`colorview2d.Datafile` class which hosts the 2d numpy array and the axes bounds.
+
+.. include:: ../README.rst
+
+colorview2d classes
+===================
+
+.. include:: colorview2d.rst
 
 
 Indices and tables
