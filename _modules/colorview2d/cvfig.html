@@ -1,0 +1,644 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>colorview2d.cvfig &#8212; colorview2d 0.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="colorview2d 0.6.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for colorview2d.cvfig</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The cvfig module hosts the CvFig class, the central object of cv2d.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="k">import</span> <span class="n">FormatStrFormatter</span>
+
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">colorview2d</span> <span class="k">import</span> <span class="n">Datafile</span>
+<span class="kn">import</span> <span class="nn">colorview2d.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+
+<span class="c1"># setup logging</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;colorview2d&#39;</span><span class="p">)</span>
+<span class="n">LOGGER</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="c1"># create file handler which logs even debug messages</span>
+<span class="n">FHAND</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;spam.log&#39;</span><span class="p">)</span>
+<span class="n">FHAND</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="c1"># create console handler with a higher log level</span>
+<span class="n">CHAND</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="n">CHAND</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+<span class="c1"># create formatter and add it to the handlers</span>
+<span class="n">FORMATTER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">FHAND</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FORMATTER</span><span class="p">)</span>
+<span class="n">CHAND</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FORMATTER</span><span class="p">)</span>
+<span class="c1"># add the handlers to the logger</span>
+<span class="n">LOGGER</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">FHAND</span><span class="p">)</span>
+<span class="n">LOGGER</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">CHAND</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CvFig"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig">[docs]</a><span class="k">class</span> <span class="nc">CvFig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle a 2d :class:`numpy.ndarray` with (linearly scaled) axes, apply a (extendable)</span>
+<span class="sd">    range of filters (mods) to the data while keeping track of the</span>
+<span class="sd">    modifications.</span>
+
+<span class="sd">    Hosts a :class:`matplotlib.pyplot.Figure`. Customization of this figure</span>
+<span class="sd">    is simplified with respect to the matplotlib library.</span>
+
+<span class="sd">    :Example:</span>
+
+<span class="sd">    datafile = colroview2d.Datafile(np.random.random((100, 100)))</span>
+<span class="sd">    fig = colorview2d.cvfig.CvFig(datafile)</span>
+<span class="sd">    fig.plot_pdf(&#39;Test.pdf&#39;)</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cfgfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modlist</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_modlist</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span> <span class="o">=</span> <span class="n">Datafile</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Datafile</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datafile</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide data or datafile to create a CvFig object.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_original_datafile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">deep_copy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Config</span><span class="p">()</span>
+        <span class="c1"># overwrite the on_change hook of the Config class.</span>
+        <span class="c1"># this way we can react to changes in the config appropriately.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">on_change</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_config_change</span>
+            
+        <span class="c1"># The pipeline contains a dict of numbers and tuples with</span>
+        <span class="c1"># strings that are unique to IMod objects</span>
+        <span class="c1"># and their arguments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">cfgfile</span><span class="p">:</span>
+            <span class="c1"># If a config file is provided, we load that one.</span>
+            <span class="c1"># All other parameters are ignored.</span>
+            <span class="c1"># Note: The filename must be removed from the config file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">cfgfile</span><span class="p">))</span>
+
+
+        <span class="c1"># if the config argument is not empty we replace the values</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">update_raw</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># Matplotlib figure object, contains the actual plot</span>
+        <span class="c1"># Generated upon retrieval by property accessor</span>
+        <span class="c1"># Readonly, Initialized with one pixel</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ioff</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Dpi&#39;</span><span class="p">])</span>
+
+        <span class="c1"># We use the property setter to add the given pipeline.</span>
+        <span class="k">if</span> <span class="n">pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipeline</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_pipeline</span><span class="p">()</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">modlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A (autogenerated) list of all mods that can be found in the mods/ subfolder.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modlist</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">datafile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A :class:`colorview2d.Datafile`. It encapsulates the 2d data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span>
+
+    <span class="nd">@datafile</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">datafile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the :class:`colorview2d.Datafile` of the CvFig.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span> <span class="o">=</span> <span class="n">datafile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datafile_changed</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">_datafile_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when the datafile is modified.</span>
+<span class="sd">        </span>
+<span class="sd">        Takes care to update any exiting plotting facilities.</span>
+<span class="sd">        Is called internally after mod application.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">zdata</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_extent</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">xleft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">xright</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">ybottom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">ytop</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">xleft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">xright</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">ybottom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">ytop</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbmin&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="c1"># re-setting the value triggers update of the plot</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbmax&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="c1"># re-setting the value triggers update of the plot</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">changed</span><span class="p">()</span>
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Holds information on the plot layout, ticks, fonts etc.</span>
+<span class="sd">        Can be accessed via `__setitem__`, i.e., `cvfig.config[&#39;parameter&#39;]`.</span>
+<span class="sd">        Also an `config.update(dict)` function is available.</span>
+<span class="sd">        The attribute is initialized with a fixed set of parameters read from</span>
+<span class="sd">        `default.cv2d` config file in the package directory.</span>
+<span class="sd">        </span>
+<span class="sd">        *Important:* Does not fully implement a dictionary interface.</span>
+
+<span class="sd">        Methods:</span>
+<span class="sd">            update (dict): update the configuration with a dictionary containing</span>
+<span class="sd">                valid parameters. Note that the plot, if there is any,</span>
+<span class="sd">                is updated when the config is changed via `update`</span>
+<span class="sd">            update_raw (dict): update the configuration without updating any</span>
+<span class="sd">                existing plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+
+    <span class="nd">@config</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the config. Note that it is a custom :class:`colorview2d.utils.ConfigDict` class.</span>
+<span class="sd">        We use the update routine to prevent overwriting the private attribute with</span>
+<span class="sd">        an ordinary :class:`dict`</span>
+
+<span class="sd">        Anyways: Be careful when overwriting the config because there is no error checking</span>
+<span class="sd">        on the values given!</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config_dict (dict): dictionary with configuration items.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">config_dict</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The `matplotlib.pyplot.figure`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_plot&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw_plot</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A dictionary with mod identifiers (strings) and their arguments (tuples).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span>
+
+    <span class="nd">@pipeline</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overwrite the pipeline string. Note that this is used for initialization</span>
+<span class="sd">        and does not trigger any modifications to the datafile.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pipeline (list): A list of strings that are valid mod identifiers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">modstring</span> <span class="ow">in</span> <span class="n">pipeline</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_mod</span><span class="p">(</span><span class="n">modstring</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">modstring</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Boolean. Are we showing any plot at the moment?&quot;&quot;&quot;</span>
+        <span class="c1"># We use the existence of the private _plot attribute</span>
+        <span class="c1"># as a primer.</span>
+        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_plot&#39;</span><span class="p">)</span>
+
+    <span class="c1"># def show(self):</span>
+    <span class="c1">#     &quot;&quot;&quot;Show the figure in the GUI.</span>
+    <span class="c1">#     Can be used only if wxpython is installed.</span>
+
+    <span class="c1">#     The GUI is not yet functional.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+
+    <span class="c1">#     try:</span>
+    <span class="c1">#         import colorview2d.mainapp as mainapp</span>
+    <span class="c1">#     except ImportError:</span>
+    <span class="c1">#         logging.error(&#39;Cannot start the GUI. Is wxpython installed?&#39;)</span>
+    <span class="c1">#         return</span>
+
+    <span class="c1">#     logging.info(&quot;Initializing the GUI.&quot;)</span>
+    <span class="c1">#     self.mainapp = mainapp.MainApp(self)</span>
+    <span class="c1">#     self.mainapp.MainLoop()</span>
+
+<div class="viewcode-block" id="CvFig.show_plt_fig"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.show_plt_fig">[docs]</a>    <span class="k">def</span> <span class="nf">show_plt_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show the interactive :class:`matplotlib.pyplot.Figure`.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_plot</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ion</span><span class="p">()</span>
+
+        <span class="c1"># in order to successively open and close the</span>
+        <span class="c1"># interactive figure, we have to</span>
+        <span class="c1"># create a dummy figure and use its</span>
+        <span class="c1"># manager to display &quot;fig&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plt_fig_is_active</span><span class="p">():</span>
+            <span class="n">dummy_fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fig_manager</span> <span class="o">=</span> <span class="n">dummy_fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">manager</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fig_manager</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">figure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">set_canvas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fig_manager</span><span class="o">.</span><span class="n">canvas</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_plt_fig_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if there is an active canvas manager.</span>
+<span class="sd">        If there is, we are (hopefully) running an active matplotlib.pyplot window</span>
+<span class="sd">        with an interactive plot.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            boolean</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_fig_manager&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CvFig.hide_plt_fig"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.hide_plt_fig">[docs]</a>    <span class="k">def</span> <span class="nf">hide_plt_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hide the interactive :class:`matplotlib.pyplot.Figure`.&quot;&quot;&quot;</span>
+        <span class="c1"># To this end we have to destroy the figure manager.</span>
+        <span class="c1"># See maptlotlib.pyplot.close().</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plt_fig_is_active</span><span class="p">():</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">_pylab_helpers</span><span class="o">.</span><span class="n">Gcf</span><span class="o">.</span><span class="n">destroy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fig_manager</span><span class="o">.</span><span class="n">num</span><span class="p">)</span>
+            <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_fig_manager&#39;</span><span class="p">)</span>
+        <span class="c1"># we delete _plot which indicates that we are not plotting</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_plot&#39;</span><span class="p">):</span>
+            <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_plot&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_create_modlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates the list of mods from the mods/ folder and adds them</span>
+<span class="sd">        to the private modlist attribute.</span>
+
+<span class="sd">        We check if the module (with arbitrary name) contains a class</span>
+<span class="sd">        which inherits from colorview2d.IMod</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pkgutil</span>
+        <span class="kn">import</span> <span class="nn">inspect</span>
+
+        <span class="kn">import</span> <span class="nn">colorview2d.mods</span>
+
+        <span class="n">package</span> <span class="o">=</span> <span class="n">colorview2d</span><span class="o">.</span><span class="n">mods</span>
+        <span class="k">for</span> <span class="n">importer</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">ispckg</span> <span class="ow">in</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">__path__</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mod</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">find_module</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">mod</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">colorview2d</span><span class="o">.</span><span class="n">IMod</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_modlist</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Can not import mod </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Error: </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+        <span class="c1"># import ipdb;ipdb.set_trace()</span>
+
+
+<div class="viewcode-block" id="CvFig.add_mod"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.add_mod">[docs]</a>    <span class="k">def</span> <span class="nf">add_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">modargs</span><span class="o">=</span><span class="p">(),</span> <span class="n">pos</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">do_apply</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a mod to the pipeline by its title string and its arguments either</span>
+<span class="sd">        to the end of the pipeline or at a specified postion.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            modname (string): The type of the mod.</span>
+<span class="sd">            modargs (tuple): A tuple containing the arguments of the mod.</span>
+<span class="sd">            pos (int): Where to add the mod in the pipeline. Default is last.</span>
+<span class="sd">            do_apply (boolean): Trigger modification of the datafile (True) or just add</span>
+<span class="sd">                mod to the pipeline.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Add mod </span><span class="si">%s</span><span class="s1"> to pipeline with arguments </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">modargs</span><span class="p">)</span>
+        <span class="n">modstring</span> <span class="o">=</span> <span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">modargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modlist</span><span class="p">[</span><span class="n">modname</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modstring</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pos</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">modstring</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Position </span><span class="si">%d</span><span class="s1"> not available in pipeline.&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Mod </span><span class="si">%s</span><span class="s1"> not available in mod plugin list.&#39;</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">do_apply</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_pipeline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CvFig.remove_mod"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.remove_mod">[docs]</a>    <span class="k">def</span> <span class="nf">remove_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">do_apply</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Removes the last mod from the pipeline, or the mod at position pos</span>
+<span class="sd">        or the last mod in the pipeline with the type modtype.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            modtype (string): The identifier of the mod type.</span>
+<span class="sd">            pos (int): The position of the mod in the pipeline.</span>
+<span class="sd">            do_apply (bool): Is the pipeline applied after the element is removed?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">modtype</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">pos</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">pos</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="p">):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="p">[</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">modtype</span><span class="p">:</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">modtuple</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">modtuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">modtype</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">modtuple</span><span class="p">)</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Mod </span><span class="si">%s</span><span class="s1"> not in current pipeline.&#39;</span><span class="p">,</span> <span class="n">modtype</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Pos = </span><span class="si">%d</span><span class="s1"> is not a valid position.&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">do_apply</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_pipeline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CvFig.apply_pipeline"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.apply_pipeline">[docs]</a>    <span class="k">def</span> <span class="nf">apply_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Applies the pipeline to the datafile.</span>
+
+<span class="sd">        It is normally not necessary to manually call this function unless</span>
+<span class="sd">        the pipeline string is not overwritten directly.</span>
+
+<span class="sd">        The datafile is first reverted to its original state,</span>
+<span class="sd">        then mods are applied in the order they were added.</span>
+<span class="sd">        The plot panel is notified of the update in the datafile.</span>
+<span class="sd">        The main panel is signalled to update the color controls.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_datafile</span><span class="o">.</span><span class="n">deep_copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">modtuple</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="p">):</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modlist</span><span class="p">[</span><span class="n">modtuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">mod</span><span class="p">:</span>
+                <span class="c1"># if apply returns false, the application failed and the</span>
+                <span class="c1"># mod is removed from the pipeline</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">mod</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="p">,</span> <span class="n">modtuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s1">&#39;Application of mod </span><span class="si">%s</span><span class="s1"> at position </span><span class="si">%d</span><span class="s1"> failed.&#39;</span>
+                        <span class="s1">&#39;Removing mod from pipeline.&#39;</span><span class="p">,</span>
+                        <span class="n">mod</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+                        <span class="n">pos</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">remove_mod</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_datafile_changed</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;No mod candidate found for </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">modtuple</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="CvFig.get_arraydata"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.get_arraydata">[docs]</a>    <span class="k">def</span> <span class="nf">get_arraydata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shortcut for the 2d data contained int the datafile.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            2d numpy.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span></div>
+
+
+<div class="viewcode-block" id="CvFig.load_config"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.load_config">[docs]</a>    <span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load the configuration and the pipeline from a config file</span>
+<span class="sd">        specified in the YAML format.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cfgpath (string): The path to a cv2d configuration file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ast</span> <span class="k">import</span> <span class="n">literal_eval</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cfgpath</span><span class="p">)</span> <span class="k">as</span> <span class="n">cfgfile</span><span class="p">:</span>
+            <span class="n">doclist</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load_all</span><span class="p">(</span><span class="n">cfgfile</span><span class="p">)</span>
+            <span class="c1"># The config dict is the first yaml document</span>
+
+            <span class="c1"># Note that the advance_iterator does doclist.next()</span>
+            <span class="c1"># and is a 2to3 compatibility issue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">update_raw</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">advance_iterator</span><span class="p">(</span><span class="n">doclist</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">draw_plot</span><span class="p">()</span>
+            <span class="c1"># The pipeline string is the second. It is optional.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Pipeline string found: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="p">)</span>
+                <span class="n">pipeline</span> <span class="o">=</span> <span class="n">literal_eval</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">advance_iterator</span><span class="p">(</span><span class="n">doclist</span><span class="p">))</span>
+                <span class="c1"># Note that the property setter is called</span>
+                <span class="c1"># applying the mods one by one</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipeline</span>
+
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No pipeline string found.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CvFig.save_config"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.save_config">[docs]</a>    <span class="k">def</span> <span class="nf">save_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the configuration and the pipeline to a config file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cfgpath (string): the path to the config file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cfgpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+            <span class="c1"># We write first the config dict</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">explicit_start</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># ... and second the pipeline string</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipeline</span><span class="p">),</span> <span class="n">stream</span><span class="p">,</span> <span class="n">explicit_start</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_on_config_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when paramters in the utils.Config class are changed.</span>
+<span class="sd">        </span>
+<span class="sd">        We use different levels of severeness. When only colorbar settings</span>
+<span class="sd">        are changed, this can be done easily, but changes to the font</span>
+<span class="sd">        require redrawing the whole plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># When there is no plot we do not care at the moment.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span>
+            <span class="k">return</span>
+            
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;Colormap&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Colormap&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;Cbmin&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">zmin</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbmin&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;Cbmax&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="n">vmax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_datafile</span><span class="o">.</span><span class="n">zmax</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="n">vmax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbmax&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Colormap&#39;</span><span class="p">,</span> <span class="s1">&#39;Cbmin&#39;</span><span class="p">,</span> <span class="s1">&#39;Cbmax&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">changed</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="c1"># If config_dict only contains changes that do not need a redrawing</span>
+        <span class="c1"># of the plot we apply them and return</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Xlabel&#39;</span><span class="p">,</span> <span class="s1">&#39;Ylabel&#39;</span><span class="p">,</span> <span class="s1">&#39;Xtickformat&#39;</span><span class="p">,</span> <span class="s1">&#39;Ytickformat&#39;</span><span class="p">,</span> <span class="s1">&#39;Cblabel&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_apply_config_post_plot</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="c1"># If the font parameters, the ticksize or the format of the colorbar ticks</span>
+        <span class="c1"># is changed, we have to redraw the plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_plot</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CvFig.plot_pdf"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.plot_pdf">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Redraw the figure and plot it to a pdf file.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_plot</span><span class="p">()</span>
+        <span class="c1"># Note that the Width and Height parameters are *only* applied</span>
+        <span class="c1"># when plotting to pdf.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Width&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Height&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Dpi&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CvFig.draw_plot"><a class="viewcode-back" href="../../index.html#colorview2d.CvFig.draw_plot">[docs]</a>    <span class="k">def</span> <span class="nf">draw_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;(Re-)draw the :class:`matplotlib.pyplot.figure`.</span>
+
+<span class="sd">        This method is intended to be used directly when you are only interested</span>
+<span class="sd">        in the figure object itself which can be obtained by `myfig.fig` attribute.</span>
+
+<span class="sd">        It includes an axes object containing the (imshow generated)</span>
+<span class="sd">        2d color plot with labels, ticks and colorbar as specified in the</span>
+<span class="sd">        config dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_config_pre_plot</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_arraydata</span><span class="p">(),</span>
+            <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datafile</span><span class="o">.</span><span class="n">xleft</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">datafile</span><span class="o">.</span><span class="n">xright</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">datafile</span><span class="o">.</span><span class="n">ybottom</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">datafile</span><span class="o">.</span><span class="n">ytop</span><span class="p">],</span>
+            <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
+            <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbtickformat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">colorbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">,</span>
+                <span class="nb">format</span><span class="o">=</span><span class="n">FormatStrFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cbtickformat&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">colorbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">)</span>
+
+        <span class="c1"># we set the correct colorbar settings</span>
+        <span class="c1"># this call seems redundant but invokes the update</span>
+        <span class="c1"># of the colorbar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Cbmin&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Cbmin&#39;</span><span class="p">],</span> <span class="s1">&#39;Cbmax&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Cbmax&#39;</span><span class="p">]}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_config_post_plot</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">changed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_apply_config_post_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The function applies the rest of the configuration to the plot.</span>
+<span class="sd">        Note that the colorbar is created in this function because</span>
+<span class="sd">        colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter(string)) does not work properly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Ylabel&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Xlabel&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Cblabel&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Xtickformat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FormatStrFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Xtickformat&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Ytickformat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FormatStrFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Ytickformat&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Colormap&#39;</span><span class="p">])</span>
+
+
+
+    <span class="k">def</span> <span class="nf">_apply_config_pre_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies the ticks and labels stored in the MainFrame.</span>
+<span class="sd">        This function is called before the actual plot is drawn.</span>
+<span class="sd">        This pre_plot hook is necessary because the rcParams[&#39;font.family&#39;]</span>
+<span class="sd">        attribute can not be changed after the plot is drawn.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Font now </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Font&#39;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Font&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="s1">&#39;default&#39;</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">rcParamsDefault</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Font&#39;</span><span class="p">]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Fontsize&#39;</span><span class="p">]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;xtick.major.size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Xticklength&#39;</span><span class="p">]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;ytick.major.size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;Yticklength&#39;</span><span class="p">]</span></div>
+
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

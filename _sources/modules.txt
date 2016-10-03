@@ -1,0 +1,7 @@
+colorview2d
+===========
+
+.. toctree::
+   :maxdepth: 4
+
+   colorview2d

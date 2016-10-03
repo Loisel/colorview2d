@@ -1,0 +1,94 @@
+colorview2d.mods package
+========================
+
+Submodules
+----------
+
+colorview2d.mods.Absolute module
+--------------------------------
+
+.. automodule:: colorview2d.mods.Absolute
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Adaptive_Threshold module
+------------------------------------------
+
+.. automodule:: colorview2d.mods.Adaptive_Threshold
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Crop module
+----------------------------
+
+.. automodule:: colorview2d.mods.Crop
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Derive module
+------------------------------
+
+.. automodule:: colorview2d.mods.Derive
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Flip module
+----------------------------
+
+.. automodule:: colorview2d.mods.Flip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Log module
+---------------------------
+
+.. automodule:: colorview2d.mods.Log
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Median module
+------------------------------
+
+.. automodule:: colorview2d.mods.Median
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Rotate module
+------------------------------
+
+.. automodule:: colorview2d.mods.Rotate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Scale module
+-----------------------------
+
+.. automodule:: colorview2d.mods.Scale
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+colorview2d.mods.Smooth module
+------------------------------
+
+.. automodule:: colorview2d.mods.Smooth
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: colorview2d.mods
+    :members:
+    :undoc-members:
+    :show-inheritance:

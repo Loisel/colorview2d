@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>colorview2d.mods.Adaptive_Threshold &#8212; colorview2d 0.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="colorview2d 0.6.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for colorview2d.mods.Adaptive_Threshold</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Adaptive_Threshold</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">A mod to extract prominent features from the datafile.</span>
+<span class="sd">The widget provides two FloatSpin controls</span>
+<span class="sd">to specify the size of the region where the peak value is compared to</span>
+<span class="sd">and a minimum height of a possible peak.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">colorview2d</span> <span class="k">import</span> <span class="n">imod</span>
+
+<span class="kn">from</span> <span class="nn">skimage.filter</span> <span class="k">import</span> <span class="n">threshold_adaptive</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">img_as_float</span>
+
+
+<div class="viewcode-block" id="Adaptive_Threshold"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Adaptive_Threshold.Adaptive_Threshold">[docs]</a><span class="k">class</span> <span class="nc">Adaptive_Threshold</span><span class="p">(</span><span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The mod class. The apply routine contains the logic for applying</span>
+<span class="sd">    the adaptive threshold filter to the datafile.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar args: A tuple containing the blocksize and the offset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_args</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Adaptive_Threshold.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Adaptive_Threshold.Adaptive_Threshold.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafile</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        To apply the mod we use the adaptive threshold routine of</span>
+<span class="sd">        the :module:`skimage.filter`.</span>
+<span class="sd">        The threshold is calculated from</span>
+<span class="sd">        </span>
+<span class="sd">        threshold = (1+offset)*mean</span>
+
+<span class="sd">        where offset is the value defined via the widget.</span>
+<span class="sd">        Note that the result is a binary image with values</span>
+<span class="sd">        0 and 1.</span>
+
+<span class="sd">        Args</span>
+<span class="sd">            datafile (gpfile): The datafile.</span>
+<span class="sd">            modargs (tuple): First argument is the blocksize (integer), second</span>
+<span class="sd">                             argument ist the offset for the threshold (float)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">modargs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        
+        <span class="n">newZ</span> <span class="o">=</span> <span class="n">img_as_float</span><span class="p">(</span>
+            <span class="n">threshold_adaptive</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span><span class="p">),</span> <span class="n">modargs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;generic&#39;</span><span class="p">,</span> <span class="n">param</span><span class="o">=</span><span class="n">func</span><span class="p">))</span>
+        
+        <span class="c1"># Only if the array contains at least two different values</span>
+        <span class="c1"># we really apply the filter</span>
+        <span class="k">if</span> <span class="n">newZ</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">!=</span> <span class="n">newZ</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+            <span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">newZ</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

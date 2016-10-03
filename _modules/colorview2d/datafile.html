@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>colorview2d.datafile &#8212; colorview2d 0.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="colorview2d 0.6.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for colorview2d.datafile</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/bin/python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A module to handle 3D datafiles with axes.</span>
+
+<span class="sd">A datafile consists of a 2d array and x and y axes.</span>
+<span class="sd">The class provides methods to rotate, flipp, copy and save</span>
+<span class="sd">the datafile.</span>
+
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+<span class="sd">::</span>
+
+<span class="sd">    file = Datafile(np.random.random(100, 100))</span>
+<span class="sd">    file.rotate_cw()</span>
+<span class="sd">    file.report()</span>
+<span class="sd">    file.save(&#39;newdata.dat&#39;)</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="Datafile"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile">[docs]</a><span class="k">class</span> <span class="nc">Datafile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A data file object.</span>
+
+<span class="sd">    Provide a 2d array of data. The ranges on x and y axis can be specified.</span>
+<span class="sd">    If they are not, the ranges are enumerating the number of rows and columns,</span>
+<span class="sd">    respectively.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">range_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a datafile object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (numpy.array): the two-dimensional array holding the data.</span>
+<span class="sd">            range_bounds (tuple of tuples): y-range boundaries as a tuple (bottom, top),</span>
+<span class="sd">                                            x-range boundaries as a tuple (left, right)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xrange_bounds</span> <span class="o">=</span> <span class="n">range_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">yrange_bounds</span> <span class="o">=</span> <span class="n">range_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">AssertionError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Ranges not specified correctly. &#39;</span>
+                         <span class="s1">&#39;Should be ((y_bottom, y_top), (x_left, x_right)). &#39;</span>
+                         <span class="s1">&#39;Using index dimensions as ranges.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xleft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Right boundary value of the x-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xright</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Left boundary value of the x-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Minimum value of the x-axis range.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xmax</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum value of the x-axis range.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Spacing of x-axis values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span>\
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ytop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Top boundary value of the y-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ybottom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bottom boundary value of the y-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ymin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Minimum value of the y-axis range.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ymax</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum value of the y-axis range.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Spacing of y-axis values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span>\
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">zdata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;2d :class:`numpy.ndarray`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">zmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Minimum value of the 2d :class:`numpy.ndarray`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">zmax</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum value of the 2d :class:`numpy.ndarray`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Size of the array along the x-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ywidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Size of the array along the y-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@zdata</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">zdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a new 2d :class:`numpy.ndarray`.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> \
+            <span class="s1">&#39;Not a numpy array. Please provide a numpy array for datafile creation.&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Provide a two-dimensional array for datafile creation.&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span> <span class="o">=</span> <span class="n">data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">y_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A linear y-range array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">x_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A linear x-range array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xrange_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Boundary values on the x-axis as a tuple (left, right).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span>
+
+    <span class="nd">@xrange_bounds</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">xrange_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">range_boundaries</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">range_boundaries</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Boundaries of x-axis range not specified correctly.&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">range_boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">range_boundaries</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">yrange_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Boundary values on the y-axis as a tuple (bottom, top).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span>
+
+    <span class="nd">@yrange_bounds</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">yrange_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">range_boundaries</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">range_boundaries</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Boundaries of y-axis range not specified correctly.&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">range_boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">range_boundaries</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+
+<div class="viewcode-block" id="Datafile.report"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print a datafile report to the standart output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;There are </span><span class="si">{0}</span><span class="s2"> lines and </span><span class="si">{1}</span><span class="s2"> columns in the datafile.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;X-axis range from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xleft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xright</span><span class="p">),</span>
+            <span class="s2">&quot;Y-axis range from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ybottom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ytop</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Datafile.deep_copy"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.deep_copy">[docs]</a>    <span class="k">def</span> <span class="nf">deep_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deep copy the datafile object and return the copy.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A copy of the :class:`Colorview2d.Datafile` instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">tmp</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tmp</span></div>
+
+
+<div class="viewcode-block" id="Datafile.rotate_cw"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.rotate_cw">[docs]</a>    <span class="k">def</span> <span class="nf">rotate_cw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rotate the datafile clockwise. The axes are updated as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">old_xrange_boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span>
+        <span class="n">old_yrange_boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="n">old_yrange_boundaries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="n">old_xrange_boundaries</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Datafile.rotate_ccw"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.rotate_ccw">[docs]</a>    <span class="k">def</span> <span class="nf">rotate_ccw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rotate the datafile counter-clockwise. The axes are updated as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">old_xrange_boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span>
+        <span class="n">old_yrange_boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="n">old_yrange_boundaries</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="n">old_xrange_boundaries</span></div>
+
+
+<div class="viewcode-block" id="Datafile.flip_lr"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.flip_lr">[docs]</a>    <span class="k">def</span> <span class="nf">flip_lr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flip the left and the right side of the datafile. The axes are updated as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Datafile.flip_ud"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.flip_ud">[docs]</a>    <span class="k">def</span> <span class="nf">flip_ud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flip the up and the down side of the datafile. The axes are updated as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Datafile.is_within_xbounds"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.is_within_xbounds">[docs]</a>    <span class="k">def</span> <span class="nf">is_within_xbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if the given value is within the xrange.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a boolean.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmin</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span></div>
+
+<div class="viewcode-block" id="Datafile.is_within_ybounds"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.is_within_ybounds">[docs]</a>    <span class="k">def</span> <span class="nf">is_within_ybounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if the given value is within the yrange.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a boolean.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ymin</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ymax</span></div>
+
+<div class="viewcode-block" id="Datafile.is_within_bounds"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.is_within_bounds">[docs]</a>    <span class="k">def</span> <span class="nf">is_within_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if the given coordinate (y, x) is within the ranges</span>
+<span class="sd">        of the axes.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a boolean.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_within_xbounds</span><span class="p">(</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_within_ybounds</span><span class="p">(</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Datafile.crop"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.crop">[docs]</a>    <span class="k">def</span> <span class="nf">crop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Crop the datafile to a subset of the array specifiying the corners of the subset in</span>
+<span class="sd">        units of the axes ranges.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            boundaries (tuple): (bottom boundary, top boundary,</span>
+<span class="sd">                                           left boundary, right boundary)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bottom_boundary</span><span class="p">,</span> <span class="n">top_boundary</span> <span class="o">=</span> <span class="p">(</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boundaries</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">left_boundary</span><span class="p">,</span> <span class="n">right_boundary</span> <span class="o">=</span> <span class="p">(</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">boundaries</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_within_bounds</span><span class="p">((</span><span class="n">bottom_boundary</span><span class="p">,</span> <span class="n">left_boundary</span><span class="p">)),</span>\
+            <span class="s1">&#39;crop: Bottom left edge not within boundaries.&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_within_bounds</span><span class="p">((</span><span class="n">top_boundary</span><span class="p">,</span> <span class="n">right_boundary</span><span class="p">)),</span>\
+            <span class="s1">&#39;crop: Top right edge not within boundaries.&#39;</span>
+
+
+        <span class="n">xleft_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">left_boundary</span><span class="p">)</span>
+        <span class="n">xright_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">right_boundary</span><span class="p">)</span>
+        <span class="n">ybottom_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">bottom_boundary</span><span class="p">)</span>
+        <span class="n">ytop_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">top_boundary</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xrange_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_boundary</span><span class="p">,</span> <span class="n">right_boundary</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yrange_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">bottom_boundary</span><span class="p">,</span> <span class="n">top_boundary</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">[</span><span class="n">ybottom_idx</span><span class="p">:</span><span class="n">ytop_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xleft_idx</span><span class="p">:</span><span class="n">xright_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Datafile.x_range_idx_by_val"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.x_range_idx_by_val">[docs]</a>    <span class="k">def</span> <span class="nf">x_range_idx_by_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the nearest index of a value within the x axis range.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: A value in the range of the x axis</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The closest index on the x axis range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_within_xbounds</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="s1">&#39;Value </span><span class="si">%f</span><span class="s1"> out of xrange.&#39;</span> <span class="o">%</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xleft</span> <span class="o">-</span> <span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Datafile.y_range_idx_by_val"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.y_range_idx_by_val">[docs]</a>    <span class="k">def</span> <span class="nf">y_range_idx_by_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the nearest index of a value within the y axis range.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: A value in the range of the y axis</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The closest index on the y axis range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_within_ybounds</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="s1">&#39;Value </span><span class="si">%f</span><span class="s1"> out of yrange.&#39;</span> <span class="o">%</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ybottom</span> <span class="o">-</span> <span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Datafile.idx_by_val_coordinate"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.idx_by_val_coordinate">[docs]</a>    <span class="k">def</span> <span class="nf">idx_by_val_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the nearest index pair for a coordinate pair (y, x) along the</span>
+<span class="sd">        two axes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            coordinate (tuple): y-axis value, x-axis value (inverse order!)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (y-axis index, x-axis index) -- both integer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="Datafile.extract_ylinetrace"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.extract_ylinetrace">[docs]</a>    <span class="k">def</span> <span class="nf">extract_ylinetrace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xval</span><span class="p">,</span> <span class="n">ystartval</span><span class="p">,</span> <span class="n">ystopval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract a linetrace along a given y-axis range vor a specific</span>
+<span class="sd">        value on the x axis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xval (float): Position of the linecut along the x-axis.</span>
+<span class="sd">            ystartval (float): First and ...</span>
+<span class="sd">            ystopval (float): last value of the range along the y-axis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            numpy array with two rows</span>
+<span class="sd">            [0] linecutdata</span>
+<span class="sd">            [1] y-axis range</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">y_start_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">ystartval</span><span class="p">)</span>
+        <span class="n">y_stop_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">ystopval</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">y_start_idx</span> <span class="o">!=</span> <span class="n">y_stop_idx</span><span class="p">,</span>\
+                              <span class="s1">&#39;Startindex and stopindex </span><span class="si">%d</span><span class="s1"> are equal for ylinetrace.&#39;</span> <span class="o">%</span> <span class="n">y_start_idx</span>
+
+        <span class="n">sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">y_stop_idx</span> <span class="o">-</span> <span class="n">y_start_idx</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sign</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="p">[</span><span class="n">y_start_idx</span><span class="p">:</span><span class="n">y_stop_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">xval</span><span class="p">)],</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">y_range</span><span class="p">[</span><span class="n">y_start_idx</span><span class="p">:</span><span class="n">y_stop_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="p">[</span><span class="n">y_stop_idx</span><span class="p">:</span><span class="n">y_start_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">xval</span><span class="p">)]</span>
+            <span class="n">y_range</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range</span><span class="p">[</span><span class="n">y_stop_idx</span><span class="p">:</span><span class="n">y_start_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">data</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_range</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="Datafile.extract_xlinetrace"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.extract_xlinetrace">[docs]</a>    <span class="k">def</span> <span class="nf">extract_xlinetrace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">xstartval</span><span class="p">,</span> <span class="n">xstopval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract a linetrace along a given y-axis range vor a specific</span>
+<span class="sd">        value on the x axis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            yval (float): Position of the linecut along the y-axis.</span>
+<span class="sd">            xstartval (float): Start and ...</span>
+<span class="sd">            xstopval (float): stop value of the range along the x-axis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            numpy array with two rows</span>
+<span class="sd">            [0] linecutdata</span>
+<span class="sd">            [1] x-axis range</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x_start_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">xstartval</span><span class="p">)</span>
+        <span class="n">x_stop_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">xstopval</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">x_start_idx</span> <span class="o">!=</span> <span class="n">x_stop_idx</span><span class="p">,</span>\
+                              <span class="s1">&#39;Startindex and stopindex </span><span class="si">%d</span><span class="s1"> are equal for xlinetrace.&#39;</span> <span class="o">%</span> <span class="n">x_start_idx</span>
+
+        <span class="n">sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x_stop_idx</span> <span class="o">-</span> <span class="n">x_start_idx</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sign</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">yval</span><span class="p">),</span> <span class="n">x_start_idx</span><span class="p">:</span><span class="n">x_stop_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="n">x_start_idx</span><span class="p">:</span><span class="n">x_stop_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">yval</span><span class="p">),</span> <span class="n">x_stop_idx</span><span class="p">:</span><span class="n">x_start_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">x_range</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span><span class="p">[</span><span class="n">x_stop_idx</span><span class="p">:</span><span class="n">x_start_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">data</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_range</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="Datafile.extract_ylinetrace_series"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.extract_ylinetrace_series">[docs]</a>    <span class="k">def</span> <span class="nf">extract_ylinetrace_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_first</span><span class="p">,</span> <span class="n">x_last</span><span class="p">,</span> <span class="n">x_interval</span><span class="p">,</span> <span class="n">ystart</span><span class="p">,</span> <span class="n">ystop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract linetraces along a given y-axis range for</span>
+<span class="sd">        values on the x axis within a given range and separated by</span>
+<span class="sd">        a given interval.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x_first (float): value on the x-axis for the first line trace in the series.</span>
+<span class="sd">            x_last (float): value on the x-axis for the last line trace in the series.</span>
+<span class="sd">            x_interval (float): the (positive) interval between two linecuts on the x-axis.</span>
+<span class="sd">            ystart (float): Start and ...</span>
+<span class="sd">            ystop (float): stop value of the range along the y-axis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a numpy array with n + 1 rows with the length equal to the y-dimensions of zdata.</span>
+<span class="sd">            n is the number of linecuts, i.e., abs(x_last - x_first) / x_interval.</span>
+<span class="sd">            The last row contains the y-axis range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="n">result_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_ylinetrace</span><span class="p">(</span><span class="n">x_first</span><span class="p">,</span> <span class="n">ystart</span><span class="p">,</span> <span class="n">ystop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">x_first</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range_idx_by_val</span><span class="p">(</span><span class="n">x_last</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">result_array</span>
+
+        <span class="n">result_range</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">result_array</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">x_sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x_last</span> <span class="o">-</span> <span class="n">x_first</span><span class="p">)</span>
+        <span class="n">x_pos</span> <span class="o">=</span> <span class="n">x_first</span> <span class="o">+</span> <span class="n">x_interval</span> <span class="o">*</span> <span class="n">x_sign</span>
+
+        <span class="k">while</span> <span class="n">x_pos</span> <span class="o">*</span> <span class="n">x_sign</span> <span class="o">&lt;=</span> <span class="n">x_last</span> <span class="o">*</span> <span class="n">x_sign</span><span class="p">:</span>
+            <span class="n">result_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">result_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_ylinetrace</span><span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="n">ystart</span><span class="p">,</span> <span class="n">ystop</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="n">x_pos</span> <span class="o">+=</span> <span class="n">x_interval</span> <span class="o">*</span> <span class="n">x_sign</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">result_array</span><span class="p">,</span> <span class="n">result_range</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Datafile.extract_xlinetrace_series"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.extract_xlinetrace_series">[docs]</a>    <span class="k">def</span> <span class="nf">extract_xlinetrace_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_first</span><span class="p">,</span> <span class="n">y_last</span><span class="p">,</span> <span class="n">y_interval</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xstop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract linetraces along a given x-axis range for</span>
+<span class="sd">        values on the y axis within a given range and separated by</span>
+<span class="sd">        a given interval.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y_first (float): value on the y-axis for the first line trace in the series.</span>
+<span class="sd">            y_last (float): value on the y-axis for the last line trace in the series.</span>
+<span class="sd">            y_interval (float): the (positive) interval between two linecuts on the y-axis.</span>
+<span class="sd">            xstart (float): Start and ...</span>
+<span class="sd">            xstop (float): stop value of the range along the x-axis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a numpy array with n + 1 rows with the length equal to the x-dimensions of zdata.</span>
+<span class="sd">            n is the number of linecuts, i.e., abs(y_last - y_first) / y_interval.</span>
+<span class="sd">            The last row contains the x-axis range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">result_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_xlinetrace</span><span class="p">(</span><span class="n">y_first</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xstop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">y_first</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range_idx_by_val</span><span class="p">(</span><span class="n">y_last</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">result_array</span>
+
+        <span class="n">y_sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">y_last</span> <span class="o">-</span> <span class="n">y_first</span><span class="p">)</span>
+        <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y_first</span> <span class="o">+</span> <span class="n">y_interval</span> <span class="o">*</span> <span class="n">y_sign</span>
+        <span class="c1"># For now we remove the range axis</span>
+        <span class="n">result_range</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">result_array</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">while</span> <span class="n">y_pos</span> <span class="o">*</span> <span class="n">y_sign</span> <span class="o">&lt;=</span> <span class="n">y_last</span> <span class="o">*</span> <span class="n">y_sign</span><span class="p">:</span>
+            <span class="c1"># add the next linetrace to the other linetraces</span>
+            <span class="n">result_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">result_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_xlinetrace</span><span class="p">(</span><span class="n">y_pos</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xstop</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="n">y_pos</span> <span class="o">+=</span> <span class="n">y_interval</span> <span class="o">*</span> <span class="n">y_sign</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">result_array</span><span class="p">,</span> <span class="n">result_range</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Datafile.extract_arbitrary_linetrace"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.extract_arbitrary_linetrace">[docs]</a>    <span class="k">def</span> <span class="nf">extract_arbitrary_linetrace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate_one</span><span class="p">,</span> <span class="n">coordinate_two</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract a linetrace between two arbitrary points.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            coordinate_one (tuple): coordinate in the coordinate system of the axis.</span>
+<span class="sd">                The order is (yval, xval)!</span>
+<span class="sd">            coordinate_two (tuple): coordinates in the coordinate system of the</span>
+<span class="sd">                x and y axes. The order is (yval, xval)!</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array with the linetrace. No axis range is supplied since it does not make sense</span>
+<span class="sd">            along any arbitrary direction.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># we transform to the grid</span>
+        <span class="n">idx_one</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">idx_by_val_coordinate</span><span class="p">(</span><span class="n">coordinate_one</span><span class="p">)</span>
+        <span class="n">idx_two</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">idx_by_val_coordinate</span><span class="p">(</span><span class="n">coordinate_two</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">idx_one</span> <span class="o">!=</span> <span class="n">idx_two</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s1">&#39;Coordinate one and two are equal: (y=</span><span class="si">%d</span><span class="s1">, x=</span><span class="si">%d</span><span class="s1">).&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idx_one</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>\
+            <span class="s1">&#39;Can not extract linetrace of zero length.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># if one of the two coordinate axis has zero difference,</span>
+        <span class="c1"># we call the orthogonal version</span>
+        <span class="c1"># y axis difference is zero:</span>
+        <span class="k">if</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx_two</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_xlinetrace</span><span class="p">(</span>
+                <span class="n">coordinate_one</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coordinate_one</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coordinate_two</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># x axis difference is zero:</span>
+        <span class="k">elif</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx_two</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_ylinetrace</span><span class="p">(</span>
+                <span class="n">coordinate_one</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coordinate_one</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coordinate_two</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># which is the primary axis of the linetrace?</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">idx_one</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_two</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">idx_one</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_two</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">primary_axis_index</span><span class="p">,</span> <span class="n">secondary_axis_index</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">primary_axis_index</span><span class="p">,</span> <span class="n">secondary_axis_index</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">linetrace_slope</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">idx_two</span><span class="p">[</span><span class="n">secondary_axis_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_one</span><span class="p">[</span><span class="n">secondary_axis_index</span><span class="p">])</span> <span class="o">/</span>\
+                          <span class="nb">float</span><span class="p">(</span><span class="n">idx_two</span><span class="p">[</span><span class="n">primary_axis_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_one</span><span class="p">[</span><span class="n">primary_axis_index</span><span class="p">])</span>
+        <span class="c1"># Note that the linetrace has one more points than its length</span>
+        <span class="n">linetrace_size</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">idx_two</span><span class="p">[</span><span class="n">primary_axis_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_one</span><span class="p">[</span><span class="n">primary_axis_index</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">axis_sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">idx_two</span><span class="p">[</span><span class="n">primary_axis_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_one</span><span class="p">[</span><span class="n">primary_axis_index</span><span class="p">])</span>
+
+        <span class="c1"># go along primary axis and extract closest point</span>
+        <span class="c1"># if the primary axis is y-axis</span>
+        <span class="k">if</span> <span class="n">primary_axis_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># dy and dx are positive: increment on both axis postive (trivial case)</span>
+            <span class="c1"># dy &gt; 0, dx &lt; 0: increment on first axis positive, slope negative -&gt; increment</span>
+            <span class="c1"># on second axis negative.</span>
+            <span class="c1"># dy &lt; 0, dx &gt; 0: increment on y negative, slope negative -&gt; dx positive</span>
+            <span class="c1"># dy &lt; 0, dx &lt; 0: increment negative, slope positive -&gt; dx negative</span>
+            <span class="n">linetrace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="p">[</span><span class="n">yidx</span> <span class="o">+</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">yidx</span> <span class="o">*</span> <span class="n">linetrace_slope</span> <span class="o">+</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">1</span><span class="p">]))]</span>
+                 <span class="k">for</span> <span class="n">yidx</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">linetrace_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">axis_sign</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">linetrace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">zdata</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xidx</span> <span class="o">*</span> <span class="n">linetrace_slope</span> <span class="o">+</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="n">xidx</span> <span class="o">+</span> <span class="n">idx_one</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                 <span class="k">for</span> <span class="n">xidx</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">linetrace_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">axis_sign</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">linetrace</span></div>
+
+<div class="viewcode-block" id="Datafile.resize"><a class="viewcode-back" href="../../index.html#colorview2d.Datafile.resize">[docs]</a>    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_ywidth</span><span class="p">,</span> <span class="n">new_xwidth</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Interpolate the array to a new, larger size.</span>
+
+<span class="sd">        Uses scipy.misc.imresize.</span>
+<span class="sd">        The ranges are interpolated accordingly.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            new_ywidth (int): new dimensions along the y-axis.</span>
+<span class="sd">            new_xwidth (int): new dimensions along the x-axis.</span>
+<span class="sd">            order (int): order of the interpolation. See `scipy.misc.imresize()`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if scipy is available</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="k">import</span> <span class="n">zoom</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Module scipy is not available. scipy.misc.imresize is used for interpolation.&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">xfactor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_xwidth</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">xwidth</span>
+        <span class="n">yfactor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_ywidth</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ywidth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zdata</span><span class="p">,</span> <span class="p">(</span><span class="n">yfactor</span><span class="p">,</span> <span class="n">xfactor</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

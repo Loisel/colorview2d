@@ -1,4 +1,0 @@
-include README.md
-include colorview2d/default.cv2d
-prune colorview2d/oldsource/
-prune register.py
