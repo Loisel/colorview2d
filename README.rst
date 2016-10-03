@@ -7,17 +7,21 @@ Features:
 ---------
 
 -  Wide range of adjustable filters (mods) that can be extended easily.
+   
    -  interpolation,
    -  Gaussian and median filters,
    -  scale, rotate, flip, crop
    -  thresholding to extract features,
    -  absolute value, natural logarithm, derivation
    -  something missing? Add a mod easily.
+   
 -  Plot to pdf or just use the matplotlib figure.
 -  Annoyed of matplotlib.pyplots 2d colorplot interface? Simple and
    convenient plot configuration.
+
    -  Adjust axis labels, their size and font as well as the plot size.
    -  Easily adapt the colorbar to your needs.
+   
 -  Mass extract linetraces (to depict feature evolution).
 -  Save cv2d config files and restore any modifications easily.
 -  Save and load data to and from plain text files (gnplot format).
