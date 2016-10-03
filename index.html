@@ -234,9 +234,11 @@ is simplified with respect to the matplotlib library.</p>
 </tr>
 </tbody>
 </table>
-<p>datafile = colroview2d.Datafile(np.random.random((100, 100)))
-fig = colorview2d.cvfig.CvFig(datafile)
-fig.plot_pdf(&#8216;Test.pdf&#8217;)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">datafile</span> <span class="o">=</span> <span class="n">colroview2d</span><span class="o">.</span><span class="n">Datafile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)))</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">colorview2d</span><span class="o">.</span><span class="n">cvfig</span><span class="o">.</span><span class="n">CvFig</span><span class="p">(</span><span class="n">datafile</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">plot_pdf</span><span class="p">(</span><span class="s1">&#39;Test.pdf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="attribute">
 <dt id="colorview2d.CvFig.modlist">
 <code class="descname">modlist</code><a class="headerlink" href="#colorview2d.CvFig.modlist" title="Permalink to this definition">¶</a></dt>
@@ -253,17 +255,17 @@ fig.plot_pdf(&#8216;Test.pdf&#8217;)</p>
 <dt id="colorview2d.CvFig.config">
 <code class="descname">config</code><a class="headerlink" href="#colorview2d.CvFig.config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Holds information on the plot layout, ticks, fonts etc.
-Can be accessed via <cite>__setitem__</cite>, i.e., <cite>cvfig.config[&#8216;parameter&#8217;]</cite>.
-Also an <cite>config.update(dict)</cite> function is available.
+Can be accessed via <code class="docutils literal"><span class="pre">__setitem__</span></code>, i.e., <code class="docutils literal"><span class="pre">cvfig.config['parameter']</span></code>.
+Also an <code class="docutils literal"><span class="pre">config.update(dict)</span></code> function is available.
 The attribute is initialized with a fixed set of parameters read from
-<cite>default.cv2d</cite> config file in the package directory.</p>
+<code class="docutils literal"><span class="pre">default.cv2d</span></code> config file in the package directory.</p>
 <p><em>Important:</em> Does not fully implement a dictionary interface.</p>
 <dl class="method">
 <dt id="colorview2d.__init__.CvFig.update">
 <code class="descname">update</code><span class="sig-paren">(</span><em>dict</em><span class="sig-paren">)</span><a class="headerlink" href="#colorview2d.__init__.CvFig.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>update the configuration with a dictionary containing
 valid parameters. Note that the plot, if there is any,
-is updated when the config is changed via <cite>update</cite></p>
+is updated when the config is changed via <code class="docutils literal"><span class="pre">update</span></code></p>
 </dd></dl>
 
 <dl class="method">
@@ -278,7 +280,7 @@ existing plot.</p>
 <dl class="attribute">
 <dt id="colorview2d.CvFig.fig">
 <code class="descname">fig</code><a class="headerlink" href="#colorview2d.CvFig.fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>The <cite>matplotlib.pyplot.figure</cite>.</p>
+<dd><p>The <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.figure</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -413,7 +415,7 @@ specified in the YAML format.</p>
 <code class="descname">draw_plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/cvfig.html#CvFig.draw_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.CvFig.draw_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>(Re-)draw the <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.figure</span></code>.</p>
 <p>This method is intended to be used directly when you are only interested
-in the figure object itself which can be obtained by <cite>myfig.fig</cite> attribute.</p>
+in the figure object itself which can be obtained by <code class="docutils literal"><span class="pre">myfig.fig</span></code> attribute.</p>
 <p>It includes an axes object containing the (imshow generated)
 2d color plot with labels, ticks and colorbar as specified in the
 config dictionary.</p>
@@ -427,8 +429,7 @@ config dictionary.</p>
 <dl class="class">
 <dt id="colorview2d.Datafile">
 <em class="property">class </em><code class="descclassname">colorview2d.</code><code class="descname">Datafile</code><span class="sig-paren">(</span><em>data</em>, <em>range_bounds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/datafile.html#Datafile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.Datafile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>A data file object.</p>
+<dd><p>A data file object.</p>
 <p>Provide a 2d array of data. The ranges on x and y axis can be specified.
 If they are not, the ranges are enumerating the number of rows and columns,
 respectively.</p>
@@ -841,7 +842,7 @@ The ranges are interpolated accordingly.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>new_ywidth</strong> (<em>int</em>) &#8211; new dimensions along the y-axis.</li>
 <li><strong>new_xwidth</strong> (<em>int</em>) &#8211; new dimensions along the x-axis.</li>
-<li><strong>order</strong> (<em>int</em>) &#8211; order of the interpolation. See <cite>scipy.misc.imresize()</cite></li>
+<li><strong>order</strong> (<em>int</em>) &#8211; order of the interpolation. See <code class="docutils literal"><span class="pre">scipy.misc.imresize()</span></code></li>
 </ul>
 </td>
 </tr>
@@ -854,8 +855,9 @@ The ranges are interpolated accordingly.</p>
 </div>
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
-<p>Cvfig class has a config attribute. The parameters stored in its dictionary are
-read from default.cv2d config file.</p>
+<p>The <a class="reference internal" href="#colorview2d.CvFig" title="colorview2d.CvFig"><code class="xref py py-class docutils literal"><span class="pre">colorview2d.CvFig</span></code></a> class has a config attribute.
+The parameters stored in its dictionary are
+read from <code class="docutils literal"><span class="pre">colorview2d/default.cv2d</span></code> config file.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Config file for colorview2d (YAML)</span>
 <span class="o">---</span>
 <span class="c1"># Default colormap</span>
