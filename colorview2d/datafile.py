@@ -540,7 +540,7 @@ class Datafile(object):
         Args:
             new_ywidth (int): new dimensions along the y-axis.
             new_xwidth (int): new dimensions along the x-axis.
-            order (int): order of the interpolation. See `scipy.misc.imresize()`
+            order (int): order of the interpolation. See ``scipy.misc.imresize()``
         """
         # Check if scipy is available
         try:

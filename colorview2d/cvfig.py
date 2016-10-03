@@ -44,10 +44,12 @@ class CvFig(object):
     is simplified with respect to the matplotlib library.
 
     :Example:
+    
+    ::
 
-    datafile = colroview2d.Datafile(np.random.random((100, 100)))
-    fig = colorview2d.cvfig.CvFig(datafile)
-    fig.plot_pdf('Test.pdf')
+        datafile = colroview2d.Datafile(np.random.random((100, 100)))
+        fig = colorview2d.cvfig.CvFig(datafile)
+        fig.plot_pdf('Test.pdf')
 
 
     """
@@ -146,17 +148,17 @@ class CvFig(object):
     @property
     def config(self):
         """Holds information on the plot layout, ticks, fonts etc.
-        Can be accessed via `__setitem__`, i.e., `cvfig.config['parameter']`.
-        Also an `config.update(dict)` function is available.
+        Can be accessed via ``__setitem__``, i.e., ``cvfig.config['parameter']``.
+        Also an ``config.update(dict)`` function is available.
         The attribute is initialized with a fixed set of parameters read from
-        `default.cv2d` config file in the package directory.
+        ``default.cv2d`` config file in the package directory.
         
         *Important:* Does not fully implement a dictionary interface.
 
         Methods:
             update (dict): update the configuration with a dictionary containing
                 valid parameters. Note that the plot, if there is any,
-                is updated when the config is changed via `update`
+                is updated when the config is changed via ``update``
             update_raw (dict): update the configuration without updating any
                 existing plot.
         """
@@ -178,7 +180,7 @@ class CvFig(object):
 
     @property
     def fig(self):
-        """The `matplotlib.pyplot.figure`."""
+        """The :class:`matplotlib.pyplot.figure`."""
         if not hasattr(self, '_plot'):
             self.draw_plot()
         return self._fig
@@ -482,7 +484,7 @@ class CvFig(object):
         """(Re-)draw the :class:`matplotlib.pyplot.figure`.
 
         This method is intended to be used directly when you are only interested
-        in the figure object itself which can be obtained by `myfig.fig` attribute.
+        in the figure object itself which can be obtained by ``myfig.fig`` attribute.
 
         It includes an axes object containing the (imshow generated)
         2d color plot with labels, ticks and colorbar as specified in the

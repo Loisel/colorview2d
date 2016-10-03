@@ -10,14 +10,13 @@ Datafile: A container for the array and the axes bounds.
 
 .. autoclass:: colorview2d.Datafile
     :members:
-    :undoc-members:
-    :show-inheritance:
 
        
 Configuration
 -------------
-Cvfig class has a config attribute. The parameters stored in its dictionary are
-read from default.cv2d config file.
+The :class:`colorview2d.CvFig` class has a config attribute.
+The parameters stored in its dictionary are
+read from ``colorview2d/default.cv2d`` config file.
 
 .. include:: ../colorview2d/default.cv2d
              :literal:
