@@ -31,28 +31,6 @@ class Datafile(object):
     If they are not, the ranges are enumerating the number of rows and columns,
     respectively.
 
-
-    Attributes:
-
-        zdata (numpy.array):  The two dimensional numpy arrray containing the actual data.
-
-        x_range_bounds (tuple): left and right bounds of the x axis range.
-        y_range_bounds (tuple): bottom and top bounds of the y axis range.
-
-    Properties:
-        xleft: The value on the left of the x axis.
-        xright: The value on the right of the x axis.
-        ytop: The values on the top of the y axis.
-        ybottom: The values on the bottom of the y axis.
-
-        zmin: The min values of the 2d array.
-        zmax: The max values of the 2d array.
-
-        xmin: The min values of the x axis range.
-        xmax: The max values of the x axis range.
-        ymin: The min values of the y axis range.
-        ymax: The max values of the y axis range.
-
     """
 
     def __init__(self, data, range_bounds=None):
@@ -82,69 +60,84 @@ class Datafile(object):
 
     @property
     def xleft(self):
+        """Right boundary value of the x-axis."""
         return self._xrange_bounds[0]
 
     @property
     def xright(self):
+        """Left boundary value of the x-axis."""
         return self._xrange_bounds[1]
 
     @property
-    def ytop(self):
-        return self._yrange_bounds[1]
-
-    @property
-    def ybottom(self):
-        return self._yrange_bounds[0]
-
-    @property
     def xmin(self):
+        """Minimum value of the x-axis range."""
         return min(self._xrange_bounds)
 
     @property
     def xmax(self):
+        """Maximum value of the x-axis range."""
         return max(self._xrange_bounds)
 
     @property
     def dx(self):
+        """Spacing of x-axis values."""
         return (self._xrange_bounds[1] - self._xrange_bounds[0]) /\
             (self._zdata.shape[1] - 1)
 
     @property
-    def dy(self):
-        return (self._yrange_bounds[1] - self._yrange_bounds[0]) /\
-            (self._zdata.shape[0] - 1)
+    def ytop(self):
+        """Top boundary value of the y-axis."""
+        return self._yrange_bounds[1]
+
+    @property
+    def ybottom(self):
+        """Bottom boundary value of the y-axis."""
+        return self._yrange_bounds[0]
 
     @property
     def ymin(self):
+        """Minimum value of the y-axis range."""
         return min(self._yrange_bounds)
 
     @property
     def ymax(self):
+        """Maximum value of the y-axis range."""
         return max(self._yrange_bounds)
 
     @property
+    def dy(self):
+        """Spacing of y-axis values."""
+        return (self._yrange_bounds[1] - self._yrange_bounds[0]) /\
+            (self._zdata.shape[0] - 1)
+
+    @property
+    def zdata(self):
+        """2d :class:`numpy.ndarray`."""
+        return self._zdata
+
+    @property
     def zmin(self):
+        """Minimum value of the 2d :class:`numpy.ndarray`."""
         return np.amin(self._zdata)
 
     @property
     def zmax(self):
+        """Maximum value of the 2d :class:`numpy.ndarray`."""
         return np.amax(self._zdata)
 
     @property
-    def zdata(self):
-        return self._zdata
-
-    @property
     def xwidth(self):
+        """Size of the array along the x-axis."""
         return self._zdata.shape[1]
 
     @property
     def ywidth(self):
+        """Size of the array along the y-axis."""
         return self._zdata.shape[0]
 
     @zdata.setter
     def zdata(self, data):
-        """Set a new 2d array."""
+        """Set a new 2d :class:`numpy.ndarray`."""
         assert isinstance(data, np.ndarray), \
             'Not a numpy array. Please provide a numpy array for datafile creation.'
         assert len(data.shape) == 2, 'Provide a two-dimensional array for datafile creation.'
@@ -152,21 +145,22 @@ class Datafile(object):
 
     @property
     def y_range(self):
-        """Generate a linear yrange from the boundaries."""
+        """A linear y-range array."""
         return np.linspace(
             self._yrange_bounds[0], self._yrange_bounds[1], self.zdata.shape[0])
 
     @property
     def x_range(self):
-        """Generate a linear x-range from the boundaries."""
+        """A linear x-range array."""
         return np.linspace(
             self._xrange_bounds[0], self._xrange_bounds[1], self.zdata.shape[1])
 
 
     @property
     def xrange_bounds(self):
+        """Boundary values on the x-axis as a tuple (left, right)."""
         return self._xrange_bounds
-    
+
     @xrange_bounds.setter
     def xrange_bounds(self, range_boundaries):
         assert len(range_boundaries) == 2, 'Boundaries of x-axis range not specified correctly.'
@@ -175,6 +169,7 @@ class Datafile(object):
 
     @property
     def yrange_bounds(self):
+        """Boundary values on the y-axis as a tuple (bottom, top)."""
         return self._yrange_bounds
 
     @yrange_bounds.setter
@@ -198,9 +193,10 @@ class Datafile(object):
 
     def deep_copy(self):
         """
-        Deep copy the datafile object.
+        Deep copy the datafile object and return the copy.
 
-        :returns: A copy of the datafile object.
+        Returns:
+            A copy of the :class:`Colorview2d.Datafile` instance.
         """
 
         tmp = copy.deepcopy(self)
@@ -247,16 +243,27 @@ class Datafile(object):
         self._yrange_bounds = self._yrange_bounds[::-1]
 
     def is_within_xbounds(self, val):
-        """Check if the given value is within the xrange."""
+        """Check if the given value is within the xrange.
+
+        Returns:
+            a boolean.
+        """
         return val >= self.xmin or val <= self.xmax
 
     def is_within_ybounds(self, val):
-        """Check if the given value is within the xrange."""
+        """Check if the given value is within the yrange.
+
+        Returns:
+            a boolean.
+        """
         return val >= self.ymin or val <= self.ymax
 
     def is_within_bounds(self, coordinate):
-        """Check if the given coordinate is within the ranges
+        """Check if the given coordinate (y, x) is within the ranges
         of the axes.
+
+        Returns:
+            a boolean.
         """
         return self.is_within_xbounds(coordinate[1]) or self.is_within_ybounds(coordinate[0])
 
@@ -266,7 +273,7 @@ class Datafile(object):
         units of the axes ranges.
 
         Args:
-            boundaries (tuple of tuples): (bottom boundary, top boundary,
+            boundaries (tuple): (bottom boundary, top boundary,
                                            left boundary, right boundary)
         """
         bottom_boundary, top_boundary = (boundaries[0], boundaries[1])
@@ -293,7 +300,8 @@ class Datafile(object):
         Args:
             value: A value in the range of the x axis
 
-        Returns: The closest index on the x axis range.
+        Returns:
+            The closest index on the x axis range.
         """
         assert self.is_within_xbounds(value), 'Value %f out of xrange.' % value
         return int(round(abs(self.xleft - value) / self.dx))
@@ -305,19 +313,20 @@ class Datafile(object):
         Args:
             value: A value in the range of the y axis
 
-        Returns: The closest index on the y axis range.
+        Returns:
+            The closest index on the y axis range.
         """
         assert self.is_within_ybounds(value), 'Value %f out of yrange.' % value
         return int(round(abs(self.ybottom - value) / self.dy))
 
     def idx_by_val_coordinate(self, coordinate):
-        """Return the nearest index pair for a coordinate pair along the
+        """Return the nearest index pair for a coordinate pair (y, x) along the
         two axes.
-        
+
         Args:
             coordinate (tuple): y-axis value, x-axis value (inverse order!)
         Returns:
-            (y-axis index, x-axis index)
+            (y-axis index, x-axis index) -- both integer
         """
         return (self.y_range_idx_by_val(coordinate[0]), self.x_range_idx_by_val(coordinate[1]))
 
@@ -328,10 +337,13 @@ class Datafile(object):
 
         Args:
             xval (float): Position of the linecut along the x-axis.
-            ystartval, ystopval (float): First and last value of the range along the y-axis.
+            ystartval (float): First and ...
+            ystopval (float): last value of the range along the y-axis.
 
         Returns:
-            (linecutdata, y-axis range)
+            numpy array with two rows
+            [0] linecutdata
+            [1] y-axis range
         """
 
         y_start_idx = self.y_range_idx_by_val(ystartval)
@@ -358,10 +370,13 @@ class Datafile(object):
 
         Args:
             yval (float): Position of the linecut along the y-axis.
-            xstartval, xstopval (float): First and last value of the range along the x-axis.
+            xstartval (float): Start and ...
+            xstopval (float): stop value of the range along the x-axis.
 
         Returns:
-            (linecutdata, x-axis range)
+            numpy array with two rows
+            [0] linecutdata
+            [1] x-axis range
         """
 
         x_start_idx = self.x_range_idx_by_val(xstartval)
@@ -387,12 +402,16 @@ class Datafile(object):
         a given interval.
 
         Args:
-            x_first, x_last (float): the values of the boundaries on the x-axis.
+            x_first (float): value on the x-axis for the first line trace in the series.
+            x_last (float): value on the x-axis for the last line trace in the series.
             x_interval (float): the (positive) interval between two linecuts on the x-axis.
-            ystart, ystop (float): the y-axis range that is extracted.
+            ystart (float): Start and ...
+            ystop (float): stop value of the range along the y-axis.
 
         Returns:
-            a list of tuples with the format (linecut_data, y_range)
+            a numpy array with n + 1 rows with the length equal to the y-dimensions of zdata.
+            n is the number of linecuts, i.e., abs(x_last - x_first) / x_interval.
+            The last row contains the y-axis range.
         """
 
 
@@ -419,13 +438,16 @@ class Datafile(object):
         a given interval.
 
         Args:
-            y_first, y_last (float): the values of the boundaries on the y-axis.
-            y_interval (float): the interval between two linecuts on the y-axis.
-            xstart, xstop (float): the x-axis range that is extracted.
+            y_first (float): value on the y-axis for the first line trace in the series.
+            y_last (float): value on the y-axis for the last line trace in the series.
+            y_interval (float): the (positive) interval between two linecuts on the y-axis.
+            xstart (float): Start and ...
+            xstop (float): stop value of the range along the x-axis.
 
         Returns:
-            Array of linetraces and the range array.
-            Order: First to last. The range information is added as last row.
+            a numpy array with n + 1 rows with the length equal to the x-dimensions of zdata.
+            n is the number of linecuts, i.e., abs(y_last - y_first) / y_interval.
+            The last row contains the x-axis range.
         """
 
         result_array = self.extract_xlinetrace(y_first, xstart, xstop)
@@ -450,9 +472,11 @@ class Datafile(object):
         """Extract a linetrace between two arbitrary points.
 
         Args:
-            coordinate_one, coordinate_two (tuple): coordinates in the coordinate system of the
+            coordinate_one (tuple): coordinate in the coordinate system of the axis.
+                The order is (yval, xval)!
+            coordinate_two (tuple): coordinates in the coordinate system of the
                 x and y axes. The order is (yval, xval)!
-        
+
         Returns:
             Array with the linetrace. No axis range is supplied since it does not make sense
             along any arbitrary direction.
@@ -509,8 +533,14 @@ class Datafile(object):
 
     def resize(self, new_ywidth, new_xwidth, order=1):
         """Interpolate the array to a new, larger size.
+
         Uses scipy.misc.imresize.
         The ranges are interpolated accordingly.
+
+        Args:
+            new_ywidth (int): new dimensions along the y-axis.
+            new_xwidth (int): new dimensions along the x-axis.
+            order (int): order of the interpolation. See `scipy.misc.imresize()`
         """
         # Check if scipy is available
         try:

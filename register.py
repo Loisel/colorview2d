@@ -5,7 +5,7 @@ import os
 import pandoc
 
 pandoc.core.PANDOC_PATH = '/usr/bin/pandoc'
-server = 'pypitest'
+server = 'pypi'
 
 doc = pandoc.Document()
 doc.markdown = open('README.md').read()

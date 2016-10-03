@@ -1,35 +1,38 @@
 # Config file for colorview2d (YAML)
 ---
-# Filename of default view
-datafilename: demo.dat
-# The columns that are read from the file.
-datafilecolumns: !!python/tuple [0, 1, 2]
-
 # Default colormap
+# Print a list of available fonts with colorview2d.utils.colormaplist()
 Colormap: jet
+# Minimum and maximum for the colorbar
 Cbmin: auto
 Cbmax: auto
 
-# Default labels
+# Labels for the x- and y-axis
 Xlabel: x-axis
 Ylabel: y-axis
+# Label for the colorbar
 Cblabel: colorscale
+
 # Format of ticklabels
+# Use c-style printf format
+# e.g. %.2f for two digits after the point
 Xtickformat: auto
 Ytickformat: auto
 Cbtickformat: auto
 
 # Fontstyle and size
+# Print a list of available fonts with colorview2d.utils.fontlist()
 Font:  default
 Fontsize: 12
 
-# Ticksize
+# Ticksize for x- and y-axis
 Xticklength: 4
 Yticklength: 4
 # Linewidth of lines that are drawn in the plot
 Linewidth: 1
 
 # Default Size of the plot and dpi
+# Note that these are *only* applied when the plot is printed to pdf.
 Width: 8
 Height: 6
 Dpi: 80

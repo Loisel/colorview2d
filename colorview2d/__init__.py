@@ -3,7 +3,7 @@
 scientific data (with dimensionful axes)
 with an easily extendable data modification (or filtering) toolbox.
 
-Tested with Python 2.7
+Tested with Python 2.7 and Python 3.
 
 Dependencies
 ------------

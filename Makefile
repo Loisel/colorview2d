@@ -25,6 +25,6 @@ testcvfig:
 	$(MODULE).PltFigTest
 
 testdeploy-local:
-	./docker-test-local.sh
+	./test/docker-test-local.sh
 testdeploy-pip:
-	./docker-test-pip.sh
+	./test/docker-test-pip.sh

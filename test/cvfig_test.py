@@ -7,11 +7,10 @@ In particular:
 
 import unittest
 import random
-import string
+
 import os
-import matplotlib.pyplot as plt
+
 import numpy as np
-from test.mods_test import ModTest
 
 import colorview2d
 
@@ -37,13 +36,13 @@ class PltFigTest(unittest.TestCase):
         self.fig.hide_plt_fig()
 
         # is there an active plot?
-        self.assertFalse(self.fig.plt_fig_is_active())
+        self.assertFalse(self.fig._plt_fig_is_active())
 
         # open it again
         self.fig.show_plt_fig()
 
         # is it there?
-        self.assertTrue(self.fig.plt_fig_is_active())
+        self.assertTrue(self.fig._plt_fig_is_active())
 
         # close it twice
         self.fig.hide_plt_fig()
