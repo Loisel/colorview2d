@@ -100,7 +100,7 @@ class View(object):
         # Readonly, Initialized with one pixel
         plt.ioff()
         self._fig = plt.figure(1, dpi=self._config['Dpi'])
-        self._colorcontrolfigure = plt.figure(figsize=(8, 1))
+        self._colorcontrolfigure = plt.figure(figsize=(9, 1))
 
         # We use the property setter to add the given pipeline.
         if pipeline is not None:
@@ -142,7 +142,7 @@ class View(object):
 
             # we redraw the colorbar sliders to set the slider range correctly
             if self._colorcontrolfigure.axes:
-                self.show_cbsliders()
+                self._show_cbsliders()
             # re-setting the value triggers update of the plot
             self._config['Cbmin'] = self._config['Cbmin']
             self._config['Cbmax'] = self._config['Cbmax']
@@ -243,9 +243,18 @@ class View(object):
             self._fig_manager = dummy_fig.canvas.manager
             self._fig_manager.canvas.figure = self._fig
             self._fig.set_canvas(self._fig_manager.canvas)
+            self._fig.canvas.set_window_title('colorview2d plot')
+
+            dummy_fig_colorctrls = plt.figure(figsize=(9, 1))
+            self._fig_manager_colorctrls = dummy_fig_colorctrls.canvas.manager
+            self._fig_manager_colorctrls.canvas.figure = self._colorcontrolfigure
+            self._colorcontrolfigure.set_canvas(self._fig_manager_colorctrls.canvas)
+            self._colorcontrolfigure.canvas.set_window_title('colorview2d colorbar control')
+            
 
         self.draw_plot()
         self._fig.show()
+        self._show_cbsliders()
         plt.ion()
 
 
@@ -268,6 +277,8 @@ class View(object):
         if self._plt_fig_is_active():
             plt._pylab_helpers.Gcf.destroy(self._fig_manager.num)
             delattr(self, '_fig_manager')
+            plt._pylab_helpers.Gcf.destroy(self._fig_manager_colorctrls.num)
+            delattr(self, '_fig_manager_colorctrls')
         # we delete _plot which indicates that we are not plotting
         if hasattr(self, '_plot'):
             delattr(self, '_plot')
@@ -549,13 +560,13 @@ class View(object):
         self._plot.changed()
         self._fig.tight_layout()
 
-    def show_cbsliders(self):
+    def _show_cbsliders(self):
         """Add sliders for the width and the center of the colorbar."""
         self._colorcontrolfigure.clear()
         
         axcolor = 'lightgoldenrodyellow'
-        axmax = self._colorcontrolfigure.add_axes([0.2, 0.4, 0.7, 0.1], axisbg=axcolor, axisbelow=True)
-        axmin = self._colorcontrolfigure.add_axes([0.2, 0.7, 0.7, 0.1], axisbg=axcolor, axisbelow=True)
+        axmax = self._colorcontrolfigure.add_axes([0.2, 0.4, 0.65, 0.1], axisbg=axcolor, axisbelow=True)
+        axmin = self._colorcontrolfigure.add_axes([0.2, 0.7, 0.65, 0.1], axisbg=axcolor, axisbelow=True)
 
         # If the colorbar is set to auto
         # we use zmin/zmax
