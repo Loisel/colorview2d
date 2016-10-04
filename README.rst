@@ -6,7 +6,7 @@ Use colorview2d to visualize and analize 2d data with (linear) axes.
 Features:
 ---------
 
--  Wide range of adjustable filters (mods) that can be extended easily.
+-  Wide range of adjustable filters (mods) using routines from numpy, scipy and scikit.images:
    
    -  interpolation,
    -  Gaussian and median filters,
@@ -35,11 +35,8 @@ You can use the python package index via pip
 
     sudo pip2.7 install --upgrade colorview2d
 
-or easy\_install
-
-::
-
-    sudo easy_install --upgrade colorview2d
+*Note*: If you receive a 'Could not find a version that satisfies...' error, try to
+upgrade pip, ``pip install --upgrade pip``
 
 If you are considering writing your own mods then installation into the
 userspace is preferable (access to colorview2d/mods to place the mod

@@ -1,3 +1,10 @@
+--- Version BETA 0.6.3
+
+- added documentation.
+- changed naming scheme of main modules.
+  -> now shipping colorview2d.View and colorview2d.Data
+     instead of CvFig and Datafile.
+     
 --- Version BETA 0.6.2
 
 - now python3 compatible.
