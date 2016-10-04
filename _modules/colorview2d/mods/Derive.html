@@ -42,7 +42,7 @@
             
   <h1>Source code for colorview2d.mods.Derive</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This mod performs a derivation of the datafile with respect to the y-axis.</span>
+<span class="sd">This mod performs a derivation of the data with respect to the y-axis.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -52,19 +52,19 @@
 
 <div class="viewcode-block" id="Derive"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Derive.Derive">[docs]</a><span class="k">class</span> <span class="nc">Derive</span><span class="p">(</span><span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The mod class to apply the derivative of the datafile array with respect</span>
+<span class="sd">    The mod class to apply the derivative of the data array with respect</span>
 <span class="sd">    to the y-axis.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Derive.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Derive.Derive.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafile</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
-        <span class="n">dydata</span> <span class="o">=</span> <span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span>
-        <span class="n">dydata</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="viewcode-block" id="Derive.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Derive.Derive.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
+        <span class="n">dydata</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">zdata</span>
+        <span class="n">dydata</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">zdata</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="n">dydata</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dydata</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
 
-        <span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">dydata</span></div></div>
+        <span class="n">data</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">dydata</span></div></div>
 </pre></div>
 
           </div>

@@ -45,7 +45,7 @@
 <span class="sd">Crop</span>
 <span class="sd">~~~~</span>
 
-<span class="sd">A mod to crop the datafile. The widget provides four FloatSpin controls</span>
+<span class="sd">A mod to crop the data. The widget provides four FloatSpin controls</span>
 <span class="sd">to specify the window (xleft, xright, ybottom, ytop).</span>
 <span class="sd">A button can be used to specify set the original size in the controls.</span>
 
@@ -55,7 +55,7 @@
 <div class="viewcode-block" id="Crop"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Crop.Crop">[docs]</a><span class="k">class</span> <span class="nc">Crop</span><span class="p">(</span><span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The mod class. The apply routine contains the logic for cropping</span>
-<span class="sd">    the datafile array to the new size</span>
+<span class="sd">    the data array to the new size</span>
 <span class="sd">    </span>
 <span class="sd">    :ivar args: A 4-tuple containing the corners of the cropped region.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -63,14 +63,15 @@
         <span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_args</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Crop.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Crop.Crop.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafile</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Crop.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Crop.Crop.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        To apply the mod we use the builtin crop routine of the datafile,</span>
+<span class="sd">        To apply the mod we use the builtin crop routine of the data,</span>
 <span class="sd">        a :class:`gpfile`.</span>
 
-<span class="sd">        :param datafile gpfile: The datafile.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            data (colorview2d.Data): The datafile.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">datafile</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="n">modargs</span><span class="p">)</span></div></div>
+        <span class="n">data</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="n">modargs</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

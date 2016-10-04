@@ -41,24 +41,24 @@
           <div class="body" role="main">
             
   <h1>Source code for colorview2d.mods.Flip</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;This mod flips the the datafile along x or y direction.&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;This mod flips the the data along x or y direction.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">colorview2d</span> <span class="k">import</span> <span class="n">imod</span>
 
 
 <div class="viewcode-block" id="Flip"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Flip.Flip">[docs]</a><span class="k">class</span> <span class="nc">Flip</span><span class="p">(</span><span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The mod class to flip the datafile.</span>
+<span class="sd">    The mod class to flip the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_args</span> <span class="o">=</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="p">)</span>
 
-<div class="viewcode-block" id="Flip.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Flip.Flip.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafile</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Flip.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Flip.Flip.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">modargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">modargs</span><span class="p">:</span>
-            <span class="n">datafile</span><span class="o">.</span><span class="n">flip_lr</span><span class="p">()</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">flip_lr</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">datafile</span><span class="o">.</span><span class="n">flip_ud</span><span class="p">()</span></div></div>
+            <span class="n">data</span><span class="o">.</span><span class="n">flip_ud</span><span class="p">()</span></div></div>
 
 
 </pre></div>

@@ -51,10 +51,10 @@
 <dt id="colorview2d.mods.Absolute.Absolute">
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Absolute.</code><code class="descname">Absolute</code><a class="reference internal" href="_modules/colorview2d/mods/Absolute.html#Absolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Absolute.Absolute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
-<p>The mod class to calculate the absolute value of the datafile.</p>
+<p>The mod class to calculate the absolute value of the data.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Absolute.Absolute.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Absolute.html#Absolute.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Absolute.Absolute.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Absolute.html#Absolute.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Absolute.Absolute.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replace the array by its absolute valued version.</p>
 </dd></dl>
 
@@ -65,7 +65,7 @@
 <span id="colorview2d-mods-adaptive-threshold-module"></span><h2>colorview2d.mods.Adaptive_Threshold module<a class="headerlink" href="#module-colorview2d.mods.Adaptive_Threshold" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="adaptive-threshold">
 <h3>Adaptive_Threshold<a class="headerlink" href="#adaptive-threshold" title="Permalink to this headline">¶</a></h3>
-<p>A mod to extract prominent features from the datafile.
+<p>A mod to extract prominent features from the data.
 The widget provides two FloatSpin controls
 to specify the size of the region where the peak value is compared to
 and a minimum height of a possible peak.</p>
@@ -74,7 +74,7 @@ and a minimum height of a possible peak.</p>
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Adaptive_Threshold.</code><code class="descname">Adaptive_Threshold</code><a class="reference internal" href="_modules/colorview2d/mods/Adaptive_Threshold.html#Adaptive_Threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Adaptive_Threshold.Adaptive_Threshold" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
 <p>The mod class. The apply routine contains the logic for applying
-the adaptive threshold filter to the datafile.</p>
+the adaptive threshold filter to the data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -85,7 +85,7 @@ the adaptive threshold filter to the datafile.</p>
 </table>
 <dl class="method">
 <dt id="colorview2d.mods.Adaptive_Threshold.Adaptive_Threshold.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Adaptive_Threshold.html#Adaptive_Threshold.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Adaptive_Threshold.Adaptive_Threshold.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Adaptive_Threshold.html#Adaptive_Threshold.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Adaptive_Threshold.Adaptive_Threshold.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>To apply the mod we use the adaptive threshold routine of
 the <a href="#id1"><span class="problematic" id="id2">:module:`skimage.filter`</span></a>.
 The threshold is calculated from</p>
@@ -95,7 +95,7 @@ Note that the result is a binary image with values
 0 and 1.</p>
 <dl class="docutils">
 <dt>Args</dt>
-<dd><p class="first">datafile (gpfile): The datafile.
+<dd><p class="first">data (colorview2d.Data): The data.
 modargs (tuple): First argument is the blocksize (integer), second</p>
 <blockquote class="last">
 <div>argument ist the offset for the threshold (float)</div></blockquote>
@@ -111,7 +111,7 @@ modargs (tuple): First argument is the blocksize (integer), second</p>
 <span id="colorview2d-mods-crop-module"></span><h2>colorview2d.mods.Crop module<a class="headerlink" href="#module-colorview2d.mods.Crop" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="crop">
 <h3>Crop<a class="headerlink" href="#crop" title="Permalink to this headline">¶</a></h3>
-<p>A mod to crop the datafile. The widget provides four FloatSpin controls
+<p>A mod to crop the data. The widget provides four FloatSpin controls
 to specify the window (xleft, xright, ybottom, ytop).
 A button can be used to specify set the original size in the controls.</p>
 <dl class="class">
@@ -119,7 +119,7 @@ A button can be used to specify set the original size in the controls.</p>
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Crop.</code><code class="descname">Crop</code><a class="reference internal" href="_modules/colorview2d/mods/Crop.html#Crop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Crop.Crop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
 <p>The mod class. The apply routine contains the logic for cropping
-the datafile array to the new size</p>
+the data array to the new size</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -130,14 +130,14 @@ the datafile array to the new size</p>
 </table>
 <dl class="method">
 <dt id="colorview2d.mods.Crop.Crop.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Crop.html#Crop.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Crop.Crop.do_apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>To apply the mod we use the builtin crop routine of the datafile,
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Crop.html#Crop.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Crop.Crop.do_apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>To apply the mod we use the builtin crop routine of the data,
 a <code class="xref py py-class docutils literal"><span class="pre">gpfile</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpfile</strong> (<a class="reference internal" href="colorview2d.html#colorview2d.CvFig.datafile" title="colorview2d.CvFig.datafile"><em>datafile</em></a>) &#8211; The datafile.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference internal" href="index.html#colorview2d.Data" title="colorview2d.Data"><em>colorview2d.Data</em></a>) &#8211; The datafile.</td>
 </tr>
 </tbody>
 </table>
@@ -149,16 +149,16 @@ a <code class="xref py py-class docutils literal"><span class="pre">gpfile</span
 </div>
 <div class="section" id="module-colorview2d.mods.Derive">
 <span id="colorview2d-mods-derive-module"></span><h2>colorview2d.mods.Derive module<a class="headerlink" href="#module-colorview2d.mods.Derive" title="Permalink to this headline">¶</a></h2>
-<p>This mod performs a derivation of the datafile with respect to the y-axis.</p>
+<p>This mod performs a derivation of the data with respect to the y-axis.</p>
 <dl class="class">
 <dt id="colorview2d.mods.Derive.Derive">
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Derive.</code><code class="descname">Derive</code><a class="reference internal" href="_modules/colorview2d/mods/Derive.html#Derive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Derive.Derive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
-<p>The mod class to apply the derivative of the datafile array with respect
+<p>The mod class to apply the derivative of the data array with respect
 to the y-axis.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Derive.Derive.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Derive.html#Derive.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Derive.Derive.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Derive.html#Derive.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Derive.Derive.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -166,15 +166,15 @@ to the y-axis.</p>
 </div>
 <div class="section" id="module-colorview2d.mods.Flip">
 <span id="colorview2d-mods-flip-module"></span><h2>colorview2d.mods.Flip module<a class="headerlink" href="#module-colorview2d.mods.Flip" title="Permalink to this headline">¶</a></h2>
-<p>This mod flips the the datafile along x or y direction.</p>
+<p>This mod flips the the data along x or y direction.</p>
 <dl class="class">
 <dt id="colorview2d.mods.Flip.Flip">
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Flip.</code><code class="descname">Flip</code><a class="reference internal" href="_modules/colorview2d/mods/Flip.html#Flip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Flip.Flip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
-<p>The mod class to flip the datafile.</p>
+<p>The mod class to flip the data.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Flip.Flip.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Flip.html#Flip.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Flip.Flip.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Flip.html#Flip.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Flip.Flip.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -182,18 +182,18 @@ to the y-axis.</p>
 </div>
 <div class="section" id="module-colorview2d.mods.Log">
 <span id="colorview2d-mods-log-module"></span><h2>colorview2d.mods.Log module<a class="headerlink" href="#module-colorview2d.mods.Log" title="Permalink to this headline">¶</a></h2>
-<p>This mod calculates the logarithm of the datafile.zdata array.</p>
+<p>This mod calculates the logarithm of the data.zdata array.</p>
 <dl class="class">
 <dt id="colorview2d.mods.Log.Log">
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Log.</code><code class="descname">Log</code><a class="reference internal" href="_modules/colorview2d/mods/Log.html#Log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Log.Log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
-<p>The mod class to apply the derivative of the datafile array with respect
+<p>The mod class to apply the derivative of the data array with respect
 to the y-axis.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Log.Log.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Log.html#Log.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Log.Log.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Log.html#Log.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Log.Log.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the natural logarithm of the data. Please make sure the
-datafile array does not contain negative values.</p>
+data array does not contain negative values.</p>
 </dd></dl>
 
 </dd></dl>
@@ -210,8 +210,8 @@ filter is specified by wx.lib.masked.NumCtrl widgets.</p>
 <p>Median filter class.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Median.Median.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Median.html#Median.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Median.Median.do_apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies a median filter to the datafile.</p>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Median.html#Median.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Median.Median.do_apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a median filter to the data.</p>
 </dd></dl>
 
 </dd></dl>
@@ -219,7 +219,7 @@ filter is specified by wx.lib.masked.NumCtrl widgets.</p>
 </div>
 <div class="section" id="module-colorview2d.mods.Rotate">
 <span id="colorview2d-mods-rotate-module"></span><h2>colorview2d.mods.Rotate module<a class="headerlink" href="#module-colorview2d.mods.Rotate" title="Permalink to this headline">¶</a></h2>
-<p>This mod performs a 90 deg clockwise or anti-clockwise rotation of the datafile.</p>
+<p>This mod performs a 90 deg clockwise or anti-clockwise rotation of the data.</p>
 <dl class="class">
 <dt id="colorview2d.mods.Rotate.Rotate">
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Rotate.</code><code class="descname">Rotate</code><a class="reference internal" href="_modules/colorview2d/mods/Rotate.html#Rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Rotate.Rotate" title="Permalink to this definition">¶</a></dt>
@@ -227,8 +227,8 @@ filter is specified by wx.lib.masked.NumCtrl widgets.</p>
 <p>The mod class to apply the rotation.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Rotate.Rotate.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Rotate.html#Rotate.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Rotate.Rotate.do_apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply a clockwise or anti-clockwise rotation of the datafile.</p>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>modargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Rotate.html#Rotate.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Rotate.Rotate.do_apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a clockwise or anti-clockwise rotation of the data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -250,12 +250,12 @@ otherwise counter-clockwise.</td>
 <dt id="colorview2d.mods.Scale.Scale">
 <em class="property">class </em><code class="descclassname">colorview2d.mods.Scale.</code><code class="descname">Scale</code><a class="reference internal" href="_modules/colorview2d/mods/Scale.html#Scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Scale.Scale" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
-<p>The mod class to scale the values in the 2d datafile array
+<p>The mod class to scale the values in the 2d data array
 according to the value entered in the widget:</p>
-<p>args (float): The float that is multiplied with the datafile array.</p>
+<p>args (float): The float that is multiplied with the data array.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Scale.Scale.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Scale.html#Scale.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Scale.Scale.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Scale.html#Scale.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Scale.Scale.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -271,10 +271,10 @@ filter is specified by wx.lib.masked.NumCtrl widgets.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">colorview2d.imod.IMod</span></code></p>
 <p>The modification class. Convolutes a gaussian window of size</p>
 <p>args = (xsize, ysize)</p>
-<p>with the datafile array.</p>
+<p>with the data array.</p>
 <dl class="method">
 <dt id="colorview2d.mods.Smooth.Smooth.do_apply">
-<code class="descname">do_apply</code><span class="sig-paren">(</span><em>datafile</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Smooth.html#Smooth.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Smooth.Smooth.do_apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">do_apply</code><span class="sig-paren">(</span><em>data</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/mods/Smooth.html#Smooth.do_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.mods.Smooth.Smooth.do_apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

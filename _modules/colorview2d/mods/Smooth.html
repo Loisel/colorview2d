@@ -56,14 +56,14 @@
 
 <span class="sd">    args = (xsize, ysize)</span>
 
-<span class="sd">    with the datafile array.</span>
+<span class="sd">    with the data array.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">imod</span><span class="o">.</span><span class="n">IMod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_args</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Smooth.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Smooth.Smooth.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datafile</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
-        <span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="n">datafile</span><span class="o">.</span><span class="n">zdata</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div></div>
+<div class="viewcode-block" id="Smooth.do_apply"><a class="viewcode-back" href="../../../colorview2d.mods.html#colorview2d.mods.Smooth.Smooth.do_apply">[docs]</a>    <span class="k">def</span> <span class="nf">do_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">zdata</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div></div>
 
 
 </pre></div>
