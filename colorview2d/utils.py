@@ -18,7 +18,7 @@ def resource_path(relative_path):
     return os.path.join(application_path, relative_path)
 
 class Config(yaml.YAMLObject):
-    """A class to host the configuration of the colorview2d.CvFig
+    """A class to host the configuration of the :class:`colorview2d.View`
     class.
     """
     # the default_config_file is used to initialize a valid set of parameters
@@ -57,7 +57,7 @@ class Config(yaml.YAMLObject):
 
     def on_change(self, key, value):
         """Hook to react to a change in any parameter.
-        Has to be overwritten by CvFig class.
+        Has to be overwritten by :class:`colorview2d.View` class.
 
         Note: This is intended to update the plot upon parameter changes.
         """

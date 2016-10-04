@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-The cvfig module hosts the CvFig class, the central object of cv2d.
+The view module hosts the View class, the central object of cv2d.
 """
 import logging
 import os
@@ -20,7 +20,7 @@ import colorview2d.utils as utils
 LOGGER = logging.getLogger('colorview2d')
 LOGGER.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-FHAND = logging.FileHandler('spam.log')
+FHAND = logging.FileHandler('colorview2d.log')
 FHAND.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 CHAND = logging.StreamHandler()
@@ -34,7 +34,7 @@ LOGGER.addHandler(FHAND)
 LOGGER.addHandler(CHAND)
 
 
-class CvFig(object):
+class View(object):
     """
     A class to handle a 2d :class:`numpy.ndarray` with (linearly scaled) axes, apply a (extendable)
     range of filters (mods) to the data while keeping track of the
@@ -48,7 +48,7 @@ class CvFig(object):
     ::
 
         datafile = colroview2d.Datafile(np.random.random((100, 100)))
-        fig = colorview2d.cvfig.CvFig(datafile)
+        fig = colorview2d.View(datafile)
         fig.plot_pdf('Test.pdf')
 
 
@@ -68,7 +68,7 @@ class CvFig(object):
         elif isinstance(data, Datafile):
             self.datafile = data
         else:
-            raise ValueError("Provide data or datafile to create a CvFig object.")
+            raise ValueError("Provide data or datafile to create a View object.")
         self._original_datafile = self._datafile.deep_copy()
 
         self._config = utils.Config()
@@ -117,7 +117,7 @@ class CvFig(object):
 
     @datafile.setter
     def datafile(self, datafile):
-        """Sets the :class:`colorview2d.Datafile` of the CvFig."""
+        """Sets the :class:`colorview2d.Datafile` of the View."""
         self._datafile = datafile
         self._datafile_changed()
 
@@ -148,11 +148,11 @@ class CvFig(object):
     @property
     def config(self):
         """Holds information on the plot layout, ticks, fonts etc.
-        Can be accessed via ``__setitem__``, i.e., ``cvfig.config['parameter']``.
+        Can be accessed via ``__setitem__``, i.e., ``myview.config['parameter']``.
         Also an ``config.update(dict)`` function is available.
         The attribute is initialized with a fixed set of parameters read from
         ``default.cv2d`` config file in the package directory.
-        
+
         *Important:* Does not fully implement a dictionary interface.
 
         Methods:

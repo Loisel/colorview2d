@@ -62,14 +62,14 @@ We initialize some random data with x and y ranges:
     xrange = (0., np.random.random())
     yrange = (0., np.random.random())
 
-Obtain a colorview2d.Datafile to initialize the colorview2d.CvFig
+Obtain a colorview2d.Datafile to initialize the colorview2d.View
 object:
 
 ::
 
     import colorview2d
     datafile = colorview2d.Datafile(data, (yrange, xrange))
-    cvfig = colorview2d.CvFig(datafile)
+    view = colorview2d.View(datafile)
 
 Note that the order of the ranges (y range first) is not a typo. It is
 reminiscent of the rows-first order of the 2d array.
@@ -78,21 +78,21 @@ What is the data about? We add some labels:
 
 ::
 
-    cvfig.config['Xlabel'] = 'foo (f)'
-    cvfig.config['Ylabel'] = 'bar (b)'
-    cvfig.config['Cblabel'] = 'nicyness (n)'
+    view.config['Xlabel'] = 'foo (f)'
+    view.config['Ylabel'] = 'bar (b)'
+    view.config['Cblabel'] = 'nicyness (n)'
 
 Let us have a look.
 
 ::
 
-    cvfig.show_plt_fig()
+    view.show_plt_fig()
 
 We do not like the font and the ticks labels are too small
 
 ::
 
-    cvfig.config.update({'Font': 'Ubuntu', 'Fontsize': 16})
+    view.config.update({'Font': 'Ubuntu', 'Fontsize': 16})
 
 Also, the colormap, being default matplotlib's jet, is not
 greyscale-compatible, so we change to 'Blues' (have a look at the
@@ -100,14 +100,14 @@ matplotlib documentation to get a list of colormaps).
 
 ::
 
-    cvfig.config['Colormap'] = 'Blues'
+    view.config['Colormap'] = 'Blues'
 
 Its time to plot a pdf and save the config
 
 ::
 
-    cvfig.plot_pdf('Nice_unmodified.pdf')
-    cvfig.save_config('Nice_unmodified.cv2d')
+    view.plot_pdf('Nice_unmodified.pdf')
+    view.save_config('Nice_unmodified.cv2d')
 
 *Note*: Have a look at the plain text ``Nice_unmodified.cv2d``. The
 config is just read as a dict. If you modify this file, changes get
@@ -115,11 +115,11 @@ applied accordingly upon calling ``load_config`` if you do not misspell
 parameter names or options.
 
 If you want to reuse the config next time, just use it upon
-initialization of the cvfig:
+initialization of the ``view``:
 
 ::
 
-    cvfig = cv2d.CvFig(original_datafile, cfgfile='Nice_unmodified.cv2d')
+    view = cv2d.View(original_datafile, cfgfile='Nice_unmodified.cv2d')
 
 We realize that there is some (unphysical :) noise in the data. Nicyness
 does not fluctuate so much along foo or bar and our cheap
@@ -127,14 +127,14 @@ nice-intstrument produced some additional fluctuations.
 
 ::
 
-    cvfig.add_mod('Smooth', (1, 1))
+    view.add_mod('Smooth', (1, 1))
 
 also we are interested more in the change of our nice landscape and not
 in its absolute values so we derive along the bar axis
 
 ::
 
-    cvfig.add_mod('Derive')
+    view.add_mod('Derive')
 
 Have a look at the ``mods/`` folder for other mods and documentation on
 the arguments. It is also straightforward to create your own mod there.
@@ -144,14 +144,14 @@ We are interested especially in the nicyness between 0.0 and 0.1.
 
 ::
 
-    cvfig.config.update({'Cbmin':0.0, 'Cbmax':0.1})
+    view.config.update({'Cbmin':0.0, 'Cbmax':0.1})
 
 To re-use this data later (without having to invoke colorview2d again),
 we can store the data to a gnuplot-style plain text file.
 
 ::
 
-    colorview2d.fileloaders.save_gpfile('Nice_smooth_and_derived.dat', cvfig.datafile)
+    colorview2d.fileloaders.save_gpfile('Nice_smooth_and_derived.dat', view.datafile)
 
 Extending colorview2d
 ---------------------
@@ -174,9 +174,9 @@ To save data, just use the datafile attributes, e.g.
 
 ::
 
-    my_array = my_cvfig.datafile.zdata # 2d numpy.array
-    my_x_range = my_cvfig.datafile.x_range # 1d numpy.array (left-to-right)
-    my_y_range = my_cvfig.datafile.y_range # 1d numpy.array (bottom-to-top)
+    my_array = my_view.datafile.zdata # 2d numpy.array
+    my_x_range = my_view.datafile.x_range # 1d numpy.array (left-to-right)
+    my_y_range = my_view.datafile.y_range # 1d numpy.array (bottom-to-top)
 
 mods
 ~~~~
@@ -192,6 +192,6 @@ the consistency of the data (axes bounds, dimensions). Have a look at
 the ``mods/Derive.py`` module for a *minimal* example.
 
 To see if your mod is added successfully, have a look at
-``my_cvfig.modlist``.
+``my_view.modlist``.
 
-26.9.2015, A. Dirnaichner
+4.10.2015, A. Dirnaichner

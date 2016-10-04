@@ -38,7 +38,7 @@ class IMod(object):
         This method provides a hook for do_apply which has to be
         overwritten by any mod implementation to provide some useful functionality.
         
-        ValueErrors and TypeErrors appearing in do_apply are caught and the CvFig object
+        ValueErrors and TypeErrors appearing in do_apply are caught and the View object
         is informed of the failure and deactivates the mod.
 
         Args:

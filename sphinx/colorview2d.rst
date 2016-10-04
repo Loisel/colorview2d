@@ -1,8 +1,8 @@
 
-CvFig: The colorview2d figure.
-------------------------------
+View: A colored 2d View on Data.
+--------------------------------
 
-.. autoclass:: colorview2d.CvFig
+.. autoclass:: colorview2d.View
    :members:
 
 Datafile: A container for the array and the axes bounds.
@@ -14,7 +14,7 @@ Datafile: A container for the array and the axes bounds.
        
 Configuration
 -------------
-The :class:`colorview2d.CvFig` class has a config attribute.
+The :class:`colorview2d.View` class has a config attribute.
 The parameters stored in its dictionary are
 read from ``colorview2d/default.cv2d`` config file.
 

@@ -12,7 +12,7 @@ colorview2d documentation
 This documentation is not complete. It includes only the central
 classes of colorview2d, which are
 
-- the :class:`colorview2d.CvFig` class which hosts the *pipeline*, the *datafile* and the *configuration* objects.
+- the :class:`colorview2d.View` class which hosts the *pipeline*, the *datafile* and the *configuration* objects.
 - the :class:`colorview2d.Datafile` class which hosts the 2d numpy array and the axes bounds.
 
 .. include:: ../README.rst

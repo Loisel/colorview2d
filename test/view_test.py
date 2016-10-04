@@ -1,7 +1,7 @@
-"""Test functionalities of the colorview2d.CvFig class.
+"""Test functionalities of the colorview2d.View class.
 
 In particular:
-- interactive plotting functionality and its interplay with the CvFig class.
+- interactive plotting functionality and its interplay with the View class.
 - the handling of the config dict.
 """
 
@@ -15,13 +15,13 @@ import numpy as np
 import colorview2d
 
 class PltFigTest(unittest.TestCase):
-    """Use all kind of CvFig functionality while interactive
+    """Use all kind of View functionality while interactive
     :class:`matplotlib.pyplot.Figure` is shown.
     """
 
     def setUp(self):
-        """We create a CvFig object and show it."""
-        self.fig = colorview2d.CvFig(np.random.random((100, 100)))
+        """We create a View object and show it."""
+        self.fig = colorview2d.View(np.random.random((100, 100)))
         self.fig.show_plt_fig()
 
     def tearDown(self):

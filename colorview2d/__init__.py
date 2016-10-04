@@ -19,9 +19,9 @@ Copyright (c) 2016 Alois Dirnaichner <alo.dir@gmail.com>
 __author__ = "Alois Dirnaichner <alo.dir@gmail.com"
 __license__ = "GNU GPLv3"
 __version__ = "0.6.1"
-__all__ = ["datafile", "cvfig", "fileloaders"]
+__all__ = ["datafile", "view", "fileloaders"]
 
 from colorview2d.datafile import Datafile
-from colorview2d.cvfig import CvFig
+from colorview2d.view import View
 from colorview2d.imod import IMod
 import colorview2d.fileloaders

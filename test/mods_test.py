@@ -33,7 +33,7 @@ class ModTest(unittest.TestCase):
             self.datafile = colorview2d.Datafile(
                 np.random.random((self.width, self.height)),
                 (y_range, x_range))
-            self.fig = colorview2d.CvFig(self.datafile)
+            self.fig = colorview2d.View(self.datafile)
 
     def test_add_remove_mod(self):
         """Add mod by name, remove mod by postion and by name."""
@@ -155,7 +155,7 @@ class ModFrameworkTest(unittest.TestCase):
         mod framework.
         """
 
-        fig = colorview2d.CvFig(np.random.random((10, 10)))
+        fig = colorview2d.View(np.random.random((10, 10)))
 
         self.assertTrue(fig.modlist[self.modname])
 
