@@ -9,6 +9,7 @@ and a minimum height of a possible peak.
 
 """
 import numpy as np
+import logging
 
 from colorview2d import imod
 
@@ -55,3 +56,7 @@ class Adaptive_Threshold(imod.IMod):
         # we really apply the filter
         if newZ.min() != newZ.max():
             data.zdata = newZ
+        else:
+            logging.info('Adaptive thresholding not applied, filter parameters blocksize %d'
+                         ' and offset %d not sensitive to features in the data.', modargs[0], modargs[1])
+

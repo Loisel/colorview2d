@@ -102,4 +102,30 @@ class PltFigTest(unittest.TestCase):
         raw_input("Test: cbmin of 0.2, ylabel foo, fontsize 18 (Ubuntu) and smoothing applied...")
         os.remove(filename)
 
+    def test_replace_dat(self):
+        """Replace the data while retaining all other changes."""
+
+        # let us apply thresholding and decrease the fontsize
+
+        self.fig.add_mod('Smooth', (3, 3))
+        self.fig.add_mod('Adaptive_Threshold', (20, 0.1))
+        self.fig.config['Xlabel'] = 'latitude (deg)'
+        self.fig.config['Ylabel'] = 'longitude (deg)'
+        self.fig.config['Fontsize'] = 8
+
+        self.fig._fig.show()
+        raw_input("Test: Smooth mod, Adaptive Threshold mod, xlabel latitude, ylabel longitude, "
+                  "fontsize 8 (Ubuntu).")
+
+        # now we replace the datafile
+        array = np.random.random((200, 200))
+        bounds = ((-1, -0.5), (11, 13))
+        data = colorview2d.Data(array, bounds)
+        self.fig.replace_data(data)
+
+        # and let us check again
+        self.fig._fig.show()
+        raw_input("Test: Smooth mod, Adaptive Threshold mod, xlabel latitude, ylabel longitude, "
+                  "fontsize 8 (Ubuntu).")
+
 

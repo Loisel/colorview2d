@@ -391,6 +391,20 @@ class View(object):
         """
         return self.data.zdata
 
+    def replace_data(self, newdata):
+        """Replace the data.
+
+        In contrast to calling ``myview.data = newdata``, the method replace_data
+        also replaces the copy of the *raw* data.
+
+        *Warning*: Some modifications may not be applicable to the new data.
+
+        Args:
+            newdata (:class:`colorview2d.Data`): the new data.
+        """
+        self._data = newdata
+        self._original_data = newdata.deep_copy()
+        self.apply_pipeline()
 
     def load_config(self, cfgpath):
         """Load the configuration and the pipeline from a config file
