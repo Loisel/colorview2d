@@ -9,6 +9,8 @@ import six
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.widgets import Slider, Button
+    
 
 import yaml
 
@@ -66,7 +68,7 @@ class View(object):
         if isinstance(data, np.ndarray):
             self._data = Data(data)
         elif isinstance(data, Data):
-            self.data = data
+            self._data = data
         else:
             raise ValueError("Provide a 2d numpy.ndarray or a colorview2d.Data"
                              "instance to create a View object.")
@@ -98,6 +100,7 @@ class View(object):
         # Readonly, Initialized with one pixel
         plt.ioff()
         self._fig = plt.figure(1, dpi=self._config['Dpi'])
+        self._colorcontrolfigure = plt.figure(figsize=(8, 1))
 
         # We use the property setter to add the given pipeline.
         if pipeline is not None:
@@ -137,13 +140,13 @@ class View(object):
             self._axes.set_xlim(self._data.xleft, self._data.xright)
             self._axes.set_ylim(self._data.ybottom, self._data.ytop)
 
-            if self._config['Cbmin'] == 'auto':
-                # re-setting the value triggers update of the plot
-                self._config['Cbmin'] = 'auto'
-            if self._config['Cbmax'] == 'auto':
-                # re-setting the value triggers update of the plot
-                self._config['Cbmax'] = 'auto'
-            self._plot.changed()
+            # we redraw the colorbar sliders to set the slider range correctly
+            if self._colorcontrolfigure.axes:
+                self.show_cbsliders()
+            # re-setting the value triggers update of the plot
+            self._config['Cbmin'] = self._config['Cbmin']
+            self._config['Cbmax'] = self._config['Cbmax']
+
         return
 
     @property
@@ -230,9 +233,6 @@ class View(object):
 
     def show_plt_fig(self):
         """Show the interactive :class:`matplotlib.pyplot.Figure`."""
-        self.draw_plot()
-        plt.ion()
-
         # in order to successively open and close the
         # interactive figure, we have to
         # create a dummy figure and use its
@@ -243,7 +243,11 @@ class View(object):
             self._fig_manager = dummy_fig.canvas.manager
             self._fig_manager.canvas.figure = self._fig
             self._fig.set_canvas(self._fig_manager.canvas)
-            self._fig.show()
+
+        self.draw_plot()
+        self._fig.show()
+        plt.ion()
+
 
 
     def _plt_fig_is_active(self):
@@ -463,14 +467,24 @@ class View(object):
             self._plot.set_cmap(self._config['Colormap'])
         elif key == 'Cbmin':
             if value == 'auto':
-                self._plot.set_clim(vmin=self._data.zmin)
+                cbmin = self._data.zmin
             else:
-                self._plot.set_clim(vmin=self._config['Cbmin'])
+                cbmin = self._config['Cbmin']
+
+            self._plot.set_clim(vmin=cbmin)
+            # update the slider
+            if self._colorcontrolfigure.axes:
+                self._min_slider.set_val(cbmin)
         elif key == 'Cbmax':
             if value == 'auto':
-                self._plot.set_clim(vmax=self._data.zmax)
+                cbmax = self._data.zmax
             else:
-                self._plot.set_clim(vmax=self._config['Cbmax'])
+                cbmax = self._config['Cbmax']
+
+            self._plot.set_clim(vmax=cbmax)
+            # update the slider
+            if self._colorcontrolfigure.axes:
+                self._max_slider.set_val(cbmax)
 
         if key in ['Colormap', 'Cbmin', 'Cbmax']:
             self._plot.changed()
@@ -535,7 +549,61 @@ class View(object):
         self._plot.changed()
         self._fig.tight_layout()
 
+    def show_cbsliders(self):
+        """Add sliders for the width and the center of the colorbar."""
+        self._colorcontrolfigure.clear()
+        
+        axcolor = 'lightgoldenrodyellow'
+        axmax = self._colorcontrolfigure.add_axes([0.2, 0.4, 0.7, 0.1], axisbg=axcolor, axisbelow=True)
+        axmin = self._colorcontrolfigure.add_axes([0.2, 0.7, 0.7, 0.1], axisbg=axcolor, axisbelow=True)
 
+        # If the colorbar is set to auto
+        # we use zmin/zmax
+        if self.config['Cbmax'] == 'auto':
+            cbmax = self.data.zmax
+        else:
+            cbmax = self.config['Cbmax']
+        if self.config['Cbmin'] == 'auto':
+            cbmin = self.data.zmin
+        else:
+            cbmin = self.config['Cbmin']
+            
+        self._max_slider = Slider(axmax,
+                            label='Colorbar max',
+                            valmin=self.data.zmin,
+                            valmax=self.data.zmax,
+                            valinit=cbmax,
+                            valfmt='%.3e')
+        self._min_slider = Slider(axmin,
+                            label='Colorbar min',
+                            valmin=self.data.zmin,
+                            valmax=self.data.zmax,
+                            valfmt='%.3e',
+                            valinit=cbmin)
+        self._max_slider.slidermin = self._min_slider
+        self._min_slider.slidermax = self._max_slider
+
+        def update(val):
+            # in order to avoid an infinite recursion we have to
+            # do the setup of the colorbar limits manually
+            # (set_val is called by _on_config_change)
+            self._plot.set_clim(self._min_slider.val, self._max_slider.val)
+            self.config.update_raw({'Cbmax': self._max_slider.val, 'Cbmin': self._min_slider.val})
+            self._fig.show()
+
+        self._max_slider.on_changed(update)
+        self._min_slider.on_changed(update)
+
+        resetax = self._colorcontrolfigure.add_axes([0.2, 0.1, 0.1, 0.18])
+        self._colorcontrolfigure._button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
+
+        def reset(event):
+            self.config.update({'Cbmax': 'auto', 'Cbmin': 'auto'})
+        self._colorcontrolfigure._button.on_clicked(reset)
+
+        self._colorcontrolfigure.show()
+
+        
     def _apply_config_post_plot(self):
         """
         The function applies the rest of the configuration to the plot.

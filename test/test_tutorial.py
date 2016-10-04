@@ -18,12 +18,3 @@ view.add_mod('Smooth', (3, 3))
 view.add_mod('Derive')
 view.config.update({'Cbmin':0.0, 'Cbmax':0.1})
 colorview2d.fileloaders.save_gpfile('Nice_smooth_and_derived.dat', view.data)
-import matplotlib.pyplot as plt
-fig = plt.figure()
-axes = fig.add_subplot(111)
-axes.set_xlabel(view.config['Xlabel'])
-axes.set_ylabel(view.config['Cblabel'])
-linetraces = view.data.extract_xlinetrace_series(0.04, 0.08, 0.005, 0.02, 0.06)
-for trace in linetraces[:-1]:
-    axes.plot(linetraces[-1], trace)
-fig.show()
