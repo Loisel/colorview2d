@@ -52,6 +52,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">colorview2d</span> <span class="k">import</span> <span class="n">imod</span>
 
@@ -97,7 +98,11 @@
         <span class="c1"># Only if the array contains at least two different values</span>
         <span class="c1"># we really apply the filter</span>
         <span class="k">if</span> <span class="n">newZ</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">!=</span> <span class="n">newZ</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
-            <span class="n">data</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">newZ</span></div></div>
+            <span class="n">data</span><span class="o">.</span><span class="n">zdata</span> <span class="o">=</span> <span class="n">newZ</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adaptive thresholding not applied, filter parameters blocksize </span><span class="si">%d</span><span class="s1">&#39;</span>
+                         <span class="s1">&#39; and offset </span><span class="si">%d</span><span class="s1"> not sensitive to features in the data.&#39;</span><span class="p">,</span> <span class="n">modargs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">modargs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div></div>
+
 </pre></div>
 
           </div>

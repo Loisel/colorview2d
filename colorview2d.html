@@ -199,6 +199,23 @@ The main panel is signalled to update the color controls.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="colorview2d.View.replace_data">
+<code class="descname">replace_data</code><span class="sig-paren">(</span><em>newdata</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/view.html#View.replace_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.View.replace_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace the data.</p>
+<p>In contrast to calling <code class="docutils literal"><span class="pre">myview.data</span> <span class="pre">=</span> <span class="pre">newdata</span></code>, the method replace_data
+also replaces the copy of the <em>raw</em> data.</p>
+<p><em>Warning</em>: Some modifications may not be applicable to the new data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>newdata</strong> (<a class="reference internal" href="index.html#colorview2d.Data" title="colorview2d.Data"><code class="xref py py-class docutils literal"><span class="pre">colorview2d.Data</span></code></a>) &#8211; the new data.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="colorview2d.View.load_config">
 <code class="descname">load_config</code><span class="sig-paren">(</span><em>cfgpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/view.html#View.load_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.View.load_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the configuration and the pipeline from a config file
