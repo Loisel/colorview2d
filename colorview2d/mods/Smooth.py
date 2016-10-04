@@ -13,13 +13,13 @@ class Smooth(imod.IMod):
 
     args = (xsize, ysize)
 
-    with the datafile array.
+    with the data array.
     """
     def __init__(self):
         imod.IMod.__init__(self)
         self.default_args = (0., 0.)
 
-    def do_apply(self, datafile, args):
-        datafile.zdata = gaussian_filter(datafile.zdata, args)
+    def do_apply(self, data, args):
+        data.zdata = gaussian_filter(data.zdata, args)
 
 

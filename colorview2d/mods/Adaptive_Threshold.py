@@ -2,7 +2,7 @@
 Adaptive_Threshold
 ~~~~~~~~~~~~~~~~~~
 
-A mod to extract prominent features from the datafile.
+A mod to extract prominent features from the data.
 The widget provides two FloatSpin controls
 to specify the size of the region where the peak value is compared to
 and a minimum height of a possible peak.
@@ -19,7 +19,7 @@ from skimage import img_as_float
 class Adaptive_Threshold(imod.IMod):
     """
     The mod class. The apply routine contains the logic for applying
-    the adaptive threshold filter to the datafile.
+    the adaptive threshold filter to the data.
     
     :ivar args: A tuple containing the blocksize and the offset.
     """
@@ -27,7 +27,7 @@ class Adaptive_Threshold(imod.IMod):
         imod.IMod.__init__(self)
         self.default_args = (2.,0.)
 
-    def do_apply(self, datafile, modargs):
+    def do_apply(self, data, modargs):
         """
         To apply the mod we use the adaptive threshold routine of
         the :module:`skimage.filter`.
@@ -40,7 +40,7 @@ class Adaptive_Threshold(imod.IMod):
         0 and 1.
 
         Args
-            datafile (gpfile): The datafile.
+            data (colorview2d.Data): The data.
             modargs (tuple): First argument is the blocksize (integer), second
                              argument ist the offset for the threshold (float)
         """
@@ -49,9 +49,9 @@ class Adaptive_Threshold(imod.IMod):
             return (1 + modargs[1]) * arr.mean()
         
         newZ = img_as_float(
-            threshold_adaptive(np.abs(datafile.zdata), modargs[0], method='generic', param=func))
+            threshold_adaptive(np.abs(data.zdata), modargs[0], method='generic', param=func))
         
         # Only if the array contains at least two different values
         # we really apply the filter
         if newZ.min() != newZ.max():
-            datafile.zdata = newZ
+            data.zdata = newZ

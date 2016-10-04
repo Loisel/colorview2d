@@ -2,7 +2,7 @@
 Crop
 ~~~~
 
-A mod to crop the datafile. The widget provides four FloatSpin controls
+A mod to crop the data. The widget provides four FloatSpin controls
 to specify the window (xleft, xright, ybottom, ytop).
 A button can be used to specify set the original size in the controls.
 
@@ -12,7 +12,7 @@ from colorview2d import imod
 class Crop(imod.IMod):
     """
     The mod class. The apply routine contains the logic for cropping
-    the datafile array to the new size
+    the data array to the new size
     
     :ivar args: A 4-tuple containing the corners of the cropped region.
     """
@@ -20,11 +20,12 @@ class Crop(imod.IMod):
         imod.IMod.__init__(self)
         self.default_args = (0., 0., 0., 0.)
 
-    def do_apply(self, datafile, modargs):
+    def do_apply(self, data, modargs):
         """
-        To apply the mod we use the builtin crop routine of the datafile,
+        To apply the mod we use the builtin crop routine of the data,
         a :class:`gpfile`.
 
-        :param datafile gpfile: The datafile.
+        Args:
+            data (colorview2d.Data): The datafile.
         """
-        datafile.crop(modargs)
+        data.crop(modargs)

@@ -12,7 +12,7 @@ from matplotlib.ticker import FormatStrFormatter
 
 import yaml
 
-from colorview2d import Datafile
+from colorview2d import Data
 import colorview2d.utils as utils
 
 # setup logging
@@ -36,7 +36,7 @@ LOGGER.addHandler(CHAND)
 
 class View(object):
     """
-    A class to handle a 2d :class:`numpy.ndarray` with (linearly scaled) axes, apply a (extendable)
+    A class to handle a 2d :class:`numpy.ndarray` with (linearly scaled) _axes, apply a (extendable)
     range of filters (mods) to the data while keeping track of the
     modifications.
 
@@ -47,8 +47,8 @@ class View(object):
     
     ::
 
-        datafile = colroview2d.Datafile(np.random.random((100, 100)))
-        fig = colorview2d.View(datafile)
+        data = colroview2d.Data(np.random.random((100, 100)))
+        fig = colorview2d.View(data)
         fig.plot_pdf('Test.pdf')
 
 
@@ -61,15 +61,16 @@ class View(object):
         self._modlist = {}
         self._create_modlist()
 
-        self._datafile = None
+        self._data = None
         
         if isinstance(data, np.ndarray):
-            self._datafile = Datafile(data)
-        elif isinstance(data, Datafile):
-            self.datafile = data
+            self._data = Data(data)
+        elif isinstance(data, Data):
+            self.data = data
         else:
-            raise ValueError("Provide data or datafile to create a View object.")
-        self._original_datafile = self._datafile.deep_copy()
+            raise ValueError("Provide a 2d numpy.ndarray or a colorview2d.Data"
+                             "instance to create a View object.")
+        self._original_data = self._data.deep_copy()
 
         self._config = utils.Config()
         # overwrite the on_change hook of the Config class.
@@ -111,30 +112,30 @@ class View(object):
         return self._modlist
 
     @property
-    def datafile(self):
-        """A :class:`colorview2d.Datafile`. It encapsulates the 2d data."""
-        return self._datafile
+    def data(self):
+        """A :class:`colorview2d.Data`. It encapsulates the 2d data."""
+        return self._data
 
-    @datafile.setter
-    def datafile(self, datafile):
-        """Sets the :class:`colorview2d.Datafile` of the View."""
-        self._datafile = datafile
-        self._datafile_changed()
+    @data.setter
+    def data(self, data):
+        """Sets the :class:`colorview2d.Data` of the View."""
+        self._data = data
+        self._data_changed()
 
 
-    def _datafile_changed(self):
-        """Called when the datafile is modified.
+    def _data_changed(self):
+        """Called when the data is modified.
         
         Takes care to update any exiting plotting facilities.
         Is called internally after mod application.
         """
 
         if self.plotting:
-            self._plot.set_data(self._datafile.zdata)
-            self._plot.set_extent([self._datafile.xleft, self._datafile.xright,
-                                   self._datafile.ybottom, self._datafile.ytop])
-            self.axes.set_xlim(self._datafile.xleft, self._datafile.xright)
-            self.axes.set_ylim(self._datafile.ybottom, self._datafile.ytop)
+            self._plot.set_data(self._data.zdata)
+            self._plot.set_extent([self._data.xleft, self._data.xright,
+                                   self._data.ybottom, self._data.ytop])
+            self._axes.set_xlim(self._data.xleft, self._data.xright)
+            self._axes.set_ylim(self._data.ybottom, self._data.ytop)
 
             if self._config['Cbmin'] == 'auto':
                 # re-setting the value triggers update of the plot
@@ -193,7 +194,7 @@ class View(object):
     @pipeline.setter
     def pipeline(self, pipeline):
         """Overwrite the pipeline string. Note that this is used for initialization
-        and does not trigger any modifications to the datafile.
+        and does not trigger any modifications to the data.
 
         Args:
             pipeline (list): A list of strings that are valid mod identifiers.
@@ -303,7 +304,7 @@ class View(object):
             modname (string): The type of the mod.
             modargs (tuple): A tuple containing the arguments of the mod.
             pos (int): Where to add the mod in the pipeline. Default is last.
-            do_apply (boolean): Trigger modification of the datafile (True) or just add
+            do_apply (boolean): Trigger modification of the data (True) or just add
                 mod to the pipeline.
         """
 
@@ -352,43 +353,43 @@ class View(object):
             self.apply_pipeline()
 
     def apply_pipeline(self):
-        """Applies the pipeline to the datafile.
+        """Applies the pipeline to the data.
 
         It is normally not necessary to manually call this function unless
         the pipeline string is not overwritten directly.
 
-        The datafile is first reverted to its original state,
+        The data is first reverted to its original state,
         then mods are applied in the order they were added.
-        The plot panel is notified of the update in the datafile.
+        The plot panel is notified of the update in the data.
         The main panel is signalled to update the color controls.
         """
 
-        self._datafile = self._original_datafile.deep_copy()
+        self._data = self._original_data.deep_copy()
 
         for pos, modtuple in enumerate(self._pipeline):
             mod = self._modlist[modtuple[0]]
             if mod:
                 # if apply returns false, the application failed and the
                 # mod is removed from the pipeline
-                if not mod.apply(self._datafile, modtuple[1]):
+                if not mod.apply(self._data, modtuple[1]):
                     logging.warning(
                         'Application of mod %s at position %d failed.'
                         'Removing mod from pipeline.',
                         mod.title,
                         pos)
                     self.remove_mod(pos)
-                self._datafile_changed()
+                self._data_changed()
             else:
                 logging.warning('No mod candidate found for %s.', modtuple[0])
 
 
     def get_arraydata(self):
-        """Shortcut for the 2d data contained int the datafile.
+        """Shortcut for the 2d data contained int the data.
 
         Returns:
             2d numpy.ndarray
         """
-        return self.datafile.zdata
+        return self.data.zdata
 
 
     def load_config(self, cfgpath):
@@ -448,12 +449,12 @@ class View(object):
             self._plot.set_cmap(self._config['Colormap'])
         elif key == 'Cbmin':
             if value == 'auto':
-                self._plot.set_clim(vmin=self._datafile.zmin)
+                self._plot.set_clim(vmin=self._data.zmin)
             else:
                 self._plot.set_clim(vmin=self._config['Cbmin'])
         elif key == 'Cbmax':
             if value == 'auto':
-                self._plot.set_clim(vmax=self._datafile.zmax)
+                self._plot.set_clim(vmax=self._data.zmax)
             else:
                 self._plot.set_clim(vmax=self._config['Cbmax'])
 
@@ -484,21 +485,21 @@ class View(object):
         """(Re-)draw the :class:`matplotlib.pyplot.figure`.
 
         This method is intended to be used directly when you are only interested
-        in the figure object itself which can be obtained by ``myfig.fig`` attribute.
+        in the figure object itself which can be obtained by ``myview.fig`` attribute.
 
         It includes an axes object containing the (imshow generated)
         2d color plot with labels, ticks and colorbar as specified in the
         config dictionary.
         """
         self._fig.clear()
-        self.axes = self._fig.add_subplot(111)
+        self._axes = self._fig.add_subplot(111)
         self._apply_config_pre_plot()
 
-        self._plot = self.axes.imshow(self.get_arraydata(),
-            extent=[self.datafile.xleft,
-                    self.datafile.xright,
-                    self.datafile.ybottom,
-                    self.datafile.ytop],
+        self._plot = self._axes.imshow(self.get_arraydata(),
+            extent=[self.data.xleft,
+                    self.data.xright,
+                    self.data.ybottom,
+                    self.data.ytop],
             aspect='auto',
             origin='lower',
             interpolation="nearest")
@@ -527,14 +528,14 @@ class View(object):
         Note that the colorbar is created in this function because
         colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter(string)) does not work properly.
         """
-        self.axes.set_ylabel(self._config['Ylabel'])
-        self.axes.set_xlabel(self._config['Xlabel'])
+        self._axes.set_ylabel(self._config['Ylabel'])
+        self._axes.set_xlabel(self._config['Xlabel'])
 
         self.colorbar.set_label(self._config['Cblabel'])
         if not self._config['Xtickformat'] == 'auto':
-            self.axes.xaxis.set_major_formatter(FormatStrFormatter(self._config['Xtickformat']))
+            self._axes.xaxis.set_major_formatter(FormatStrFormatter(self._config['Xtickformat']))
         if not self._config['Ytickformat'] == 'auto':
-            self.axes.yaxis.set_major_formatter(FormatStrFormatter(self._config['Ytickformat']))
+            self._axes.yaxis.set_major_formatter(FormatStrFormatter(self._config['Ytickformat']))
         self._plot.set_cmap(self._config['Colormap'])
 
 

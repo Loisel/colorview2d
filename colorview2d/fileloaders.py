@@ -1,16 +1,16 @@
 """
 File loader module.
-Load and saves files of different format to and from a datafile object.
+Load and saves files of different format to and from a data object.
 
-To create a datafile object, we have to specify the 2d array
+To create a data object, we have to specify the 2d array
 and the axes. The calling signature is
 
-df = colorview2d.datafile(Array, Ranges)
+df = colorview2d.data(Array, Ranges)
 
 The specification of the ranges is optional.
 
-A fileloader load_* method creates and returns a datafile object.
-A fileloader save_* method creates a file from a datafile object.
+A fileloader load_* method creates and returns a data object.
+A fileloader save_* method creates a file from a data object.
 """
 
 import numpy as np
@@ -84,16 +84,16 @@ def load_gpfile(path, columns=None):
     xleft, xright = (data[0, 0], data[-1, 0])
     # the first and the last line of the first block in the second column define the y-range
     ybottom, ytop = (data[0, 1], data[bsize-1, 1])
-    return colorview2d.Datafile(zdata, ((ybottom, ytop), (xleft, xright)))
+    return colorview2d.Data(zdata, ((ybottom, ytop), (xleft, xright)))
 
 
-def save_gpfile(fname, datafile, comment=""):
+def save_gpfile(fname, data, comment=""):
     """
-    Saves a datafile to a file with filename in the gnuplot format.
+    Saves a data to a file with filename in the gnuplot format.
 
     Args:
         fname (string): The filename of the ASCII file to contain the data.
-        datafile (colorview2d.Datafile): The datafile containing the data.
+        data (colorview2d.Data): The data.
         comment (string): A comment on the data.
     """
 
@@ -101,12 +101,12 @@ def save_gpfile(fname, datafile, comment=""):
 
     fh.write(comment + "\n")
 
-    for i in range(datafile.xwidth):
+    for i in range(data.xwidth):
         np.savetxt(
             fh, np.vstack(
-                (datafile.x_range[i] * np.ones(datafile.ywidth),
-                 datafile.y_range,
-                 datafile.zdata[:, i])).T)
+                (data.x_range[i] * np.ones(data.ywidth),
+                 data.y_range,
+                 data.zdata[:, i])).T)
         fh.write("\n")
 
     fh.close()

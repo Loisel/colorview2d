@@ -1,5 +1,5 @@
 """
-This mod performs a 90 deg clockwise or anti-clockwise rotation of the datafile.
+This mod performs a 90 deg clockwise or anti-clockwise rotation of the data.
 """
 from colorview2d import imod
 
@@ -14,14 +14,14 @@ class Rotate(imod.IMod):
         imod.IMod.__init__(self)
         self.args = self.default_args = True
 
-    def do_apply(self, datafile, modargs):
-        """Apply a clockwise or anti-clockwise rotation of the datafile.
+    def do_apply(self, data, modargs):
+        """Apply a clockwise or anti-clockwise rotation of the data.
 
         Args:
             modargs (tuple): Supply a boolean value, if True, rotate clockwise.
                 otherwise counter-clockwise.
         """
         if modargs:
-            datafile.rotate_cw()
+            data.rotate_cw()
         else:
-            datafile.rotate_ccw()
+            data.rotate_ccw()

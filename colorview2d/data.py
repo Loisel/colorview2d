@@ -1,8 +1,8 @@
 #!/bin/python
 """
-A module to handle 3D datafiles with axes.
+A module to handle 3D data with axes.
 
-A datafile consists of a 2d array and x and y axes.
+colorview2d.Data consists of a 2d array and x and y axes.
 The class provides methods to rotate, flipp, copy and save
 the datafile.
 
@@ -11,7 +11,7 @@ Example
 -------
 ::
 
-    file = Datafile(np.random.random(100, 100))
+    file = Data(np.random.random(100, 100))
     file.rotate_cw()
     file.report()
     file.save('newdata.dat')
@@ -23,18 +23,19 @@ import copy
 import logging
 import numpy as np
 
-class Datafile(object):
+class Data(object):
     """
-    A data file object.
+    ``Data`` hosts, well, the data and its axes.
 
-    Provide a 2d array of data. The ranges on x and y axis can be specified.
-    If they are not, the ranges are enumerating the number of rows and columns,
-    respectively.
+    Data is stored in a 2d :class:`numpy-ndarray`.
+    For the axes, only the bounds are stored. We assume linear scaling of the axes.
+    If no bounds are specified, we use ``(0, n)`` as boundaries, ``n``
+    being the number of rows and columns, respectively.
 
     """
 
     def __init__(self, data, range_bounds=None):
-        """Initialize a datafile object.
+        """Initialize a data object.
 
         Args:
             data (numpy.array): the two-dimensional array holding the data.
@@ -139,8 +140,8 @@ class Datafile(object):
     def zdata(self, data):
         """Set a new 2d :class:`numpy.ndarray`."""
         assert isinstance(data, np.ndarray), \
-            'Not a numpy array. Please provide a numpy array for datafile creation.'
-        assert len(data.shape) == 2, 'Provide a two-dimensional array for datafile creation.'
+            'Not a numpy array. Please provide a numpy array for Data creation.'
+        assert len(data.shape) == 2, 'Provide a two-dimensional array for Data creation.'
         self._zdata = data
 
     @property
@@ -181,7 +182,7 @@ class Datafile(object):
 
     def report(self):
         """
-        Print a datafile report to the standart output.
+        Print a data report to the standart output.
         """
 
         print(
@@ -193,10 +194,10 @@ class Datafile(object):
 
     def deep_copy(self):
         """
-        Deep copy the datafile object and return the copy.
+        Deep copy the :class:`colorview2d.Data` object and return the copy.
 
         Returns:
-            A copy of the :class:`Colorview2d.Datafile` instance.
+            A copy of the :class:`Colorview2d.Data` instance.
         """
 
         tmp = copy.deepcopy(self)
@@ -207,7 +208,7 @@ class Datafile(object):
 
     def rotate_cw(self):
         """
-        Rotate the datafile clockwise. The axes are updated as well.
+        Rotate the data clockwise. The axes are updated as well.
         """
         self.zdata = np.rot90(self._zdata, k=1)
         old_xrange_boundaries = self._xrange_bounds
@@ -218,7 +219,7 @@ class Datafile(object):
 
     def rotate_ccw(self):
         """
-        Rotate the datafile counter-clockwise. The axes are updated as well.
+        Rotate the data counter-clockwise. The axes are updated as well.
         """
         self.zdata = np.rot90(self._zdata, k=3)
         old_xrange_boundaries = self._xrange_bounds
@@ -229,7 +230,7 @@ class Datafile(object):
 
     def flip_lr(self):
         """
-        Flip the left and the right side of the datafile. The axes are updated as well.
+        Flip the left and the right side of the data. The axes are updated as well.
         """
         self.zdata = np.fliplr(self._zdata)
         self._xrange_bounds = self._xrange_bounds[::-1]
@@ -237,7 +238,7 @@ class Datafile(object):
 
     def flip_ud(self):
         """
-        Flip the up and the down side of the datafile. The axes are updated as well.
+        Flip the up and the down side of the data. The axes are updated as well.
         """
         self.zdata = np.flipud(self._zdata)
         self._yrange_bounds = self._yrange_bounds[::-1]
@@ -269,7 +270,7 @@ class Datafile(object):
 
     def crop(self, boundaries):
         """
-        Crop the datafile to a subset of the array specifiying the corners of the subset in
+        Crop the data to a subset of the array specifiying the corners of the subset in
         units of the axes ranges.
 
         Args:

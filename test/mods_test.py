@@ -30,10 +30,10 @@ class ModTest(unittest.TestCase):
             y_range = (0., np.random.random())
             print("figsize ({0}, {1})".format(self.width, self.height))
 
-            self.datafile = colorview2d.Datafile(
+            self.data = colorview2d.Data(
                 np.random.random((self.width, self.height)),
                 (y_range, x_range))
-            self.fig = colorview2d.View(self.datafile)
+            self.fig = colorview2d.View(self.data)
 
     def test_add_remove_mod(self):
         """Add mod by name, remove mod by postion and by name."""
@@ -60,14 +60,14 @@ class ModTest(unittest.TestCase):
 
     def test_crop(self):
         """Test of the crop mod."""
-        diff_width = np.random.random() * self.fig.datafile.xmax
-        diff_height = np.random.random() * self.fig.datafile.ymax
+        diff_width = np.random.random() * self.fig.data.xmax
+        diff_height = np.random.random() * self.fig.data.ymax
 
         left_edge = np.random.random() * diff_width
-        right_edge = self.fig.datafile.xmax - (diff_width - left_edge)
+        right_edge = self.fig.data.xmax - (diff_width - left_edge)
 
         bottom_edge = np.random.random() * diff_height
-        top_edge = self.fig.datafile.ymax - (diff_height - bottom_edge)
+        top_edge = self.fig.data.ymax - (diff_height - bottom_edge)
 
         self.fig.add_mod('Crop', (bottom_edge, top_edge, left_edge, right_edge))
 
@@ -103,7 +103,7 @@ class ModTest(unittest.TestCase):
     def test_adaptiveThreshold(self):
         """Test of the adaptive_threshold mod."""
         blocksize = np.random.randint(1, min(self.width, self.height)) // 2
-        max_threshold = self.fig.datafile.zmax / np.mean(self.fig.datafile.zdata)
+        max_threshold = self.fig.data.zmax / np.mean(self.fig.data.zdata)
         threshold = np.random.randint(0, max_threshold)
 
         self.fig.add_mod('Adaptive_Threshold', (blocksize, threshold))
@@ -141,7 +141,7 @@ class ModFrameworkTest(unittest.TestCase):
         with open(self.modpath, 'w+') as fh:
             fh.write('import colorview2d\n'
                      'class %s(colorview2d.IMod):\n'
-                     '    def do_apply(self, datafile, modargs):\n'
+                     '    def do_apply(self, data, modargs):\n'
                      '        print("do something to the modfile")\n' % self.modname)
     def tearDown(self):
         os.remove(self.modpath)

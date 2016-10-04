@@ -33,7 +33,7 @@ class IMod(object):
         logging.info('Mod %s is initialized.' % self.title)
 
         
-    def apply(self, datafile, modargs):
+    def apply(self, data, modargs):
         """
         This method provides a hook for do_apply which has to be
         overwritten by any mod implementation to provide some useful functionality.
@@ -42,18 +42,18 @@ class IMod(object):
         is informed of the failure and deactivates the mod.
 
         Args:
-            datafile (colorview2d.Datafile): A datafile object.
+            data (colorview2d.Data): A data object.
             modargs (tuple): the arguments required to apply the mod.
         """
 
         if 'do_apply' not in dir(self):
-            logging.warning('Mod %s has not implemented the do_apply method.' % self.title)
+            logging.warning('Mod %s has not implemented the do_apply method.', self.title)
         else:
             try:
-                self.do_apply(datafile, modargs)
-                if len(datafile.zdata.shape) != 2:
+                self.do_apply(data, modargs)
+                if len(data.zdata.shape) != 2:
                     logging.warn(
-                        'Mod %s failed. The mod changed the dimensionality of the datafile.zdata array.',
+                        'Mod %s failed. The mod changed the dimensionality of the data.zdata array.',
                         self.title)
                     return False
                 return True
@@ -71,9 +71,9 @@ class IMod(object):
                 return False
             except MemoryError:
                 logging.warn(
-                    'Mod %s failed. Not enough memory. Try different parameters. Args: %s' % (self.title, modargs))
+                    'Mod %s failed. Not enough memory. Try different parameters. Args: %s', self.title, modargs)
                 return False
-                
+
 
 
 

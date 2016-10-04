@@ -5,10 +5,10 @@ View: A colored 2d View on Data.
 .. autoclass:: colorview2d.View
    :members:
 
-Datafile: A container for the array and the axes bounds.
+Data: A container for the array and the axes bounds.
 --------------------------------------------------------
 
-.. autoclass:: colorview2d.Datafile
+.. autoclass:: colorview2d.Data
     :members:
 
        

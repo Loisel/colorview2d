@@ -14,6 +14,6 @@ class Median(imod.IMod):
         imod.IMod.__init__(self)
         self.default_args = (0., 0.)
 
-    def do_apply(self, datafile, modargs):
-        """ Applies a median filter to the datafile."""
-        datafile.zdata = median_filter(datafile.zdata, size=modargs)
+    def do_apply(self, data, modargs):
+        """ Applies a median filter to the data."""
+        data.zdata = median_filter(data.zdata, size=modargs)

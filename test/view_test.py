@@ -55,16 +55,16 @@ class PltFigTest(unittest.TestCase):
         # Derive
         self.fig.add_mod('Derive')
         # Crop
-        self.fig.add_mod('Crop', (np.random.randint(self.fig.datafile.ywidth),
-                                  self.fig.datafile.ywidth,
-                                  np.random.randint(self.fig.datafile.xwidth),
-                                  self.fig.datafile.xwidth))
+        self.fig.add_mod('Crop', (np.random.randint(self.fig.data.ywidth),
+                                  self.fig.data.ywidth,
+                                  np.random.randint(self.fig.data.xwidth),
+                                  self.fig.data.xwidth))
         # Smooth
         self.fig.add_mod('Smooth', (1., 1.))
         
         # is the window there?
         self.fig._fig.show()
-        raw_input("A cropped datafile, with smooth and derive...")
+        raw_input("A cropped data, with smooth and derive...")
  
     def test_config(self):
         """Modify the config by different ways to test the ConfigDict class."""

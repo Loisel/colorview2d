@@ -1,20 +1,20 @@
-"""This mod flips the the datafile along x or y direction."""
+"""This mod flips the the data along x or y direction."""
 
 from colorview2d import imod
 
 
 class Flip(imod.IMod):
     """
-    The mod class to flip the datafile.
+    The mod class to flip the data.
     """
     def __init__(self):
         imod.IMod.__init__(self)
         self.default_args = (True, )
 
-    def do_apply(self, datafile, modargs):
+    def do_apply(self, data, modargs):
         if modargs:
-            datafile.flip_lr()
+            data.flip_lr()
         else:
-            datafile.flip_ud()
+            data.flip_ud()
 
 

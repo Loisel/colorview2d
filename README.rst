@@ -62,14 +62,14 @@ We initialize some random data with x and y ranges:
     xrange = (0., np.random.random())
     yrange = (0., np.random.random())
 
-Obtain a colorview2d.Datafile to initialize the colorview2d.View
+Obtain a :class:`colorview2d.Data` instance to initialize the :class:`colorview2d.View`
 object:
 
 ::
 
     import colorview2d
-    datafile = colorview2d.Datafile(data, (yrange, xrange))
-    view = colorview2d.View(datafile)
+    data = colorview2d.Data(data, (yrange, xrange))
+    view = colorview2d.View(data)
 
 Note that the order of the ranges (y range first) is not a typo. It is
 reminiscent of the rows-first order of the 2d array.
@@ -119,7 +119,7 @@ initialization of the ``view``:
 
 ::
 
-    view = cv2d.View(original_datafile, cfgfile='Nice_unmodified.cv2d')
+    view = cv2d.View(original_data, cfgfile='Nice_unmodified.cv2d')
 
 We realize that there is some (unphysical :) noise in the data. Nicyness
 does not fluctuate so much along foo or bar and our cheap
@@ -151,7 +151,7 @@ we can store the data to a gnuplot-style plain text file.
 
 ::
 
-    colorview2d.fileloaders.save_gpfile('Nice_smooth_and_derived.dat', view.datafile)
+    colorview2d.fileloaders.save_gpfile('Nice_smooth_and_derived.dat', view.data)
 
 Extending colorview2d
 ---------------------
@@ -159,33 +159,33 @@ Extending colorview2d
 fileloaders
 ~~~~~~~~~~~
 
-Have a look at the :class:`colorview2d.Datafile` definition in the datafile
-module. To create a ``Datafile`` we have to provide the 2d array and the
+Have a look at the :class:`colorview2d.Data` definition in the :module:`colorview2d.data`
+module. To create ``Data`` we have to provide the 2d array and the
 bounds of the y and x ranges.
 
 ::
 
-    datafile = colorview2d.Datafile(
+    data = colorview2d.Data(
         array,
         ((bottom_on_y_axis, top_on_y_axis),
         (left_on_x_axis, right_on_x_axis)))
 
-To save data, just use the datafile attributes, e.g.
+To save data, just use the ``Data`` attributes, e.g.
 
 ::
 
-    my_array = my_view.datafile.zdata # 2d numpy.array
-    my_x_range = my_view.datafile.x_range # 1d numpy.array (left-to-right)
-    my_y_range = my_view.datafile.y_range # 1d numpy.array (bottom-to-top)
+    my_array = my_view.data.zdata # 2d numpy.array
+    my_x_range = my_view.data.x_range # 1d numpy.array (left-to-right)
+    my_y_range = my_view.data.y_range # 1d numpy.array (bottom-to-top)
 
 mods
 ~~~~
 
-If you want to apply your own modifications to the datafile, just put a
+If you want to apply your own modifications to the ``data``, just put a
 module inside the ``colorview2d/mods`` directory (or package, if you
 wish). The module should contain a class which inherits from
 :class:`colorview2d.IMod` and implements the method
-``do_apply(self, datafile, modargs)``.
+``do_apply(self, data, modargs)``.
 
 You can modifiy the datafile freely, there is no error-checking done on
 the consistency of the data (axes bounds, dimensions). Have a look at
