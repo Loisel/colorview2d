@@ -67,7 +67,7 @@ classes of colorview2d, which are</p>
 <div class="section" id="features">
 <h2>Features:<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Wide range of adjustable filters (mods) that can be extended easily.<ul>
+<li>Wide range of adjustable filters (mods) using routines from numpy, scipy and scikit.images:<ul>
 <li>interpolation,</li>
 <li>Gaussian and median filters,</li>
 <li>scale, rotate, flip, crop</li>
@@ -94,10 +94,8 @@ convenient plot configuration.<ul>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip2</span><span class="o">.</span><span class="mi">7</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">colorview2d</span>
 </pre></div>
 </div>
-<p>or easy_install</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">easy_install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">colorview2d</span>
-</pre></div>
-</div>
+<p><em>Note</em>: If you receive a &#8216;Could not find a version that satisfies...&#8217; error, try to
+upgrade pip, <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pip</span></code></p>
 <p>If you are considering writing your own mods then installation into the
 userspace is preferable (access to colorview2d/mods to place the mod
 file).</p>
