@@ -359,6 +359,7 @@ class View(object):
                 if modtuple[0] == modtype:
                     self._pipeline.remove(modtuple)
                     found = True
+                    break
             if not found:
                 logging.warn('Mod %s not in current pipeline.', modtype)
         else:
@@ -473,28 +474,17 @@ class View(object):
         # When there is no plot we do not care at the moment.
         if not self.plotting:
             return
-            
+
+        # For all changes to the colorbar we just have to call _plot.changed()
+        # to redraw
         if key == 'Colormap':
             self._plot.set_cmap(self._config['Colormap'])
-        elif key == 'Cbmin':
-            if value == 'auto':
-                cbmin = self._data.zmin
-            else:
-                cbmin = self._config['Cbmin']
-
-            self._plot.set_clim(vmin=cbmin)
+        elif key in ['Cbmin', 'Cbmax']:
+            (cbmin, cbmax) = self._get_cblims()
+            self._plot.set_clim(vmin=cbmin, vmax=cbmax)
             # update the slider
             if self._colorcontrolfigure.axes:
                 self._min_slider.set_val(cbmin)
-        elif key == 'Cbmax':
-            if value == 'auto':
-                cbmax = self._data.zmax
-            else:
-                cbmax = self._config['Cbmax']
-
-            self._plot.set_clim(vmax=cbmax)
-            # update the slider
-            if self._colorcontrolfigure.axes:
                 self._max_slider.set_val(cbmax)
 
         if key in ['Colormap', 'Cbmin', 'Cbmax']:
@@ -563,34 +553,28 @@ class View(object):
     def _show_cbsliders(self):
         """Add sliders for the width and the center of the colorbar."""
         self._colorcontrolfigure.clear()
-        
-        axcolor = 'lightgoldenrodyellow'
-        axmax = self._colorcontrolfigure.add_axes([0.2, 0.4, 0.65, 0.1], axisbg=axcolor, axisbelow=True)
-        axmin = self._colorcontrolfigure.add_axes([0.2, 0.7, 0.65, 0.1], axisbg=axcolor, axisbelow=True)
 
-        # If the colorbar is set to auto
-        # we use zmin/zmax
-        if self.config['Cbmax'] == 'auto':
-            cbmax = self.data.zmax
-        else:
-            cbmax = self.config['Cbmax']
-        if self.config['Cbmin'] == 'auto':
-            cbmin = self.data.zmin
-        else:
-            cbmin = self.config['Cbmin']
-            
+        axcolor = 'lightgoldenrodyellow'
+        axmax = self._colorcontrolfigure.add_axes([0.2, 0.4, 0.65, 0.1],
+                                                  axisbg=axcolor,
+                                                  axisbelow=True)
+        axmin = self._colorcontrolfigure.add_axes([0.2, 0.7, 0.65, 0.1],
+                                                  axisbg=axcolor,
+                                                  axisbelow=True)
+        (cbmin, cbmax) = self._get_cblims()
+
         self._max_slider = Slider(axmax,
-                            label='Colorbar max',
-                            valmin=self.data.zmin,
-                            valmax=self.data.zmax,
-                            valinit=cbmax,
-                            valfmt='%.3e')
+                                  label='Colorbar max',
+                                  valmin=self.data.zmin,
+                                  valmax=self.data.zmax,
+                                  valinit=cbmax,
+                                  valfmt='%.3e')
         self._min_slider = Slider(axmin,
-                            label='Colorbar min',
-                            valmin=self.data.zmin,
-                            valmax=self.data.zmax,
-                            valfmt='%.3e',
-                            valinit=cbmin)
+                                  label='Colorbar min',
+                                  valmin=self.data.zmin,
+                                  valmax=self.data.zmax,
+                                  valfmt='%.3e',
+                                  valinit=cbmin)
         self._max_slider.slidermin = self._min_slider
         self._min_slider.slidermax = self._max_slider
 
@@ -613,6 +597,26 @@ class View(object):
         self._colorcontrolfigure._button.on_clicked(reset)
 
         self._colorcontrolfigure.show()
+
+    def _get_cblims(self):
+        """Obtain the colorbar limits from the config and resolves the 'auto'
+        case to zmin/zmax value.
+
+        This is intended to be used in the actual plotting routines and the colorbar controls 
+        that do not accept 'auto'.
+        """
+        # If the colorbar is set to auto
+        # we use zmin/zmax
+        if self.config['Cbmax'] == 'auto':
+            cbmax = self.data.zmax
+        else:
+            cbmax = self.config['Cbmax']
+        if self.config['Cbmin'] == 'auto':
+            cbmin = self.data.zmin
+        else:
+            cbmin = self.config['Cbmin']
+
+        return (cbmin, cbmax)
 
         
     def _apply_config_post_plot(self):
