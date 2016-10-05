@@ -308,8 +308,20 @@ class View(object):
                 error = sys.exc_info()[0]
                 logging.error('Can not import mod %s.', modname)
                 logging.error('Error: %s.', error)
-        # import ipdb;ipdb.set_trace()
+        # Now let us export functions of the form add_Modname and rm_Modname
+        # to the namespace of the View class
+        for modtitle in self._modlist:
+            def addme(args=()):
+                self.add_mod(modtitle, args)
+            addme.__name__ = "add_%s" % modtitle
+            addme.__doc__ = self._modlist[modtitle].do_apply.__doc__
+            setattr(self, addme.__name__, addme)
 
+            def removeme():
+                self.remove_mod(modtitle)
+            removeme.__name__ = "rm_%s" % modtitle
+            removeme.__doc__ = "Remove mod %s from pipeline." % modtitle
+            setattr(self, removeme.__name__, removeme)
 
     def add_mod(self, modname, modargs=(), pos=-1, do_apply=True):
         """Add a mod to the pipeline by its title string and its arguments either
