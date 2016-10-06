@@ -52,6 +52,34 @@ class ModTest(unittest.TestCase):
 
         self.assertFalse('Smooth' in [mod[0] for mod in self.fig.pipeline])
 
+    def test_call_signature(self):
+        """Test the fancy call signature to add_mod(modname, modargs),
+        add_modname(*modargs)."""
+
+        # test a mod without arguments
+        self.fig.add_Derive()
+
+        # test two mods with one argument
+        self.fig.add_Flip(True)
+        self.fig.add_Scale(4.5)
+
+        # test mod with two arguments
+        self.fig.add_Smooth(3, 3)
+
+        # test crop
+        crop_bounds = (
+            random.choice(self.fig.data.y_range),
+            self.fig.data.ytop,
+            random.choice(self.fig.data.x_range),
+            self.fig.data.xright)
+        self.fig.add_Crop(*crop_bounds)
+
+        # check the pipeline
+        self.assertEqual(self.fig.pipeline, [('Derive', ()),
+                                             ('Flip', (True,)),
+                                             ('Scale', (4.5,)),
+                                             ('Smooth', (3, 3)),
+                                             ('Crop', crop_bounds)])
 
 
     def test_derive(self):
@@ -115,6 +143,7 @@ class ModTest(unittest.TestCase):
         testarray = dir(self)
         testarray.remove('test_multiple')
         testarray.remove('test_add_remove_mod')
+        testarray.remove('test_call_signature')
         testarray = [testname for testname in testarray if 'test_' in testname]
 
         testsequence = np.random.randint(0, len(testarray) - 1, 5)
