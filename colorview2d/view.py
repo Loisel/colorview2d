@@ -144,8 +144,8 @@ class View(object):
             if self._colorcontrolfigure.axes:
                 self._show_cbsliders()
             # re-setting the value triggers update of the plot
-            self._config['Cbmin'] = self._config['Cbmin']
-            self._config['Cbmax'] = self._config['Cbmax']
+            self._config['Cbmin'] = 'auto'
+            self._config['Cbmax'] = 'auto'
 
         return
 
@@ -310,19 +310,23 @@ class View(object):
                 logging.error('Error: %s.', error)
         # Now let us export functions of the form add_Modname and rm_Modname
         # to the namespace of the View class
-        
-        for modtitle in self._modlist:
-            def addme(args=(), modtitle=modtitle):
+
+        def add_func_signatures(modtitle):
+            def addme(*args):
                 self.add_mod(modtitle, args)
             addme.__name__ = "add_%s" % modtitle
             addme.__doc__ = self._modlist[modtitle].do_apply.__doc__
             setattr(self, addme.__name__, addme)
 
-            def removeme(modtitle=modtitle):
+            def removeme():
                 self.remove_mod(modtitle)
             removeme.__name__ = "rm_%s" % modtitle
             removeme.__doc__ = "Remove mod %s from pipeline." % modtitle
             setattr(self, removeme.__name__, removeme)
+            
+        
+        for modtitle in self._modlist:
+            add_func_signatures(modtitle)
 
     def add_mod(self, modname, modargs=(), pos=-1, do_apply=True):
         """Add a mod to the pipeline by its title string and its arguments either
@@ -407,9 +411,10 @@ class View(object):
                         mod.title,
                         pos)
                     self.remove_mod(pos)
-                self._data_changed()
             else:
                 logging.warning('No mod candidate found for %s.', modtuple[0])
+
+        self._data_changed()
 
 
     def get_arraydata(self):
