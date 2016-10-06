@@ -42,15 +42,21 @@ class View(object):
     range of filters (mods) to the data while keeping track of the
     modifications.
 
-    Hosts a :class:`matplotlib.pyplot.Figure`. Customization of this figure
+    Hosts a :class:`matplotlib.pyplot.Figure` of the data. Customization of this figure
     is simplified with respect to the matplotlib library.
+    Provides interactive colorbar controls.
+
+    *Note*: The class provides methods ``add_<Modname>(arg1, ...)`` and ``rm_<Modname>()``
+    that are not documented because they are generated on-init. There is one such method
+    for each mod in ``modlist``.
 
     :Example:
-    
+
     ::
 
         data = colroview2d.Data(np.random.random((100, 100)))
         fig = colorview2d.View(data)
+        fig.add_Smooth(2, 2)
         fig.plot_pdf('Test.pdf')
 
 
@@ -232,7 +238,12 @@ class View(object):
     #     self.mainapp.MainLoop()
 
     def show_plt_fig(self):
-        """Show the interactive :class:`matplotlib.pyplot.Figure`."""
+        """Show two interactive :class:`matplotlib.pyplot.Figure` plots.
+        The first displays the data with config and pipeline applied.
+        The second provides two matplotlib slider widgets to control
+        the limits of the colorbar interactively and a *Reset* button
+        to apply the default (full-range) colorbar limits.
+        """
         # in order to successively open and close the
         # interactive figure, we have to
         # create a dummy figure and use its

@@ -6,6 +6,7 @@ Use colorview2d to visualize and analize 2d data with (linear) axes.
 Features:
 ---------
 
+-  Interactive colorbar adjustment.
 -  Wide range of adjustable filters (mods) using routines from numpy, scipy and scikit.images:
    
    -  interpolation,

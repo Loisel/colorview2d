@@ -1,3 +1,9 @@
+--- Version BETA 0.6.4
+
+- added a colorbar control widget.
+- added new calling signatures for View.add_mod('<Modname>', args), i.e., View.add_<Modname>(*args).
+- View.rm_<Modname> works the same way.
+
 --- Version BETA 0.6.3
 
 - added documentation.
