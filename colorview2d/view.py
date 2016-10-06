@@ -106,7 +106,7 @@ class View(object):
         if pipeline is not None:
             self.pipeline = pipeline
 
-        self.apply_pipeline()
+        self._apply_pipeline()
 
 
     @property
@@ -354,7 +354,7 @@ class View(object):
             logging.warn('Mod %s not available in mod plugin list.', modname)
 
         if do_apply:
-            self.apply_pipeline()
+            self._apply_pipeline()
 
     def remove_mod(self, modtype=None, pos=-1, do_apply=True):
         """Removes the last mod from the pipeline, or the mod at position pos
@@ -383,9 +383,14 @@ class View(object):
                 logging.warn('Pos = %d is not a valid position.', pos)
 
         if do_apply:
-            self.apply_pipeline()
+            self._apply_pipeline()
 
-    def apply_pipeline(self):
+    def clear_pipeline(self):
+        """Clear the pipeline and update the plot."""
+        self._pipeline = []
+        self._apply_pipeline()
+
+    def _apply_pipeline(self):
         """Applies the pipeline to the data.
 
         It is normally not necessary to manually call this function unless
@@ -438,7 +443,7 @@ class View(object):
         """
         self._data = newdata
         self._original_data = newdata.deep_copy()
-        self.apply_pipeline()
+        self._apply_pipeline()
 
     def load_config(self, cfgpath):
         """Load the configuration and the pipeline from a config file
