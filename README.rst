@@ -85,6 +85,10 @@ Let us have a look.
 
     view.show_plt_fig()
 
+You should see two figures opening, one containing the plot, the
+other two simple matplotlib slider widgets to control the colorbar
+interactively.
+
 We do not like the font and the ticks labels are too small
 
 ::
@@ -124,14 +128,17 @@ nice-intstrument produced some additional fluctuations.
 
 ::
 
-    view.add_mod('Smooth', (1, 1))
+    view.add_Smooth(1, 1)
 
-also we are interested more in the change of our nice landscape and not
+This call is a shortcut to ``view.add_mod('Smooth', (1, 1))``.
+Note that all mods found in the ``colorview2d/mods`` folder can be called
+by ``add_<Modname>(arg1, arg2, ...)``.
+Now we are interested more in the change of our nice landscape and not
 in its absolute values so we derive along the bar axis
 
 ::
 
-    view.add_mod('Derive')
+    view.add_Derive()
 
 Have a look at the ``mods/`` folder for other mods and documentation on
 the arguments. It is also straightforward to create your own mod there.
@@ -142,6 +149,9 @@ We are interested especially in the nicyness between 0.0 and 0.1.
 ::
 
     view.config.update({'Cbmin':0.0, 'Cbmax':0.1})
+
+Alternatively, just use the slider in the second matplotlib figure to control the colorbar
+limits.
 
 To re-use this data later (without having to invoke colorview2d again),
 we can store the data to a gnuplot-style plain text file.
@@ -180,15 +190,26 @@ mods
 
 If you want to apply your own modifications to the ``data``, just put a
 module inside the ``colorview2d/mods`` directory (or package, if you
-wish). The module should contain a class which inherits from
+wish). The module should contain a class
+(with the class name becoming the name of the mod)
+which inherits from
 :class:`colorview2d.IMod` and implements the method
 ``do_apply(self, data, modargs)``.
 
-You can modifiy the datafile freely, there is no error-checking done on
+This method is also the right place to document your mods usage, i.e., the
+required arguments. The docstring of ``<Modname>.do_apply``, where ``<Modname>`` is the class's name,
+is displayed when you call
+
+::
+
+   help(view.add_<Modname>())
+
+In ``do_apply(self, data, modargs)`` you can modifiy the datafile freely,
+there is no error-checking done on
 the consistency of the data (axes bounds, dimensions). Have a look at
 the ``mods/Derive.py`` module for a *minimal* example.
 
 To see if your mod is added successfully, have a look at
 ``my_view.modlist``.
 
-4.10.2015, A. Dirnaichner
+6.10.2015, A. Dirnaichner
