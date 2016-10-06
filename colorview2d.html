@@ -49,6 +49,9 @@ range of filters (mods) to the data while keeping track of the
 modifications.</p>
 <p>Hosts a <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.Figure</span></code>. Customization of this figure
 is simplified with respect to the matplotlib library.</p>
+<p><em>Note</em>: The class provides methods <code class="docutils literal"><span class="pre">add_&lt;Modname&gt;(arg1,</span> <span class="pre">...)</span></code> and <code class="docutils literal"><span class="pre">rm_&lt;Modname&gt;()</span></code>
+that are not documented because they are generated on-init. There is one such method
+for each mod in <code class="docutils literal"><span class="pre">modlist</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -59,6 +62,7 @@ is simplified with respect to the matplotlib library.</p>
 </table>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">colroview2d</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)))</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">colorview2d</span><span class="o">.</span><span class="n">View</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">add_Smooth</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">plot_pdf</span><span class="p">(</span><span class="s1">&#39;Test.pdf&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -121,7 +125,11 @@ existing plot.</p>
 <dl class="method">
 <dt id="colorview2d.View.show_plt_fig">
 <code class="descname">show_plt_fig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/view.html#View.show_plt_fig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.View.show_plt_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show the interactive <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.Figure</span></code>.</p>
+<dd><p>Show two interactive <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.Figure</span></code> plots.
+The first displays the data with config and pipeline applied.
+The second provides two matplotlib slider widgets to control
+the limits of the colorbar interactively and a <em>Reset</em> button
+to apply the default (full-range) colorbar limits.</p>
 </dd></dl>
 
 <dl class="method">
@@ -173,15 +181,9 @@ or the last mod in the pipeline with the type modtype.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="colorview2d.View.apply_pipeline">
-<code class="descname">apply_pipeline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/view.html#View.apply_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.View.apply_pipeline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies the pipeline to the data.</p>
-<p>It is normally not necessary to manually call this function unless
-the pipeline string is not overwritten directly.</p>
-<p>The data is first reverted to its original state,
-then mods are applied in the order they were added.
-The plot panel is notified of the update in the data.
-The main panel is signalled to update the color controls.</p>
+<dt id="colorview2d.View.clear_pipeline">
+<code class="descname">clear_pipeline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/colorview2d/view.html#View.clear_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#colorview2d.View.clear_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the pipeline and update the plot.</p>
 </dd></dl>
 
 <dl class="method">
