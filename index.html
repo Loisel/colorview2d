@@ -67,6 +67,7 @@ classes of colorview2d, which are</p>
 <div class="section" id="features">
 <h2>Features:<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
+<li>Interactive colorbar adjustment.</li>
 <li>Wide range of adjustable filters (mods) using routines from numpy, scipy and scikit.images:<ul>
 <li>interpolation,</li>
 <li>Gaussian and median filters,</li>
@@ -243,8 +244,9 @@ the <code class="docutils literal"><span class="pre">mods/Derive.py</span></code
 <dd><p>A class to handle a 2d <code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code> with (linearly scaled) _axes, apply a (extendable)
 range of filters (mods) to the data while keeping track of the
 modifications.</p>
-<p>Hosts a <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.Figure</span></code>. Customization of this figure
-is simplified with respect to the matplotlib library.</p>
+<p>Hosts a <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.Figure</span></code> of the data. Customization of this figure
+is simplified with respect to the matplotlib library.
+Provides interactive colorbar controls.</p>
 <p><em>Note</em>: The class provides methods <code class="docutils literal"><span class="pre">add_&lt;Modname&gt;(arg1,</span> <span class="pre">...)</span></code> and <code class="docutils literal"><span class="pre">rm_&lt;Modname&gt;()</span></code>
 that are not documented because they are generated on-init. There is one such method
 for each mod in <code class="docutils literal"><span class="pre">modlist</span></code>.</p>
