@@ -50,14 +50,31 @@ modifications.</p>
 <p>Hosts a <code class="xref py py-class docutils literal"><span class="pre">matplotlib.pyplot.Figure</span></code> of the data. Customization of this figure
 is simplified with respect to the matplotlib library.
 Provides interactive colorbar controls.</p>
-<p><em>Note</em>: The class provides methods <code class="docutils literal"><span class="pre">add_&lt;Modname&gt;(arg1,</span> <span class="pre">...)</span></code> and <code class="docutils literal"><span class="pre">rm_&lt;Modname&gt;()</span></code>
-that are not documented because they are generated on-init. There is one such method
-for each mod in <code class="docutils literal"><span class="pre">modlist</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name" colspan="2">Undocumented methods:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first">The class provides methods that are not documented
+because they are generated on-init.</p>
+<ul>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">add_&lt;Modname&gt;(arg1,</span> <span class="pre">...)</span></code> and <code class="docutils literal"><span class="pre">rm_&lt;Modname&gt;()</span></code>.</dt>
+<dd><p class="first last">There is one such method for each mod in <code class="docutils literal"><span class="pre">modlist</span></code>.
+This simplfies calls <code class="docutils literal"><span class="pre">add_mod(&lt;Modname&gt;,</span> <span class="pre">(arg1,</span> <span class="pre">...))</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">set_&lt;Parametername&gt;(Parameter)</span></code> as shortcut to</dt>
+<dd><p class="first last"><code class="docutils literal"><span class="pre">View.config[&lt;Parametername&gt;]</span> <span class="pre">=</span> <span class="pre">Parameter</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Example:</th><td class="field-body"></td>
 </tr>
 </tbody>
 </table>
@@ -83,7 +100,8 @@ for each mod in <code class="docutils literal"><span class="pre">modlist</span><
 <dt id="colorview2d.View.config">
 <code class="descname">config</code><a class="headerlink" href="#colorview2d.View.config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Holds information on the plot layout, ticks, fonts etc.
-Can be accessed via <code class="docutils literal"><span class="pre">__setitem__</span></code>, i.e., <code class="docutils literal"><span class="pre">myview.config['parameter']</span></code>.
+Can be accessed via <code class="docutils literal"><span class="pre">myview.set_&lt;Parametername&gt;(&lt;Parameter&gt;)</span></code> and
+in a dict-like fashion <code class="docutils literal"><span class="pre">myview.config['Parametername']</span> <span class="pre">=</span> <span class="pre">&lt;Parameter&gt;</span></code>.
 Also an <code class="docutils literal"><span class="pre">config.update(dict)</span></code> function is available.
 The attribute is initialized with a fixed set of parameters read from
 <code class="docutils literal"><span class="pre">default.cv2d</span></code> config file in the package directory.</p>
