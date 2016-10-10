@@ -26,7 +26,7 @@ FHAND = logging.FileHandler('colorview2d.log')
 FHAND.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 CHAND = logging.StreamHandler()
-CHAND.setLevel(logging.ERROR)
+CHAND.setLevel(logging.WARN)
 # create formatter and add it to the handlers
 FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 FHAND.setFormatter(FORMATTER)
@@ -46,9 +46,17 @@ class View(object):
     is simplified with respect to the matplotlib library.
     Provides interactive colorbar controls.
 
-    *Note*: The class provides methods ``add_<Modname>(arg1, ...)`` and ``rm_<Modname>()``
-    that are not documented because they are generated on-init. There is one such method
-    for each mod in ``modlist``.
+    :Undocumented methods:
+
+        The class provides methods that are not documented
+        because they are generated on-init.
+
+        - ``add_<Modname>(arg1, ...)`` and ``rm_<Modname>()``.
+            There is one such method for each mod in ``modlist``.
+            This simplfies calls ``add_mod(<Modname>, (arg1, ...))``.
+        - ``set_<Parametername>(Parameter)`` as shortcut to
+            ``View.config[<Parametername>] = Parameter``.
+
 
     :Example:
 
@@ -114,6 +122,9 @@ class View(object):
 
         self._apply_pipeline()
 
+        # generate the config setters
+        self._generate_config_setter()
+
 
     @property
     def modlist(self):
@@ -158,7 +169,8 @@ class View(object):
     @property
     def config(self):
         """Holds information on the plot layout, ticks, fonts etc.
-        Can be accessed via ``__setitem__``, i.e., ``myview.config['parameter']``.
+        Can be accessed via ``myview.set_<Parametername>(<Parameter>)`` and
+        in a dict-like fashion ``myview.config['Parametername'] = <Parameter>``.
         Also an ``config.update(dict)`` function is available.
         The attribute is initialized with a fixed set of parameters read from
         ``default.cv2d`` config file in the package directory.
@@ -236,6 +248,29 @@ class View(object):
     #     logging.info("Initializing the GUI.")
     #     self.mainapp = mainapp.MainApp(self)
     #     self.mainapp.MainLoop()
+
+    def _generate_config_setter(self):
+        """Add a simplified interface to changing config values.
+
+        This interface makes it possible to change config values using
+        ``view.set_<config-parameter>(parameter)``.
+        """
+        def add_method_signature(parameter):
+            """Add set_<parameter> as a method signature to View class."""
+            def setme(args):
+                self.config[parameter] = args
+            setme.__name__ = "set_%s" % parameter
+            setme.__doc__ = "Set the parameter %s in the configuration." % parameter
+            setattr(self, setme.__name__, setme)
+            # def getme(*args):
+            #     return self.config[parameter]
+            # getme.__name__ = "get_%s" % parameter
+            # getme.__doc__ = "Get the parameter %s from the configuration." % parameter
+            # setattr(self, getme.__name__, getme)
+
+        for parameter in self._config.dict:
+            add_method_signature(parameter)
+
 
     def show_plt_fig(self):
         """Show two interactive :class:`matplotlib.pyplot.Figure` plots.
