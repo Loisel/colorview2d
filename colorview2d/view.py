@@ -589,7 +589,13 @@ class View(object):
         2d color plot with labels, ticks and colorbar as specified in the
         config dictionary.
         """
+        # clean the stage
         self._fig.clear()
+        # for attr in ['_axes', '_plot', '_colorbar']:
+        #     if hasattr(self, attr):
+        #         delattr(self, attr)
+
+        # populate the stage
         self._axes = self._fig.add_subplot(111)
         self._apply_config_pre_plot()
 
@@ -603,11 +609,11 @@ class View(object):
             interpolation="nearest")
 
         if not self._config['Cbtickformat'] == 'auto':
-            self.colorbar = self._fig.colorbar(
+            self._colorbar = self._fig.colorbar(
                 self._plot,
                 format=FormatStrFormatter(self._config['Cbtickformat']))
         else:
-            self.colorbar = self._fig.colorbar(self._plot)
+            self._colorbar = self._fig.colorbar(self._plot)
 
         # we set the correct colorbar settings
         # this call seems redundant but invokes the update
@@ -697,7 +703,7 @@ class View(object):
         self._axes.set_ylabel(self._config['Ylabel'])
         self._axes.set_xlabel(self._config['Xlabel'])
 
-        self.colorbar.set_label(self._config['Cblabel'])
+        self._colorbar.set_label(self._config['Cblabel'])
         if not self._config['Xtickformat'] == 'auto':
             self._axes.xaxis.set_major_formatter(FormatStrFormatter(self._config['Xtickformat']))
         if not self._config['Ytickformat'] == 'auto':
@@ -714,10 +720,10 @@ class View(object):
         attribute can not be changed after the plot is drawn.
         """
 
-        logging.info("Font now {}".format(self._config['Font']))
+        logging.info("Font now %s", self._config['Font'])
 
-        if self._config['Font'] is 'default':
-            plt.rcParams.update(plt.rcParamsDefault)
+        if self._config['Font'] == 'default':
+            plt.rcdefaults()
         else:
             plt.rcParams['font.family'] = self._config['Font']
         plt.rcParams['font.size'] = self._config['Fontsize']
