@@ -1,3 +1,9 @@
+--- Version BETA 0.6.5
+
+- added simplified interface to set config options: set_<Parametername>(<Parameter>).
+- bugfixes.
+- Changed licence to new BSD-2 style.
+
 --- Version BETA 0.6.4
 
 - added a colorbar control widget.
