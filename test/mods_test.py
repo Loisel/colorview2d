@@ -176,7 +176,7 @@ class ModFrameworkTest(unittest.TestCase):
         os.remove(self.modpath)
         try:
             os.remove(self.modpath + 'c')
-        except FileNotFoundError:
+        except IOError:
             pass
 
     def test_add_find_mod(self):

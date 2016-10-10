@@ -21,6 +21,7 @@ class PltFigTest(unittest.TestCase):
 
     def setUp(self):
         """We create a View object and show it."""
+
         self.fig = colorview2d.View(np.random.random((100, 100)))
         self.fig.show_plt_fig()
 
@@ -51,7 +52,6 @@ class PltFigTest(unittest.TestCase):
 
     def test_mods(self):
         """Select some random mod tests and run them."""
-
         # Derive
         self.fig.add_mod('Derive')
         # Crop
@@ -78,17 +78,29 @@ class PltFigTest(unittest.TestCase):
         self.assertEqual(my_Ylabel, self.fig._fig.axes[0].get_ylabel())
 
         # Now something more advanced: Font style and size
-        self.fig.config = {'Font': 'Ubuntu', 'Fontsize': 18}
+        my_Fonstsize = 18
+        my_Font = 'Ubuntu'
+        self.fig.config = {'Font': my_Font, 'Fontsize': my_Fonstsize}
 
         # Check again
         self.assertEqual(my_Cbmin, self.fig._plot.get_clim()[0])
         self.assertEqual(my_Ylabel, self.fig._fig.axes[0].get_ylabel())
-        
+
+        # Use the set_Parametername shortcut
+        my_Cblabel = 'New colorbarlabel'
+        self.fig.set_Cblabel(my_Cblabel)
+
         # This can only be checked graphically
         # Let us have a look:
 
         self.fig._fig.show()
-        raw_input("We should notice a colorbar minimum of 0.2, ylabel foo and fontsize 18 in Ubuntu...")
+        raw_input("We should notice a colorbar minimum of {}, ylabel {}, "
+                  "cblabel {} and fontsize {} in {}...".format(
+                      my_Cbmin,
+                      my_Ylabel,
+                      my_Cblabel,
+                      my_Fonstsize,
+                      my_Font))
 
         # add a mod to test the pipeline dump
         self.fig.add_mod('Smooth', (1, 1))
@@ -112,6 +124,7 @@ class PltFigTest(unittest.TestCase):
         self.fig.config['Xlabel'] = 'latitude (deg)'
         self.fig.config['Ylabel'] = 'longitude (deg)'
         self.fig.config['Fontsize'] = 8
+        self.fig.set_Font('Ubuntu')
 
         self.fig._fig.show()
         raw_input("Test: Smooth mod, Adaptive Threshold mod, xlabel latitude, ylabel longitude, "
