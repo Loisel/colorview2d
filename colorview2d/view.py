@@ -289,13 +289,13 @@ class View(object):
             self._fig_manager = dummy_fig.canvas.manager
             self._fig_manager.canvas.figure = self._fig
             self._fig.set_canvas(self._fig_manager.canvas)
-            self._fig.canvas.set_window_title('colorview2d plot')
+            self._fig.canvas.manager.set_window_title('colorview2d plot')
 
             dummy_fig_colorctrls = plt.figure(figsize=(9, 1))
             self._fig_manager_colorctrls = dummy_fig_colorctrls.canvas.manager
             self._fig_manager_colorctrls.canvas.figure = self._colorcontrolfigure
             self._colorcontrolfigure.set_canvas(self._fig_manager_colorctrls.canvas)
-            self._colorcontrolfigure.canvas.set_window_title('colorview2d colorbar control')
+            self._colorcontrolfigure.canvas.manager.set_window_title('colorview2d colorbar control')
             
 
         self.draw_plot()
@@ -631,10 +631,10 @@ class View(object):
 
         axcolor = 'lightgoldenrodyellow'
         axmax = self._colorcontrolfigure.add_axes([0.2, 0.4, 0.65, 0.1],
-                                                  axisbg=axcolor,
+                                                  facecolor=axcolor,
                                                   axisbelow=True)
         axmin = self._colorcontrolfigure.add_axes([0.2, 0.7, 0.65, 0.1],
-                                                  axisbg=axcolor,
+                                                  facecolor=axcolor,
                                                   axisbelow=True)
         (cbmin, cbmax) = self._get_cblims()
 

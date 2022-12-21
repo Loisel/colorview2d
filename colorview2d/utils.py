@@ -22,15 +22,13 @@ class Config(yaml.YAMLObject):
     class.
     """
     # the default_config_file is used to initialize a valid set of parameters
-    _default_config_file_path = resource_path('default.cv2d')
     yaml_tag = u'!Config'
     def __init__(self, *args, **kwargs):
         """Read the default config file and update it with any given arguments.
         """
+        self._default_config_file_path = resource_path('default.cv2d')
         with open(self._default_config_file_path) as cfgfile:
-            doclist = yaml.load_all(cfgfile)
-            # The config dict is the first yaml document
-            self._dict = dict(six.advance_iterator(doclist))
+            self._dict = yaml.load(cfgfile, Loader=yaml.SafeLoader)
 
 
         self.update(*args, **kwargs)
